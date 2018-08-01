@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Dummy")]
+[assembly: AssemblyTitle("Haven-Editor.Voltex-Win32")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Dummy")]
+[assembly: AssemblyProduct("Haven-Editor.Voltex-Win32")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("29334ff0-2109-45ab-a75a-4e61efe19c95")]
+[assembly: Guid("acec14bd-5722-42c0-b507-0d7bb37b6256")]
 
 // Version information for an assembly consists of the following four values:
 //

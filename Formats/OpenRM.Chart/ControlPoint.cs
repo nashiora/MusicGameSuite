@@ -1,0 +1,151 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace OpenRM
+{
+    public sealed class ControlPoint : ILinkable<ControlPoint>, IComparable<ControlPoint>, ICloneable
+    {
+        [Flags]
+        public enum Property : byte
+        {
+            None = 0,
+
+            BeatsPerMinute = 0x1,
+            TimeSignature = 0x2,
+
+            Timing = BeatsPerMinute | TimeSignature,
+
+            All = Timing,
+        }
+        
+        private tick_t m_position;
+        private time_t m_calcPosition = (time_t)long.MinValue;
+
+        private double m_bpm = 120;
+        private time_t m_qnDuration = time_t.FromSeconds(60.0 / 120);
+        private int m_num = 4, m_denom = 4;
+
+        public tick_t Position
+        {
+            get => m_position;
+            set
+            {
+                if (value < 0)
+                    throw new ArgumentException("Control points cannot have negative positions.", nameof(Position));
+
+                m_position = value;
+
+                Chart?.InvalidateTimeCalc();
+                Chart?.ControlPoints.Resort();
+            }
+        }
+
+        public int Numerator
+        {
+            get => m_num;
+            set
+            {
+                if (value == m_num)
+                    return;
+                m_num = value;
+                Chart?.InvalidateTimeCalc();
+            }
+        }
+
+        public int Denominator
+        {
+            get => m_denom;
+            set
+            {
+                if (value == m_denom)
+                    return;
+                m_denom = value;
+                Chart?.InvalidateTimeCalc();
+            }
+        }
+
+        public time_t AbsolutePosition
+        {
+            get
+            {
+                if (Chart == null)
+                    throw new InvalidOperationException("Cannot calculate the absolute position of a control point without an assigned Chart.");
+
+                if (m_calcPosition == (time_t)long.MinValue)
+                {
+                    var prev = Previous;
+                    if (prev == null)
+                        m_calcPosition = Chart.Offset;
+                    else
+                    {
+                        m_calcPosition = prev.AbsolutePosition
+                                       + prev.QuarterNoteDuration * (m_position - prev.m_position);
+                    }
+                }
+
+                return m_calcPosition;
+            }
+        }
+
+        /// <summary>
+        /// The number of quarter-note beats per minute.
+        /// </summary>
+        public double BeatsPerMinute
+        {
+            get => m_bpm;
+            set
+            {
+                if (value <= 0.0)
+                    throw new ArgumentException(nameof(BeatsPerMinute), "BPM must be a positive value.");
+
+                m_bpm = value;
+                m_qnDuration = time_t.FromSeconds(60.0 / value);
+
+                Chart?.InvalidateTimeCalc();
+            }
+        }
+        
+        public time_t QuarterNoteDuration => m_qnDuration;
+        public time_t BeatDuration => m_qnDuration * 4 / m_denom;
+
+        public time_t WholeNoteDuration => 4 * QuarterNoteDuration;
+        public time_t MeasureDuration => WholeNoteDuration * m_num / m_denom;
+        
+        public bool HasPrevious => Previous != null;
+        public bool HasNext => Next != null;
+
+        public ControlPoint Previous => ((ILinkable<ControlPoint>)this).Previous;
+        ControlPoint ILinkable<ControlPoint>.Previous { get; set; }
+
+        public ControlPoint Next => ((ILinkable<ControlPoint>)this).Next;
+        ControlPoint ILinkable<ControlPoint>.Next { get; set; }
+
+        public Chart Chart { get; internal set; }
+
+        public ControlPoint()
+        {
+        }
+
+        public ControlPoint Clone()
+        {
+            var result = new ControlPoint()
+            {
+                m_position = m_position,
+                m_bpm = m_bpm,
+                m_qnDuration = m_qnDuration,
+                m_num = m_num,
+                m_denom = m_denom,
+            };
+            return result;
+        }
+
+        object ICloneable.Clone() => Clone();
+
+        int IComparable<ControlPoint>.CompareTo(ControlPoint other) => m_position.CompareTo(other.m_position);
+
+        internal void InvalidateCalc()
+        {
+            m_calcPosition = (time_t)long.MinValue;
+        }
+    }
+}
