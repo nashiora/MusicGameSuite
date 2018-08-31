@@ -4,6 +4,7 @@ using CSCore;
 using CSCore.Codecs;
 using OpenGL;
 using theori.Audio;
+using theori.Audio.NVorbis;
 using theori.Configuration;
 using theori.Game;
 using theori.Game.States;
@@ -42,8 +43,8 @@ namespace theori
             Pipeline = new ProgramPipeline();
             Pipeline.Bind();
             
-            //CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
-            //Mixer = new Mixer(2, 48000);
+            CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
+            Mixer = new Mixer(2, 48000);
 
             state = new VoltexGameplay();
 

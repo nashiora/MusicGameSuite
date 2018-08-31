@@ -13,6 +13,7 @@ using OpenRM;
 using OpenRM.Convert;
 using OpenRM.Voltex;
 using System.Diagnostics;
+using theori.Audio.CSCore;
 
 namespace theori.Game.States
 {
@@ -25,6 +26,7 @@ namespace theori.Game.States
         
         private Chart m_chart;
         private ChartPlayback m_playback;
+        private CSCoreSource m_audio;
 
         private int actionKind = 0;
 
@@ -46,6 +48,13 @@ namespace theori.Game.States
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "nov.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "loc.ksh"));
             var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
+            
+            string audioFile = Path.Combine(DIR, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
+            m_audio = CSCoreSource.FromFile(audioFile);
+            Application.Mixer.MasterChannel.AddSource(m_audio);
+
+            m_audio.Play();
+
             m_chart = ksh.ToVoltex();
 
             highwayView = new HighwayView(m_chart);
@@ -92,6 +101,13 @@ namespace theori.Game.States
         {
             switch (key.KeyCode)
             {
+                case KeyCode.SPACE:
+                {
+                    if (m_audio.PlaybackState == PlaybackState.Stopped)
+                        m_audio.Play();
+                    else m_audio.Stop();
+                } break;
+
                 case KeyCode.D1: actionKind = 0; break;
                 case KeyCode.D2: actionKind = 1; break;
                 case KeyCode.D3: actionKind = 2; break;
@@ -129,7 +145,7 @@ namespace theori.Game.States
         
         public override void Update()
         {
-            time_t position = Time.Total;
+            time_t position = m_audio.Position;
             m_playback.Position = position;
 
             float GetPathValueLerped(int stream)

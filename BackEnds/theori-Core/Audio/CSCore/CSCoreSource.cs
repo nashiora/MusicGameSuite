@@ -50,7 +50,7 @@ namespace theori.Audio.CSCore
         private TimeSpan lastSourcePosition;
 
         private time_t positionCached;
-        public override time_t PositionMicros
+        public override time_t Position
         {
             get
             {

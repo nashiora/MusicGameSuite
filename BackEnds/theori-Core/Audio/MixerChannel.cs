@@ -25,7 +25,7 @@ namespace theori.Audio
         public override bool CanSeek => false;
 
         public override time_t LengthMicros => 0;
-        public override time_t PositionMicros { get => 0; set => Seek(value); }
+        public override time_t Position { get => 0; set => Seek(value); }
 
         public event Action<AudioSource> OnSampleSourceEnded;
 

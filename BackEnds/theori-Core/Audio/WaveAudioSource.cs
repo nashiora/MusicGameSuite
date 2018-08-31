@@ -15,7 +15,7 @@ namespace theori.Audio
 
         public override int Channels => throw new NotImplementedException();
 
-        public override time_t PositionMicros { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public override time_t Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public override time_t LengthMicros => throw new NotImplementedException();
 

@@ -12,7 +12,7 @@ namespace theori.Audio
         public abstract int SampleRate { get; }
         public abstract int Channels { get; }
 
-        public abstract time_t PositionMicros { get; set; }
+        public abstract time_t Position { get; set; }
         public abstract time_t LengthMicros { get; }
 
         protected float volume = 1.0f;
