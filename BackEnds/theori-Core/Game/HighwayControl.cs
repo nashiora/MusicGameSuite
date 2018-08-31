@@ -203,10 +203,7 @@ namespace theori.Game
 
 	                //float bgAngle = MathL.Clamp(time * 4.0f, 0.0f, 2.0f) * dir;
 	                if (time <= TSPIN)
-                    {
-                        Trace.WriteLine($"SPIN CONTROL: from { m_spin.StartTime } for { m_spin.Params.Duration }, { time }");
 		                spinRoll = -dir * (TSPIN - time) / TSPIN;
-                    }
 	                else
 	                {
 		                if (time < TSPIN + TRECOV)
