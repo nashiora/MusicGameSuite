@@ -1,5 +1,64 @@
 ﻿namespace OpenRM.Voltex
 {
+    public enum StreamIndex : int
+    {
+        #region Playables
+
+        BtA = 0,
+        BtB = 1,
+        BtC = 2,
+        BtD = 3,
+
+        FxL = 4,
+        FxR = 5,
+
+        VolL = 6,
+        VolR = 7,
+
+        #endregion
+
+        #region Analog
+
+        /// <summary>
+        /// Spin, Swing, Wobble
+        /// </summary>
+        HighwayEffect,
+
+        LaserApplicationKind,
+        /// <summary>
+        /// Gain, Filter Kind
+        /// </summary>
+        LaserParams,
+
+        #endregion
+
+        #region Visual Playback
+
+        Stop,
+        Reverse,
+        Hide,
+
+        #endregion
+
+        #region Camera
+
+        Zoom,
+        Pitch,
+        Offset,
+        Roll,
+
+        #endregion
+
+        #region Stage
+
+        SetBackground,
+        SetImage,
+
+        #endregion
+
+        COUNT,
+    }
+
     public enum Damping : byte
     {
         /// <summary>

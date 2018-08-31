@@ -51,7 +51,7 @@ namespace OpenRM
         #region Arithmetic Operators
         
         public static tick_t operator +(tick_t a, tick_t b) => new tick_t(a.m_value + b.m_value);
-        public static tick_t operator -(tick_t a, tick_t b) => new tick_t(a.m_value + b.m_value);
+        public static tick_t operator -(tick_t a, tick_t b) => new tick_t(a.m_value - b.m_value);
         
         public static tick_t operator *(tick_t a, double factor) => new tick_t(a.m_value * factor);
         public static tick_t operator *(tick_t a, int factor) => new tick_t(a.m_value * factor);

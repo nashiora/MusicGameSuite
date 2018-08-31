@@ -11,6 +11,9 @@ namespace OpenRM
 
         internal int m_stream;
 
+        /// <summary>
+        /// The position, in beats, of this object.
+        /// </summary>
         [SerializeField]
         public tick_t Position
         {
@@ -46,7 +49,7 @@ namespace OpenRM
                 if (m_calcPosition == (time_t)long.MinValue)
                 {
                     ControlPoint cp = Chart.ControlPoints.MostRecent(m_position);
-                    m_calcPosition = cp.AbsolutePosition + cp.BeatDuration * (m_position - cp.Position);
+                    m_calcPosition = cp.AbsolutePosition + cp.MeasureDuration * (m_position - cp.Position);
                 }
                 return m_calcPosition;
             }
@@ -65,7 +68,7 @@ namespace OpenRM
                 {
                     tick_t endPos = m_position + m_duration;
                     ControlPoint cp = Chart.ControlPoints.MostRecent(endPos);
-                    m_calcDuration = cp.AbsolutePosition + cp.BeatDuration * (endPos - cp.Position) - AbsolutePosition;
+                    m_calcDuration = cp.AbsolutePosition + cp.MeasureDuration * (endPos - cp.Position) - AbsolutePosition;
                 }
                 return m_calcDuration;
             }
@@ -95,6 +98,42 @@ namespace OpenRM
 
         public Object Next => ((ILinkable<Object>)this).Next;
         Object ILinkable<Object>.Next { get; set; }
+
+        public Object PreviousConnected
+        {
+            get
+            {
+                var p = Previous;
+                return p != null && p.EndPosition == Position ? p : null;
+            }
+        }
+
+        public Object NextConnected
+        {
+            get
+            {
+                var n = Next;
+                return n != null && n.Position == EndPosition ? n : null;
+            }
+        }
+
+        public T FirstConnectedOf<T>()
+            where T : Object
+        {
+            var current = this as T;
+            while (current?.PreviousConnected is T prev)
+                current = prev;
+            return current;
+        }
+
+        public T LastConnectedOf<T>()
+            where T : Object
+        {
+            var current = this as T;
+            while (current?.NextConnected is T next)
+                current = next;
+            return current;
+        }
 
         public Chart Chart { get; internal set; }
 
@@ -140,11 +179,8 @@ namespace OpenRM
             m_calcPosition = (time_t)long.MinValue;
             m_calcDuration = (time_t)long.MinValue;
         }
-    }
 
-    public abstract class ObjectData
-    {
-        public delegate void PropertyChangedEventHandler(ObjectData sender, PropertyChangedEventArgs args);
+        public delegate void PropertyChangedEventHandler(Object sender, PropertyChangedEventArgs args);
 
         [Flags]
         public enum Invalidation
@@ -163,7 +199,7 @@ namespace OpenRM
             }
         }
 
-        internal event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName, Invalidation invalidation = Invalidation.None)
         {
@@ -179,12 +215,15 @@ namespace OpenRM
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
                 return;
+
+            System.Diagnostics.Debug.WriteLine(propertyName);
+
             field = value;
             OnPropertyChanged(propertyName);
         }
     }
 
-    public sealed class DictObjectData : ObjectData
+    public sealed class DictObject : Object
     {
         private readonly Dictionary<string, Variant> values = new Dictionary<string, Variant>();
 
@@ -208,37 +247,6 @@ namespace OpenRM
                 values[name] = value;
                 OnPropertyChanged(name);
             }
-        }
-    }
-
-    public class Object<TData> : Object
-        where TData : ObjectData
-    {
-        private TData data;
-        public TData Data
-        {
-            get => data;
-            set
-            {
-                if (value == data)
-                    return;
-
-                if (data != null)
-                    data.PropertyChanged -= OnDataPropertyChanged;
-
-                data = value;
-                if (data != null)
-                    data.PropertyChanged += OnDataPropertyChanged;
-            }
-        }
-
-        public event ObjectData.PropertyChangedEventHandler DataPropertyChanged;
-
-        private void OnDataPropertyChanged(ObjectData sender, ObjectData.PropertyChangedEventArgs args)
-        {
-            System.Diagnostics.Debug.WriteLine($"{ args.PropertyName } changed for object");
-
-            DataPropertyChanged?.Invoke(sender, args);
         }
     }
 }

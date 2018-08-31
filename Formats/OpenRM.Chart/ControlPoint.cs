@@ -23,7 +23,7 @@ namespace OpenRM
 
         private double m_bpm = 120;
         private time_t m_qnDuration = time_t.FromSeconds(60.0 / 120);
-        private int m_num = 4, m_denom = 4;
+        private int m_beatCount = 4, m_beatKind = 4;
 
         public tick_t Position
         {
@@ -40,26 +40,26 @@ namespace OpenRM
             }
         }
 
-        public int Numerator
+        public int BeatCount
         {
-            get => m_num;
+            get => m_beatCount;
             set
             {
-                if (value == m_num)
+                if (value == m_beatCount)
                     return;
-                m_num = value;
+                m_beatCount = value;
                 Chart?.InvalidateTimeCalc();
             }
         }
 
-        public int Denominator
+        public int BeatKind
         {
-            get => m_denom;
+            get => m_beatKind;
             set
             {
-                if (value == m_denom)
+                if (value == m_beatKind)
                     return;
-                m_denom = value;
+                m_beatKind = value;
                 Chart?.InvalidateTimeCalc();
             }
         }
@@ -79,7 +79,7 @@ namespace OpenRM
                     else
                     {
                         m_calcPosition = prev.AbsolutePosition
-                                       + prev.QuarterNoteDuration * (m_position - prev.m_position);
+                                       + prev.MeasureDuration * (m_position - prev.m_position);
                     }
                 }
 
@@ -106,10 +106,9 @@ namespace OpenRM
         }
         
         public time_t QuarterNoteDuration => m_qnDuration;
-        public time_t BeatDuration => m_qnDuration * 4 / m_denom;
+        public time_t BeatDuration => m_qnDuration * 4 / m_beatKind;
 
-        public time_t WholeNoteDuration => 4 * QuarterNoteDuration;
-        public time_t MeasureDuration => WholeNoteDuration * m_num / m_denom;
+        public time_t MeasureDuration => BeatDuration * m_beatCount;
         
         public bool HasPrevious => Previous != null;
         public bool HasNext => Next != null;
@@ -133,8 +132,8 @@ namespace OpenRM
                 m_position = m_position,
                 m_bpm = m_bpm,
                 m_qnDuration = m_qnDuration,
-                m_num = m_num,
-                m_denom = m_denom,
+                m_beatCount = m_beatCount,
+                m_beatKind = m_beatKind,
             };
             return result;
         }

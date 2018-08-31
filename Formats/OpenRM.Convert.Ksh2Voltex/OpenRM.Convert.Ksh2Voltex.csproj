@@ -4,13 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C0A9333F-EE94-4CFD-9633-CE2A631058B0}</ProjectGuid>
+    <ProjectGuid>{B08A0842-FEC7-4A0B-A09D-DDC7A1D11305}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OpenRM.Voltex</RootNamespace>
-    <AssemblyName>OpenRM.Chart.Voltex</AssemblyName>
+    <RootNamespace>OpenRM.Convert.Ksh2Voltex</RootNamespace>
+    <AssemblyName>OpenRM.Convert.Ksh2Voltex</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -28,33 +30,33 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnalogObject.cs" />
-    <Compile Include="ButtonObject.cs" />
-    <Compile Include="Enums.cs" />
-    <Compile Include="ImpulseEvent.cs" />
-    <Compile Include="PathPointEvent.cs" />
+    <Compile Include="ChartExt_Ksh2Voltex.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ParamTypes.cs" />
-    <Compile Include="LaserApplicationEvent.cs" />
-    <Compile Include="LaserParamsEvent.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Utils\Local-Lib\Local-Lib.csproj">
-      <Project>{FCD58F40-266A-485E-A2C2-6108398DA395}</Project>
+      <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
       <Name>Local-Lib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\KShootMania.Chart\KShootMania.Chart.csproj">
+      <Project>{7aaa44d8-b107-4d92-9f06-614942d63bf1}</Project>
+      <Name>KShootMania.Chart</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRM.Chart.Voltex\OpenRM.Chart.Voltex.csproj">
+      <Project>{c0a9333f-ee94-4cfd-9633-ce2a631058b0}</Project>
+      <Name>OpenRM.Chart.Voltex</Name>
     </ProjectReference>
     <ProjectReference Include="..\OpenRM.Chart\OpenRM.Chart.csproj">
       <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>

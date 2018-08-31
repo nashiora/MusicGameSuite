@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace OpenRM
@@ -32,6 +33,36 @@ namespace OpenRM
             }
         }
 
+        public tick_t TickEnd
+        {
+            get
+            {
+                tick_t end = 0;
+                for (int i = 0; i < StreamCount; i++)
+                {
+                    var last = ObjectStreams[i].LastObject;
+                    if (last != null)
+                        end = end < last.EndPosition ? last.EndPosition : end;
+                }
+                return end;
+            }
+        }
+
+        public time_t TimeEnd
+        {
+            get
+            {
+                time_t end = 0;
+                for (int i = 0; i < StreamCount; i++)
+                {
+                    var last = ObjectStreams[i].LastObject;
+                    if (last != null)
+                        end = end < last.AbsoluteEndPosition ? last.AbsoluteEndPosition : end;
+                }
+                return end;
+            }
+        }
+
         public Chart(int streamCount)
         {
             StreamCount = streamCount;
@@ -56,11 +87,38 @@ namespace OpenRM
         /// </summary>
         public void AddObject(Object obj) => ObjectStreams[obj.Stream].Add(obj);
 
-        public sealed class ObjectStream
+        public void ForEachObjectInRange(int stream, tick_t startPos, tick_t endPos, bool includeDuration, Action<Object> action) =>
+            this[stream].ForEachInRange(startPos, endPos, includeDuration, action);
+
+        public void ForEachObjectInRange(int stream, time_t startPos, time_t endPos, bool includeDuration, Action<Object> action) =>
+            this[stream].ForEachInRange(startPos, endPos, includeDuration, action);
+
+        public void ForEachObjectInRange(tick_t startPos, tick_t endPos, bool includeDuration, Action<Object> action)
+        {
+            for (int i = 0; i < StreamCount; i++)
+                this[i].ForEachInRange(startPos, endPos, includeDuration, action);
+        }
+
+        public void ForEachObjectInRange(time_t startPos, time_t endPos, bool includeDuration, Action<Object> action)
+        {
+            for (int i = 0; i < StreamCount; i++)
+                this[i].ForEachInRange(startPos, endPos, includeDuration, action);
+        }
+
+        public void ForEachControlPointInRange(int stream, tick_t startPos, tick_t endPos, Action<ControlPoint> action) =>
+            ControlPoints.ForEachInRange(startPos, endPos, action);
+
+        public void ForEachControlPointInRange(int stream, time_t startPos, time_t endPos, Action<ControlPoint> action) =>
+            ControlPoints.ForEachInRange(startPos, endPos, action);
+
+        public sealed class ObjectStream : IEnumerable<Object>
         {
             private readonly Chart m_chart;
             private readonly int m_stream;
             private readonly OrderedLinkedList<Object> m_objects = new OrderedLinkedList<Object>();
+
+            public Object FirstObject => m_objects.Count == 0 ? null : m_objects[0];
+            public Object LastObject => m_objects.Count == 0 ? null : m_objects[m_objects.Count - 1];
             
             internal ObjectStream(Chart chart, int stream)
             {
@@ -111,31 +169,15 @@ namespace OpenRM
             /// Constructs a new Object and calls `Add(Object)` to add it to this stream.
             /// The newly created Object is returned.
             /// </summary>
-            public Object Add(tick_t position, tick_t duration = default)
+            public Object Add(tick_t position, tick_t duration = default) => Add<Object>(position, duration);
+
+            public T Add<T>(tick_t position, tick_t duration = default)
+                where T : Object, new()
             {
-                var obj = new Object()
+                var obj = new T()
                 {
                     Position = position,
                     Duration = duration,
-                };
-
-                Add(obj);
-                return obj;
-            }
-
-            /// <summary>
-            /// Constructs a new Object&lt;<typeparamref name="TData"/>&gt; with
-            ///  the given data and calls `Add(Object)` to add it to this stream.
-            /// The newly created Object is returned.
-            /// </summary>
-            public Object<TData> Add<TData>(TData data, tick_t position, tick_t duration = default)
-                where TData : ObjectData
-            {
-                var obj = new Object<TData>()
-                {
-                    Position = position,
-                    Duration = duration,
-                    Data = data,
                 };
 
                 Add(obj);
@@ -178,6 +220,133 @@ namespace OpenRM
                 }
 
                 return null;
+            }
+
+            public T Find<T>(tick_t position, bool includeDuration)
+                where T : Object
+            {
+                // TODO(local): make this a binary search?
+                for (int i = 0, count = m_objects.Count; i < count; i++)
+                {
+                    var obj = m_objects[i];
+                    if (includeDuration)
+                    {
+                        if (obj.Position <= position && obj.Duration >= position && obj is T t)
+                            return t;
+                    }
+                    else if (obj.Position == position && obj is T t)
+                        return t;
+                }
+
+                return null;
+            }
+
+            public Object MostRecent(tick_t position)
+            {
+                for (int i = m_objects.Count - 1; i >= 0; i--)
+                {
+                    var obj = m_objects[i];
+                    if (obj.Position <= position)
+                        return obj;
+                }
+                return null;
+            }
+
+            public T MostRecent<T>(tick_t position)
+                where T : Object
+            {
+                for (int i = m_objects.Count - 1; i >= 0; i--)
+                {
+                    var obj = m_objects[i];
+                    if (obj.Position <= position && obj is T t)
+                        return t;
+                }
+                return null;
+            }
+
+            public Object MostRecent(time_t position)
+            {
+                for (int i = m_objects.Count - 1; i >= 0; i--)
+                {
+                    var obj = m_objects[i];
+                    if (obj.AbsolutePosition <= position)
+                        return obj;
+                }
+                return null;
+            }
+
+            public T MostRecent<T>(time_t position)
+                where T : Object
+            {
+                for (int i = m_objects.Count - 1; i >= 0; i--)
+                {
+                    var obj = m_objects[i];
+                    if (obj.AbsolutePosition <= position && obj is T t)
+                        return t;
+                }
+                return null;
+            }
+
+            public IEnumerator<Object> GetEnumerator() => m_objects.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => m_objects.GetEnumerator();
+
+            public void ForEach(Action<Object> action)
+            {
+                if (action == null) return;
+                for (int i = 0, count = m_objects.Count; i < count; i++)
+                    action(m_objects[i]);
+            }
+
+            public void ForEach<T>(Action<T> action)
+                where T : Object
+            {
+                if (action == null) return;
+                for (int i = 0, count = m_objects.Count; i < count; i++)
+                    action((T)m_objects[i]);
+            }
+
+            public void ForEachInRange(tick_t startPos, tick_t endPos, bool includeDuration, Action<Object> action)
+            {
+                if (action == null) return;
+
+		        tick_t GetEndPosition(Object obj)
+		        {
+			        if (includeDuration)
+				        return obj.EndPosition;
+			        else return obj.Position;
+		        }
+		
+			    for (int i = 0; i < m_objects.Count; i++)
+			    {
+				    var obj = m_objects[i];
+				    if (GetEndPosition(obj) < startPos)
+					    continue;
+				    if (obj.Position > endPos)
+					    break;
+				    action(obj);
+			    }
+            }
+
+            public void ForEachInRange(time_t startPos, time_t endPos, bool includeDuration, Action<Object> action)
+            {
+                if (action == null) return;
+
+		        time_t GetEndPosition(Object obj)
+		        {
+			        if (includeDuration)
+				        return obj.AbsoluteEndPosition;
+			        else return obj.AbsolutePosition;
+		        }
+		
+			    for (int i = 0; i < m_objects.Count; i++)
+			    {
+				    var obj = m_objects[i];
+				    if (GetEndPosition(obj) < startPos)
+					    continue;
+				    if (obj.AbsolutePosition > endPos)
+					    break;
+				    action(obj);
+			    }
             }
         }
 
@@ -269,6 +438,54 @@ namespace OpenRM
                         return cp;
                 }
                 return null;
+            }
+
+            public ControlPoint MostRecent(time_t position)
+            {
+                for (int i = 0, count = m_controlPoints.Count; i < count; i++)
+                {
+                    var cp = m_controlPoints[i];
+                    if (cp.AbsolutePosition <= position)
+                        return cp;
+                }
+                return null;
+            }
+
+            public void ForEach(Action<ControlPoint> action)
+            {
+                if (action == null) return;
+                for (int i = 0, count = m_controlPoints.Count; i < count; i++)
+                    action(m_controlPoints[i]);
+            }
+
+            public void ForEachInRange(tick_t startPos, tick_t endPos, Action<ControlPoint> action)
+            {
+                if (action == null) return;
+
+			    for (int i = 0; i < m_controlPoints.Count; i++)
+			    {
+				    var cp = m_controlPoints[i];
+				    if (cp.Position < startPos)
+					    continue;
+				    if (cp.Position > endPos)
+					    break;
+				    action(cp);
+			    }
+            }
+
+            public void ForEachInRange(time_t startPos, time_t endPos, Action<ControlPoint> action)
+            {
+                if (action == null) return;
+
+			    for (int i = 0; i < m_controlPoints.Count; i++)
+			    {
+				    var cp = m_controlPoints[i];
+				    if (cp.AbsolutePosition < startPos)
+					    continue;
+				    if (cp.AbsolutePosition > endPos)
+					    break;
+				    action(cp);
+			    }
             }
         }
     }

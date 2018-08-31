@@ -106,11 +106,17 @@ namespace KShootMania
 			    AddRange('A', 'Z');
 			    AddRange('a', 'o');
 
-                Debug.Assert(NumChars == Resolution - 1);
+                Debug.Assert(NumChars == Resolution);
             }
         }
 
         static Chars chars = new Chars();
+
+        public float Alpha
+        {
+            get => value / (float)(Resolution - 1);
+            set => Value = (int)Math.Round(value * (Resolution - 1));
+        }
 
         private int value;
         public int Value
@@ -259,6 +265,7 @@ namespace KShootMania
                                         case ')': case '>': tick.Add.Direction =  1; break;
                                     }
                                     ParseArg(0, out tick.Add.Duration);
+                                    tick.Add.Amplitude = 100;
                                 } break;
                                 
                                 case 'S':
@@ -297,10 +304,10 @@ namespace KShootMania
                         char c = fx[i];
                         switch (c)
                         {
-                            case '0': tick.Bt[i].State = ButtonState.Off; break;
-                            case '1': tick.Bt[i].State = ButtonState.Hold; break;
-                            case '2': tick.Bt[i].State = ButtonState.Chip; break;
-                            case '3': tick.Bt[i].State = ButtonState.ChipSample; break;
+                            case '0': tick.Fx[i].State = ButtonState.Off; break;
+                            case '1': tick.Fx[i].State = ButtonState.Hold; break;
+                            case '2': tick.Fx[i].State = ButtonState.Chip; break;
+                            case '3': tick.Fx[i].State = ButtonState.ChipSample; break;
                                 
                             default:
                             {
@@ -353,7 +360,7 @@ namespace KShootMania
         class TickEnumerator : IEnumerator<TickRef>
         {
             private Chart m_chart;
-            private int m_block, m_tick;
+            private int m_block, m_tick = -1;
             
             object IEnumerator.Current => Current;
             public TickRef Current => new TickRef()
@@ -378,7 +385,7 @@ namespace KShootMania
                     m_block++;
                     m_tick = 0;
 
-                    return m_block >= m_chart.m_blocks.Count;
+                    return m_block < m_chart.m_blocks.Count;
                 }
                 else m_tick++;
 
