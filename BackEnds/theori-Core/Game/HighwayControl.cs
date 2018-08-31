@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Numerics;
 using OpenRM;
 using OpenRM.Voltex;
 
@@ -28,8 +29,34 @@ namespace theori.Game
             }
         }
 
+        class CameraShake
+        {
+            public readonly time_t StartTime, Duration;
+            public readonly Vector3 Strength;
+
+            public CameraShake(time_t startTime, time_t duration, float sx, float sy, float sz)
+                : this(startTime, duration, new Vector3(sx, sy, sz))
+            {
+            }
+
+            public CameraShake(time_t startTime, time_t duration, Vector3 strength)
+            {
+                StartTime = startTime;
+                Duration = duration;
+                Strength = strength;
+            }
+
+            public Vector3 Sample(time_t pos)
+            {
+                float alpha = (float)(pos.Seconds / Duration.Seconds);
+                return Strength * DampedSin(alpha, 1, 1, 0);
+            }
+        }
+
         #region Private Data
         
+        private time_t m_position;
+
         private LaserParams m_leftLaserParams = DefaultLaserParams;
         private LaserParams m_rightLaserParams = DefaultLaserParams;
         
@@ -38,6 +65,8 @@ namespace theori.Game
         
         private float m_zoom, m_pitch, m_offset, m_roll;
         private float m_effectRoll, m_effectOffset;
+
+        private CameraShake m_shake;
 
         private LinearDirection m_selectedLaser = LinearDirection.None;
         private LaserApplication m_laserApplication = LaserApplication.Additive;
@@ -50,6 +79,8 @@ namespace theori.Game
         #endregion
 
         #region Programmable Control Interface
+
+        public time_t Position { set => m_position = value; }
 
         public LaserParams LeftLaserParams  { set => m_leftLaserParams  = value; }
         public LaserParams RightLaserParams { set => m_rightLaserParams = value; }
@@ -70,13 +101,19 @@ namespace theori.Game
         public LaserApplication LaserApplication { set => m_laserApplication = value; }
         public Damping LaserDamping { set => m_laserDamping = value; }
 
+        public void ShakeCamera(float dir)
+        {
+            var s = new Vector3(0.05f, 0.02f, 0) * dir;
+            m_shake = new CameraShake(m_position, 0.1, s);
+        }
+
         /// <summary>
         /// Applies a full spin (360 rotation with recovery animation)
         ///  to this highway using the given associated parameters.
         /// </summary>
         public void ApplySpin(SpinParams p)
         {
-            m_spin = new Timed<SpinParams>(Time.Total, p);
+            m_spin = new Timed<SpinParams>(m_position, p);
         }
 
         /// <summary>
@@ -85,7 +122,7 @@ namespace theori.Game
         /// </summary>
         public void ApplySwing(SwingParams p)
         {
-            m_swing = new Timed<SwingParams>(Time.Total, p);
+            m_swing = new Timed<SwingParams>(m_position, p);
         }
         
         /// <summary>
@@ -94,7 +131,7 @@ namespace theori.Game
         /// </summary>
         public void ApplyWobble(WobbleParams p)
         {
-            m_wobble = new Timed<WobbleParams>(Time.Total, p);
+            m_wobble = new Timed<WobbleParams>(m_position, p);
         }
 
         #endregion
@@ -110,10 +147,23 @@ namespace theori.Game
             view.TargetPitch = m_pitch;
             view.TargetOffset = m_offset + m_effectOffset;
             view.TargetBaseRoll = m_roll + m_effectRoll;
+            if (m_shake != null)
+                view.CameraOffset = m_shake.Sample(m_position - m_shake.StartTime);
+            else view.CameraOffset = Vector3.Zero;
+        }
+
+        private static float DampedSin(float t, float amplitude, float frequency, float decayTo)
+        {
+            //float decay = MathL.Lerp(1, decayTo, 1 - (1 - t) * (1 - t));
+            float decay = MathL.Lerp(1, decayTo, t);
+            return amplitude * decay * MathL.Sin(frequency * 2 * t * MathL.Pi_f);
         }
 
         public void Update()
         {
+            if (m_shake != null && m_shake.StartTime + m_shake.Duration < m_position)
+                m_shake = null;
+
             float leftLaser = -ProcessLaserInput(ref m_leftLaserInput, m_leftLaserParams);
             float rightLaser = ProcessLaserInput(ref m_rightLaserInput, m_rightLaserParams);
             
@@ -190,11 +240,11 @@ namespace theori.Game
 
             if (m_spin != null)
             {
-                if (m_spin.StartTime + m_spin.Params.Duration < Time.Total)
+                if (m_spin.StartTime + m_spin.Params.Duration < m_position)
                     m_spin = null;
                 else
                 {
-                    float time = (float)((Time.Total - m_spin.StartTime) / m_spin.Params.Duration);
+                    float time = (float)((m_position - m_spin.StartTime) / m_spin.Params.Duration);
                     //Trace.WriteLine($"SPIN CONTROL: from { m_spin.StartTime } for { m_spin.Params.Duration }, { time }");
                     float dir = (int)m_spin.Params.Direction;
 
@@ -215,11 +265,11 @@ namespace theori.Game
 
             if (m_swing != null)
             {
-                if (m_swing.StartTime + m_swing.Params.Duration < Time.Total)
+                if (m_swing.StartTime + m_swing.Params.Duration < m_position)
                     m_swing = null;
                 else
                 {
-                    float time = (float)((Time.Total - m_swing.StartTime) / m_swing.Params.Duration);
+                    float time = (float)((m_position - m_swing.StartTime) / m_swing.Params.Duration);
                     float dir = (int)m_swing.Params.Direction;
 
                     #if false
@@ -241,11 +291,11 @@ namespace theori.Game
 
             if (m_wobble != null)
             {
-                if (m_wobble.StartTime + m_wobble.Params.Duration < Time.Total)
+                if (m_wobble.StartTime + m_wobble.Params.Duration < m_position)
                     m_wobble = null;
                 else
                 {
-                    float time = (float)((Time.Total - m_wobble.StartTime) / m_wobble.Params.Duration);
+                    float time = (float)((m_position - m_wobble.StartTime) / m_wobble.Params.Duration);
                     float dir = (int)m_wobble.Params.Direction;
 
                     float decay = 0;
@@ -263,13 +313,6 @@ namespace theori.Game
 
             m_effectRoll = spinRoll + swingRoll;
             m_effectOffset = wobbleOffset;
-
-            float DampedSin(float t, float amplitude, float frequency, float decayTo)
-            {
-                //float decay = MathL.Lerp(1, decayTo, 1 - (1 - t) * (1 - t));
-                float decay = MathL.Lerp(1, decayTo, t);
-                return amplitude * decay * MathL.Sin(frequency * 2 * t * MathL.Pi_f);
-            }
 
             float ProcessLaserInput(ref float value, LaserParams p)
             {

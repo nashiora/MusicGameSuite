@@ -47,19 +47,14 @@ namespace theori.Game
     {
         public new OpenRM.Voltex.ButtonObject Object => (OpenRM.Voltex.ButtonObject)base.Object;
         
-        private Transform m_transform;
+        private Transform m_transform = Transform.Identity;
         public override Transform Transform => m_transform;
 
-        public ButtonRenderState3D(OpenRM.Voltex.ButtonObject obj, float len)
+        public ButtonRenderState3D(OpenRM.Voltex.ButtonObject obj, Mesh mesh, float len)
             : base(obj, len)
         {
-            float width = obj.Stream < 4 ? 1 : 2;
-            
-            if (!Object.IsInstant)
-                m_transform = Transform.Scale(1, 1, len);
-            else m_transform = Transform.Scale(1, 1, 1.0f / 12);
-
-            Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width / 6, 1, Anchor.BottomCenter);
+            if (!Object.IsInstant) m_transform = Transform.Scale(1, 1, len);
+            Mesh = mesh;
         }
 
         public override void UpdateRenderState(Object.PropertyChangedEventArgs args)
@@ -76,7 +71,7 @@ namespace theori.Game
     {
         public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
         
-        private Transform m_transform;
+        private Transform m_transform = Transform.Identity;
         public override Transform Transform => m_transform;
 
         public SlamRenderState3D(OpenRM.Voltex.AnalogObject obj, float len)
@@ -106,7 +101,7 @@ namespace theori.Game
     {
         public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
         
-        private Transform m_transform;
+        private Transform m_transform = Transform.Identity;
         public override Transform Transform => m_transform;
 
         public LaserRenderState3D(OpenRM.Voltex.AnalogObject obj, float len)

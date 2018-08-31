@@ -4,6 +4,8 @@ namespace System
 {
     public static class MathL
     {
+        private static Random random = new Random();
+
         /// <summary>
         /// Represents the ratio of the circumference of a circle to its diameter, specified
         //     by the constant, π.
@@ -219,6 +221,9 @@ namespace System
 
         public static double Pow(double x, double n) => Math.Pow(x, n);
         public static float Pow(float x, float n) => (float)Math.Pow(x, n);
+        
+        public static double Random(double min, double max) => random.NextDouble() * (max - min) + min;
+        public static float Random(float min, float max) => (float)Random((double)min, (double)max);
 
         public static decimal Round(decimal value, int decimals, MidpointRounding mode) => Math.Round(value, decimals, mode);
         public static decimal Round(decimal value, MidpointRounding mode) => Math.Round(value, mode);

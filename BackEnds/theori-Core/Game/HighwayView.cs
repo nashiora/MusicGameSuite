@@ -27,8 +27,19 @@ namespace theori.Game
         public Transform WorldTransform { get; private set; }
         
         private Texture highwayTexture;
+        private Texture btChipTexture, btHoldTexture;
+        private Texture fxChipTexture, fxHoldTexture;
+
         private Material basicMaterial, highwayMaterial;
+        private Material btChipMaterial, btHoldMaterial;
+        private Material fxChipMaterial, fxHoldMaterial;
+        
         private Mesh highwayMesh;
+        private Mesh btChipMesh, btHoldMesh;
+        private Mesh fxChipMesh, fxHoldMesh;
+        
+        private MaterialParams btChipParams, btHoldParams;
+        private MaterialParams fxChipParams, fxHoldParams;
 
         internal Dictionary<OpenRM.Object, ObjectRenderable3D>[] renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
 
@@ -57,6 +68,8 @@ namespace theori.Game
         public float TargetPitch { get; set; }
         public float TargetZoom { get; set; }
         public float TargetOffset { get; set; }
+
+        public Vector3 CameraOffset { get; set; }
         
         const float SLAM_DUR_TICKS = 1 / 32.0f;
         time_t SlamDurationTime(OpenRM.Object obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
@@ -70,6 +83,31 @@ namespace theori.Game
 
             highwayMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter);
             highwayMaterial = new Material("highway");
+
+            void CreateTextureAndMesh(string texName, int width, bool useAspect, ref Texture texture, ref Mesh mesh, ref MaterialParams p)
+            {
+                texture = new Texture();
+                texture.Load2DFromFile($@".\skins\Default\textures\{ texName }.png");
+
+                float aspect = btChipTexture.Height / (float)btChipTexture.Width;
+                float height = useAspect ? width * aspect / 6 : 1;
+
+                mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width / 6.0f, height, Anchor.BottomCenter);
+
+                p = new MaterialParams();
+                p["Color"] = new Vector4(1);
+                p["MainTexture"] = texture;
+            }
+            
+            CreateTextureAndMesh("bt_chip", 1, true , ref btChipTexture, ref btChipMesh, ref btChipParams);
+            CreateTextureAndMesh("bt_hold", 1, false, ref btHoldTexture, ref btHoldMesh, ref btHoldParams);
+            CreateTextureAndMesh("fx_chip", 2, true , ref fxChipTexture, ref fxChipMesh, ref fxChipParams);
+            CreateTextureAndMesh("fx_hold", 2, false , ref fxHoldTexture, ref fxHoldMesh, ref fxHoldParams);
+            
+            btChipMaterial = basicMaterial;
+            btHoldMaterial = basicMaterial;
+            fxChipMaterial = basicMaterial;
+            fxHoldMaterial = basicMaterial;
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
@@ -85,11 +123,11 @@ namespace theori.Game
             {
                 ButtonRenderState3D br3d;
                 if (obj.IsInstant)
-                    br3d = new ButtonRenderState3D(bobj, 0);
+                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btChipMesh : fxChipMesh, 0);
                 else
                 {
                     float zDur = (float)(obj.AbsoluteDuration.Seconds / ViewDuration.Seconds);
-                    br3d = new ButtonRenderState3D(bobj, zDur * LENGTH_BASE);
+                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btHoldMesh : fxHoldMesh, zDur * LENGTH_BASE);
                 }
 
                 renderables[obj.Stream][obj] = br3d;
@@ -186,6 +224,7 @@ namespace theori.Game
             float pitchDeg = Mathf.ToDegrees(cameraPitch);
             HorizonHeight = (0.5f + (pitchDeg / Camera.FieldOfView)) * Camera.ViewportHeight;
 
+            Camera.Position = CameraOffset;
             Camera.FarDistance = Vector3.Transform(new Vector3(0, 0, LENGTH_BASE), WorldTransform.Matrix).Length();
         }
 
@@ -206,14 +245,6 @@ namespace theori.Game
                 highwayParams["MainTexture"] = highwayTexture;
                 queue.Draw(Transform.Translation(0, 0, 1) * WorldTransform, highwayMesh, highwayMaterial, highwayParams);
                 
-                var btParams = new MaterialParams();
-                btParams["Color"] = new Vector4(1);
-                btParams["MainTexture"] = Texture.Empty;
-                
-                var fxParams = new MaterialParams();
-                fxParams["Color"] = new Vector4(1, 0.5f, 0, 0.8f);
-                fxParams["MainTexture"] = Texture.Empty;
-                
                 var leftParams = new MaterialParams();
                 leftParams["Color"] = new Vector4(0, 0.5f, 1, 0.5f);
                 leftParams["MainTexture"] = Texture.Empty;
@@ -232,8 +263,13 @@ namespace theori.Game
                             xOffs = -3 / 12.0f + i / 6.0f;
                         else xOffs = -1 / 6.0f + (i - 4) / 3.0f;
 
+                        MaterialParams p;
+                        if (i < 4)
+                            p = objr.Object.IsInstant ? btChipParams : btHoldParams;
+                        else p = objr.Object.IsInstant ? fxChipParams : fxHoldParams;
+
                         Transform t = objr.Transform * Transform.Translation(xOffs, 0, -z) * WorldTransform;
-                        queue.Draw(t, objr.Mesh, basicMaterial, i < 4 ? btParams : fxParams);
+                        queue.Draw(t, objr.Mesh, basicMaterial, p);
                     }
                 }
 
