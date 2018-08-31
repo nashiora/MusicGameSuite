@@ -82,10 +82,55 @@ namespace theori.Game
             float range = 5 / 6.0f * (obj.RangeExtended ? 2 : 1);
 
             float min = Mathf.Min(obj.InitialValue, obj.FinalValue) * range;
-            float width = Mathf.Abs(obj.InitialValue - obj.FinalValue) * range + 1 / 6.0f;
             
-            m_transform = Transform.Scale(1, 1, len) * Transform.Translation(min - 0.5f * range - 1 / 12.0f + width / 2, 0, 0);
-            Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width, 1, Anchor.BottomCenter);
+            m_transform = Transform.Scale(1, 1, len);
+            //Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width, 1, Anchor.BottomCenter);
+            Mesh = new Mesh();
+
+            const float W = 1 / 6.0f;
+            
+            float il = range * (obj.InitialValue - 0.5f) - W / 2;
+            float ir = range * (obj.InitialValue - 0.5f) + W / 2;
+            
+            float fl = range * (obj.FinalValue - 0.5f) - W / 2;
+            float fr = range * (obj.FinalValue - 0.5f) + W / 2;
+
+            if (obj.InitialValue < obj.FinalValue)
+            {
+                ushort[] indices = new ushort[] { 0, 1, 2, 1, 5, 2, 2, 5, 4, 3, 4, 5 };
+                Mesh.SetIndices(indices);
+            
+                VertexP3T2[] vertices = new VertexP3T2[6]
+                {
+                    new VertexP3T2(new Vector3(il, 0, 0), new Vector2(0, 1)),
+                    new VertexP3T2(new Vector3(il, 0, -1), new Vector2(0, 0)),
+                    new VertexP3T2(new Vector3(ir, 0, 0), new Vector2(1, 1)),
+
+                    new VertexP3T2(new Vector3(fr, 0, -1), new Vector2(1, 0)),
+                    new VertexP3T2(new Vector3(fr, 0, 0), new Vector2(1, 1)),
+                    new VertexP3T2(new Vector3(fl, 0, -1), new Vector2(0, 1)),
+                };
+                Mesh.SetVertices(vertices);
+            }
+            else
+            {
+            {
+                ushort[] indices = new ushort[] { 0, 1, 2, 4, 1, 0, 4, 0, 5, 3, 4, 5 };
+                Mesh.SetIndices(indices);
+            
+                VertexP3T2[] vertices = new VertexP3T2[6]
+                {
+                    new VertexP3T2(new Vector3(il, 0, 0), new Vector2(0, 1)),
+                    new VertexP3T2(new Vector3(ir, 0, -1), new Vector2(1, 0)),
+                    new VertexP3T2(new Vector3(ir, 0, 0), new Vector2(1, 1)),
+
+                    new VertexP3T2(new Vector3(fl, 0, -1), new Vector2(0, 0)),
+                    new VertexP3T2(new Vector3(fr, 0, -1), new Vector2(1, 0)),
+                    new VertexP3T2(new Vector3(fl, 0, 0), new Vector2(0, 1)),
+                };
+                Mesh.SetVertices(vertices);
+            }
+            }
         }
 
         public override void UpdateRenderState(Object.PropertyChangedEventArgs args)

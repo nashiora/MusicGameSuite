@@ -29,10 +29,12 @@ namespace theori.Game
         private Texture highwayTexture;
         private Texture btChipTexture, btHoldTexture;
         private Texture fxChipTexture, fxHoldTexture;
+        private Texture laserTexture;
 
         private Material basicMaterial, highwayMaterial;
         private Material btChipMaterial, btHoldMaterial;
         private Material fxChipMaterial, fxHoldMaterial;
+        private Material volMaterial;
         
         private Mesh highwayMesh;
         private Mesh btChipMesh, btHoldMesh;
@@ -40,6 +42,7 @@ namespace theori.Game
         
         private MaterialParams btChipParams, btHoldParams;
         private MaterialParams fxChipParams, fxHoldParams;
+        private MaterialParams lVolParams, rVolParams;
 
         internal Dictionary<OpenRM.Object, ObjectRenderable3D>[] renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
 
@@ -104,10 +107,22 @@ namespace theori.Game
             CreateTextureAndMesh("fx_chip", 2, true , ref fxChipTexture, ref fxChipMesh, ref fxChipParams);
             CreateTextureAndMesh("fx_hold", 2, false , ref fxHoldTexture, ref fxHoldMesh, ref fxHoldParams);
             
+            laserTexture = new Texture();
+            laserTexture.Load2DFromFile(@".\skins\Default\textures\laser.png");
+
+            lVolParams = new MaterialParams();
+            lVolParams["Color"] = new Vector4(0, 0.5f, 1, 0.85f);;
+            lVolParams["MainTexture"] = laserTexture;
+                
+            rVolParams = new MaterialParams();
+            rVolParams["Color"] = new Vector4(1, 0, 0.5f, 0.85f);
+            rVolParams["MainTexture"] = laserTexture;
+
             btChipMaterial = basicMaterial;
             btHoldMaterial = basicMaterial;
             fxChipMaterial = basicMaterial;
             fxHoldMaterial = basicMaterial;
+            volMaterial = basicMaterial;
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
@@ -245,13 +260,6 @@ namespace theori.Game
                 highwayParams["MainTexture"] = highwayTexture;
                 queue.Draw(Transform.Translation(0, 0, 1) * WorldTransform, highwayMesh, highwayMaterial, highwayParams);
                 
-                var leftParams = new MaterialParams();
-                leftParams["Color"] = new Vector4(0, 0.5f, 1, 0.5f);
-                leftParams["MainTexture"] = Texture.Empty;
-                
-                var rightParams = new MaterialParams();
-                rightParams["Color"] = new Vector4(1, 0, 0.5f, 0.5f);
-                rightParams["MainTexture"] = Texture.Empty;
 
                 void RenderButtonStream(int i)
                 {
@@ -284,7 +292,7 @@ namespace theori.Game
                         float z = LENGTH_BASE * (float)((position - PlaybackPosition) / ViewDuration);
 
                         Transform t = objr.Transform * Transform.Translation(0, 0.1f, -z) * WorldTransform;
-                        queue.Draw(t, objr.Mesh, basicMaterial, i == 0 ? leftParams : rightParams);
+                        queue.Draw(t, objr.Mesh, basicMaterial, i == 0 ? lVolParams : rVolParams);
                     }
                 }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using CSCore;
 using CSCore.Codecs;
 using OpenGL;
@@ -45,6 +46,13 @@ namespace theori
             
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
             Mixer = new Mixer(2, 48000);
+
+            #if DEBUG
+            string cd = Environment.CurrentDirectory;
+            while (!Directory.Exists(Path.Combine(cd, "InstallDir")))
+                cd = Directory.GetParent(cd).FullName;
+            Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
+            #endif
 
             state = new VoltexGameplay();
 

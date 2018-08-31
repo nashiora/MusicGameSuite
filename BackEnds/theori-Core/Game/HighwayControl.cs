@@ -61,6 +61,7 @@ namespace theori.Game
         private LaserParams m_rightLaserParams = DefaultLaserParams;
         
         private float m_leftLaserInput, m_rightLaserInput;
+        private float m_laserMultiplier = 1.0f;
         private float m_combinedLaserOutput, m_targetCombinedLaserOutput;
         
         private float m_zoom, m_pitch, m_offset, m_roll;
@@ -87,6 +88,8 @@ namespace theori.Game
         
         public float LeftLaserInput  { set { m_leftLaserInput = value; } }
         public float RightLaserInput { set { m_rightLaserInput = value; } }
+
+        public float LaserMultiplier { set => m_laserMultiplier = value; }
         
         public float LaserRoll { get { return m_combinedLaserOutput; } }
 
@@ -220,7 +223,7 @@ namespace theori.Game
                 } break;
             }
 
-            m_targetCombinedLaserOutput = laserOutput;
+            m_targetCombinedLaserOutput = laserOutput * m_laserMultiplier;
             switch (m_laserDamping)
             {
                 case Damping.Fast: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 1.50f, 25); break;
