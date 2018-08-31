@@ -186,7 +186,6 @@ namespace theori.Graphics
 
         public void Bind(RenderState state, MaterialParams p)
         {
-            // TODO(local): render-state
             BindAll(BuiltInParams.Projection, state.ProjectionMatrix);
             BindAll(BuiltInParams.Camera, state.CameraMatrix);
 

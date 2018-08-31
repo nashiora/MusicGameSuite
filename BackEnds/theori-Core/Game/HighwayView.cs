@@ -111,18 +111,21 @@ namespace theori.Game
             laserTexture.Load2DFromFile(@".\skins\Default\textures\laser.png");
 
             lVolParams = new MaterialParams();
-            lVolParams["Color"] = new Vector4(0, 0.5f, 1, 0.85f);;
+            lVolParams["Color"] = new Vector4(0, 0.5f, 1, 1);
             lVolParams["MainTexture"] = laserTexture;
                 
             rVolParams = new MaterialParams();
-            rVolParams["Color"] = new Vector4(1, 0, 0.5f, 0.85f);
+            rVolParams["Color"] = new Vector4(1, 0, 0.5f, 1);
             rVolParams["MainTexture"] = laserTexture;
 
             btChipMaterial = basicMaterial;
             btHoldMaterial = basicMaterial;
             fxChipMaterial = basicMaterial;
             fxHoldMaterial = basicMaterial;
-            volMaterial = basicMaterial;
+            volMaterial = new Material("basic")
+            {
+                BlendMode = BlendMode.Additive,
+            };
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
@@ -292,7 +295,7 @@ namespace theori.Game
                         float z = LENGTH_BASE * (float)((position - PlaybackPosition) / ViewDuration);
 
                         Transform t = objr.Transform * Transform.Translation(0, 0.1f, -z) * WorldTransform;
-                        queue.Draw(t, objr.Mesh, basicMaterial, i == 0 ? lVolParams : rVolParams);
+                        queue.Draw(t, objr.Mesh, volMaterial, i == 0 ? lVolParams : rVolParams);
                     }
                 }
 

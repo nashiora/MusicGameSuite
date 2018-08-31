@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using OpenGL;
 
@@ -64,7 +65,7 @@ namespace theori.Graphics
 
 					    if (activeBlendMode != mat.BlendMode)
 					    {
-						    switch(mat.BlendMode)
+						    switch(activeBlendMode = mat.BlendMode)
 						    {
 						        case BlendMode.Normal:   GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); break;
 						        case BlendMode.Additive: GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE); break;
