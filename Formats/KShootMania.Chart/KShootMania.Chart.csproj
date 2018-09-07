@@ -48,6 +48,10 @@
       <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
       <Name>Local-Lib</Name>
     </ProjectReference>
+    <ProjectReference Include="..\OpenRM.Audio\OpenRM.Audio.csproj">
+      <Project>{5f953552-2c86-403f-ae3d-ba7d2bc2c81a}</Project>
+      <Name>OpenRM.Audio</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OpenRM.Chart.Voltex\OpenRM.Chart.Voltex.csproj">
       <Project>{c0a9333f-ee94-4cfd-9633-ce2a631058b0}</Project>
       <Name>OpenRM.Chart.Voltex</Name>

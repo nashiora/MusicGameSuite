@@ -16,7 +16,7 @@ namespace theori.Game
     public class HighwayView
     {
         private const float PITCH_AMT = 10;
-        private const float ZOOM_POW = 1.65f;
+        private const float ZOOM_POW = 1.75f;
         private const float LENGTH_BASE = 12;
 
         private float roll, rollBase;
@@ -205,11 +205,12 @@ namespace theori.Game
                 //const float ANCHOR_Y = -0.825f;
                 //const float CONTNR_Z = -1.1f;
                 
-                const float ANCHOR_Y = -0.75f;
+                const float ANCHOR_ROT = 2.5f;
+                const float ANCHOR_Y = -0.85f;
                 const float CONTNR_Z = -0.875f;
 
                 var origin = Transform.RotationZ(roll);
-                var anchor = Transform.RotationX(1.5f)
+                var anchor = Transform.RotationX(ANCHOR_ROT)
                            * Transform.Translation(xOffset, ANCHOR_Y, 0);
                 var contnr = Transform.Translation(0, 0, 0)
                            * Transform.RotationX(pitch * PITCH_AMT)

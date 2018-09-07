@@ -13,7 +13,8 @@ using OpenRM;
 using OpenRM.Convert;
 using OpenRM.Voltex;
 using System.Diagnostics;
-using theori.Audio.CSCore;
+using theori.Audio;
+using OpenRM.Audio.Effects;
 
 namespace theori.Game.States
 {
@@ -26,7 +27,10 @@ namespace theori.Game.States
         
         private Chart m_chart;
         private ChartPlayback m_playback;
-        private CSCoreSource m_audio;
+
+        private AudioEffectController m_audioController;
+        private AudioTrack m_audio;
+        private AudioSample m_slamSample;
 
         private int actionKind = 0;
 
@@ -38,6 +42,10 @@ namespace theori.Game.States
         public override void Init()
         {
             Keyboard.KeyPress += KeyboardButtonPress;
+
+            m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
+            m_slamSample.Volume = 0.35f;
+            Application.Mixer.MasterChannel.AddSource(m_slamSample);
             
             const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
             //const string DIR = @"D:\kshootmania\songs\Local\racemization";
@@ -50,12 +58,32 @@ namespace theori.Game.States
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
             
             string audioFile = Path.Combine(DIR, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
-            m_audio = CSCoreSource.FromFile(audioFile);
-            Application.Mixer.MasterChannel.AddSource(m_audio);
 
-            m_audio.Play();
+            m_audio = AudioTrack.FromFile(audioFile);
+            m_audio.Channel = Application.Mixer.MasterChannel;
 
+            m_audioController = new AudioEffectController(8, m_audio, true)
+            {
+                RemoveFromChannelOnFinish = true,
+            };
+            m_audioController.Finish += () =>
+            {
+                Console.WriteLine("track complete");
+            };
+            
             m_chart = ksh.ToVoltex();
+
+            time_t minStartTime = m_chart.TimeEnd;
+            for (int i = 0; i < 8; i++)
+            {
+                time_t startTime = m_chart[i].FirstObject?.AbsolutePosition ?? 0;
+                if (startTime < minStartTime)
+                    minStartTime = startTime;
+            }
+
+            minStartTime -= 3;
+            if (minStartTime < 0)
+                ;//m_audio.Position = minStartTime;
 
             highwayView = new HighwayView(m_chart);
             m_control = new HighwayControl();
@@ -77,6 +105,8 @@ namespace theori.Game.States
                     critRoot = new CriticalLine(),
                 }
             };
+            
+            m_audioController.Play();
         }
 
         private void PlaybackObjectBegin(OpenRM.Object obj)
@@ -84,12 +114,44 @@ namespace theori.Game.States
             if (obj is AnalogObject aobj)
             {
                 if (obj.IsInstant)
+                {
                     m_control.ShakeCamera(-MathL.Sign(aobj.FinalValue - aobj.InitialValue));
+                    m_slamSample.Play();
+                }
+
+                if (aobj.PreviousConnected == null)
+                {
+                    if (!AreLasersActive) m_audioController.SetEffect(6, currentLaserEffectDef, BASE_LASER_MIX);
+                    currentActiveLasers[obj.Stream - 6] = true;
+                }
+            }
+            else if (obj is ButtonObject bobj)
+            {
+                if (obj.Stream >= 4)
+                {
+                    var effect =  new BitCrusherEffectDef(EffectType.BitCrush, new EffectDuration(0.25f), 1.0f, 10);
+                    m_audioController.SetEffect(obj.Stream, effect, 1);
+                }
             }
         }
 
         private void PlaybackObjectEnd(OpenRM.Object obj)
         {
+            if (obj is AnalogObject aobj)
+            {
+                if (aobj.NextConnected == null)
+                {
+                    currentActiveLasers[obj.Stream - 6] = false;
+                    if (!AreLasersActive) m_audioController.RemoveEffect(6);
+                }
+            }
+            if (obj is ButtonObject bobj)
+            {
+                if (obj.Stream >= 4)
+                {
+                    m_audioController.RemoveEffect(bobj.Stream);
+                }
+            }
         }
 
         private void PlaybackEventTrigger(Event evt)
@@ -116,9 +178,9 @@ namespace theori.Game.States
             {
                 case KeyCode.SPACE:
                 {
-                    if (m_audio.PlaybackState == PlaybackState.Stopped)
-                        m_audio.Play();
-                    else m_audio.Stop();
+                    if (m_audioController.PlaybackState == PlaybackState.Stopped)
+                        m_audioController.Play();
+                    else m_audioController.Stop();
                 } break;
 
                 case KeyCode.RETURN:
@@ -132,8 +194,8 @@ namespace theori.Game.States
                     }
 
                     minStartTime -= 2;
-                    if (minStartTime > m_audio.Position)
-                        m_audio.Position = minStartTime;
+                    if (minStartTime > m_audioController.Position)
+                        m_audioController.Position = minStartTime;
                 } break;
 
                 case KeyCode.D1: actionKind = 0; break;
@@ -170,6 +232,20 @@ namespace theori.Game.States
                 } break;
             }
         }
+
+        private float GetTempRollValue(time_t position, int stream, bool oneMinus = false)
+        {
+            var s = m_playback.Chart[stream];
+
+            var mrAnalog = s.MostRecent<AnalogObject>(position);
+            if (mrAnalog == null || position > mrAnalog.AbsoluteEndPosition)
+                return 0;
+
+            float result = mrAnalog.SampleValue(position);
+            if (oneMinus)
+                return 1 - result;
+            else return result;
+        }
         
         public override void Update()
         {
@@ -194,22 +270,8 @@ namespace theori.Game.States
                 else return mrPoint.Value;
             }
 
-            float GetTempRollValue(int stream, bool oneMinus = false)
-            {
-                var s = m_playback.Chart[stream];
-
-                var mrAnalog = s.MostRecent<AnalogObject>(position);
-                if (mrAnalog == null || position > mrAnalog.AbsoluteEndPosition)
-                    return 0;
-
-                float result = mrAnalog.SampleValue(position);
-                if (oneMinus)
-                    return 1 - result;
-                else return result;
-            }
-
-            m_control.LeftLaserInput = GetTempRollValue(6);
-            m_control.RightLaserInput = GetTempRollValue(7, true);
+            m_control.LeftLaserInput = GetTempRollValue(position, 6);
+            m_control.RightLaserInput = GetTempRollValue(position, 7, true);
             
             m_control.Zoom = GetPathValueLerped((int)StreamIndex.Zoom);
             m_control.Pitch = GetPathValueLerped((int)StreamIndex.Pitch);
@@ -229,6 +291,9 @@ namespace theori.Game.States
             critRoot.CriticalHeight = highwayView.CriticalHeight;
 
             foreUiRoot.Update();
+
+            UpdateEffects();
+            m_audioController.EffectsActive = true;
         }
         
         public override void Render()
@@ -254,6 +319,53 @@ namespace theori.Game.States
             DrawUiRoot(backUiRoot);
             highwayView.Render();
             DrawUiRoot(foreUiRoot);
+        }
+
+        private void UpdateEffects()
+        {
+            UpdateLaserEffects();
+        }
+
+        private EffectDef currentLaserEffectDef = EffectDef.GetDefault(EffectType.PeakingFilter);
+        private readonly bool[] currentActiveLasers = new bool[2];
+        private readonly float[] currentActiveLaserAlphas = new float[2];
+
+        private bool AreLasersActive => currentActiveLasers[0] || currentActiveLasers[1];
+
+        private const float BASE_LASER_MIX = 0.35f;
+
+        private void UpdateLaserEffects()
+        {
+            if (!AreLasersActive)
+                return;
+
+            float LaserAlpha(int index)
+            {
+                return GetTempRollValue(m_audio.Position, index + 6, index == 1);
+            }
+            
+            if (currentActiveLasers[0])
+                currentActiveLaserAlphas[0] = LaserAlpha(0);
+            if (currentActiveLasers[1])
+                currentActiveLaserAlphas[1] = LaserAlpha(1);
+            
+            float alpha;
+            if (currentActiveLasers[0] && currentActiveLasers[1])
+                alpha = Math.Max(currentActiveLaserAlphas[0], currentActiveLaserAlphas[1]);
+            else if (currentActiveLasers[0])
+                alpha = currentActiveLaserAlphas[0];
+            else alpha = currentActiveLaserAlphas[1];
+
+            m_audioController.UpdateEffect(6, alpha);
+
+            float mix = BASE_LASER_MIX;
+            if (alpha < 0.1f)
+                mix *= alpha / 0.1f;
+
+            else if (alpha > 0.8f)
+                mix *= 1 - (alpha - 0.8f) / 0.2f;
+
+            m_audioController.SetEffectMix(6, mix);
         }
     }
 }

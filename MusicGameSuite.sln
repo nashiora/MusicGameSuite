@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "theori-Win32", "Clients\the
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRM.Convert.Ksh2Voltex", "Formats\OpenRM.Convert.Ksh2Voltex\OpenRM.Convert.Ksh2Voltex.csproj", "{B08A0842-FEC7-4A0B-A09D-DDC7A1D11305}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenRM.Audio", "Formats\OpenRM.Audio\OpenRM.Audio.csproj", "{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -151,6 +153,18 @@ Global
 		{B08A0842-FEC7-4A0B-A09D-DDC7A1D11305}.Release|x64.Build.0 = Release|Any CPU
 		{B08A0842-FEC7-4A0B-A09D-DDC7A1D11305}.Release|x86.ActiveCfg = Release|Any CPU
 		{B08A0842-FEC7-4A0B-A09D-DDC7A1D11305}.Release|x86.Build.0 = Release|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Debug|x64.Build.0 = Debug|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Debug|x86.Build.0 = Debug|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Release|x64.ActiveCfg = Release|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Release|x64.Build.0 = Release|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Release|x86.ActiveCfg = Release|Any CPU
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -165,6 +179,7 @@ Global
 		{280D88D1-6E6F-49F1-BF69-497E5FEFA220} = {29FE41F2-1026-4079-B65D-D7107498B45C}
 		{DB6FC625-F3D4-46C3-8E89-13B957009AAA} = {9BFEC584-E69A-49FA-B21A-BC15987492C2}
 		{B08A0842-FEC7-4A0B-A09D-DDC7A1D11305} = {00A0CAC8-968E-49E6-B40C-49F778335DF6}
+		{5F953552-2C86-403F-AE3D-BA7D2BC2C81A} = {00A0CAC8-968E-49E6-B40C-49F778335DF6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {49C3A38A-D0A2-42AE-AFD8-4192D76826B7}

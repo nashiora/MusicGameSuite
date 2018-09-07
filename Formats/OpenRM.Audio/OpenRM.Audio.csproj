@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FCD58F40-266A-485E-A2C2-6108398DA395}</ProjectGuid>
+    <ProjectGuid>{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Local</RootNamespace>
-    <AssemblyName>Local-Lib</AssemblyName>
+    <RootNamespace>OpenRM.Audio</RootNamespace>
+    <AssemblyName>OpenRM.Audio</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,9 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,14 +28,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,23 +44,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Cached_T.cs" />
-    <Compile Include="CubicBezier.cs" />
-    <Compile Include="Disposable.cs" />
-    <Compile Include="Ease.cs" />
-    <Compile Include="Extensions\System_Collections_Generic_List.cs" />
-    <Compile Include="Extensions\System_Array.cs" />
-    <Compile Include="Extensions\System_Double.cs" />
-    <Compile Include="Extensions\System_Single.cs" />
-    <Compile Include="Extensions\System_String.cs" />
-    <Compile Include="HashCode.cs" />
-    <Compile Include="Collections\OrderedLinkedList.cs" />
-    <Compile Include="Collections\OrderedList.cs" />
-    <Compile Include="MathL.cs" />
+    <Compile Include="Dsp.cs" />
+    <Compile Include="Effects\BiQuadFilter.cs" />
+    <Compile Include="Effects\BitCrusher.cs" />
+    <Compile Include="Effects\EffectDef.cs" />
+    <Compile Include="Effects\EffectDuration.cs" />
+    <Compile Include="Effects\EffectParam.cs" />
+    <Compile Include="Effects\EffectType.cs" />
+    <Compile Include="Effects\IMixable.cs" />
+    <Compile Include="Effects\Phaser.cs" />
+    <Compile Include="Effects\Retrigger.cs" />
+    <Compile Include="Effects\SideChain.cs" />
+    <Compile Include="Effects\TapeStop.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Ratio.cs" />
-    <Compile Include="Reinterpret.cs" />
-    <Compile Include="Variant.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Utils\Local-Lib\Local-Lib.csproj">
+      <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
+      <Name>Local-Lib</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

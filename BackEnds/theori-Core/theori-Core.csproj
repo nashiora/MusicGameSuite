@@ -90,9 +90,10 @@
   <ItemGroup>
     <Compile Include="Anchor.cs" />
     <Compile Include="Application.cs" />
+    <Compile Include="Audio\AudioEffectController.cs" />
+    <Compile Include="Audio\AudioSample.cs" />
     <Compile Include="Audio\AudioSource.cs" />
-    <Compile Include="Audio\WaveAudioSource.cs" />
-    <Compile Include="Audio\CSCore\CSCoreSource.cs" />
+    <Compile Include="Audio\AudioTrack.cs" />
     <Compile Include="Audio\Mixer.cs" />
     <Compile Include="Audio\MixerChannel.cs" />
     <Compile Include="Audio\NVorbis\NVorbisSource.cs" />
@@ -161,6 +162,10 @@
     <ProjectReference Include="..\..\Formats\KShootMania.Chart\KShootMania.Chart.csproj">
       <Project>{7aaa44d8-b107-4d92-9f06-614942d63bf1}</Project>
       <Name>KShootMania.Chart</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Formats\OpenRM.Audio\OpenRM.Audio.csproj">
+      <Project>{5f953552-2c86-403f-ae3d-ba7d2bc2c81a}</Project>
+      <Name>OpenRM.Audio</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Formats\OpenRM.Chart.Voltex\OpenRM.Chart.Voltex.csproj">
       <Project>{C0A9333F-EE94-4CFD-9633-CE2A631058B0}</Project>

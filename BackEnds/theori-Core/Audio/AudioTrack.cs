@@ -6,7 +6,7 @@ using CSCore.Codecs;
 using CSCore.Codecs.WAV;
 using OpenRM;
 
-namespace theori.Audio.CSCore
+namespace theori.Audio
 {
     public enum PlaybackState
     {
@@ -14,17 +14,17 @@ namespace theori.Audio.CSCore
         Playing,
     }
 
-    public class CSCoreSource : AudioSource
+    public class AudioTrack : AudioSource
     {
-        public static CSCoreSource FromFile(string fileName)
+        public static AudioTrack FromFile(string fileName)
         {
             var fileSource = CodecFactory.Instance.GetCodec(fileName);
             var sampleSource = fileSource.ChangeSampleRate(Application.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
 
-            return new CSCoreSource(sampleSource);
+            return new AudioTrack(sampleSource);
         }
         
-        public static CSCoreSource FromStream(string ext, Stream stream)
+        public static AudioTrack FromStream(string ext, Stream stream)
         {
             IWaveSource source;
             switch (ext)
@@ -35,7 +35,7 @@ namespace theori.Audio.CSCore
             }
 
             var sampleSource = source.ChangeSampleRate(Application.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
-            return new CSCoreSource(sampleSource);
+            return new AudioTrack(sampleSource);
         }
         
         private ISampleSource Source { get; }
@@ -67,7 +67,7 @@ namespace theori.Audio.CSCore
             }
         }
 
-        public override time_t LengthMicros => GetLength().TotalSeconds;
+        public override time_t Length => GetLength().TotalSeconds;
         
         private MixerChannel channel;
         public MixerChannel Channel
@@ -94,7 +94,7 @@ namespace theori.Audio.CSCore
 
         public PlaybackState PlaybackState { get; private set; } = PlaybackState.Stopped;
 
-        internal CSCoreSource(ISampleSource source)
+        internal AudioTrack(ISampleSource source)
         {
             Source = source;
         }

@@ -11,6 +11,7 @@ namespace System
         //     by the constant, π.
         /// </summary>
         public const double Pi = 3.1415926535897931;
+        public const double TwoPi = 2 * Pi;
         /// <summary>
         /// Represents the natural logarithmic base, specified by the constant, e.
         /// </summary>
@@ -21,6 +22,7 @@ namespace System
         //     by the constant, π.
         /// </summary>
         public const float Pi_f = 3.1415926535897931f;
+        public const float TwoPi_f = 2 * Pi_f;
         /// <summary>
         /// Represents the natural logarithmic base, specified by the constant, e.
         /// </summary>
