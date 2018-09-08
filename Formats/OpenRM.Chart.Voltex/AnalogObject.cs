@@ -21,7 +21,7 @@ namespace OpenRM.Voltex
                 case CurveShape.Cosine:
                 {
                     // TODO(local): "strengthen" the curve based on `a`
-                    float angle = alpha * MathL.Pi_f;
+                    float angle = alpha * MathL.Pi;
                     return (1 - (float)Math.Cos(angle)) * 0.5f;
                 }
 

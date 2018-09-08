@@ -56,7 +56,7 @@ namespace OpenRM.Audio.Effects
 
             for(int i = 0; i < numSamples; i++)
             {
-                float f = (float)((time % Duration) / Duration) * MathL.TwoPi_f;
+                float f = (float)((time % Duration) / Duration) * MathL.TwoPi;
 
                 //calculate and update phaser sweep lfo...
                 float d = minimumFrequency + frequencyDelta * (((float)Math.Sin(f) + 1.0f) / 2.0f);

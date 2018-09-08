@@ -15,11 +15,14 @@ using OpenRM.Voltex;
 using System.Diagnostics;
 using theori.Audio;
 using OpenRM.Audio.Effects;
+using MoonSharp.Interpreter;
 
 namespace theori.Game.States
 {
     class VoltexGameplay : State
     {
+        private LuaScript m_luaScript;
+
         private HighwayControl m_control;
         private HighwayView highwayView;
         private Panel foreUiRoot, backUiRoot;
@@ -43,8 +46,11 @@ namespace theori.Game.States
         {
             Keyboard.KeyPress += KeyboardButtonPress;
 
+            m_luaScript = new LuaScript();
+            m_luaScript["XShakeCamera"] = (Action<float>)(magnitude => m_control.ShakeCamera(magnitude));
+
             m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
-            m_slamSample.Volume = 0.35f;
+            m_slamSample.Volume = 0.5f * 0.7f;
             Application.Mixer.MasterChannel.AddSource(m_slamSample);
             
             const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
@@ -52,10 +58,10 @@ namespace theori.Game.States
             //const string DIR = @"D:\kshootmania\songs\Local\rocknroll";
             //const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
             
-            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
+            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "nov.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "loc.ksh"));
-            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
+            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
             
             string audioFile = Path.Combine(DIR, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
 
@@ -106,6 +112,12 @@ namespace theori.Game.States
                 }
             };
             
+            m_luaScript.DoString(@"
+function OnSlamHit(magnitude)
+    XShakeCamera(-math.sign(magnitude));
+end
+");
+            
             m_audioController.Play();
         }
 
@@ -115,7 +127,8 @@ namespace theori.Game.States
             {
                 if (obj.IsInstant)
                 {
-                    m_control.ShakeCamera(-MathL.Sign(aobj.FinalValue - aobj.InitialValue));
+                    //m_control.ShakeCamera(-MathL.Sign(aobj.FinalValue - aobj.InitialValue));
+                    m_luaScript.Call("OnSlamHit", aobj.FinalValue - aobj.InitialValue);
                     m_slamSample.Play();
                 }
 
@@ -129,8 +142,8 @@ namespace theori.Game.States
             {
                 if (obj.Stream >= 4)
                 {
-                    var effect =  new BitCrusherEffectDef(EffectType.BitCrush, new EffectDuration(0.25f), 1.0f, 10);
-                    m_audioController.SetEffect(obj.Stream, effect, 1);
+                    //var effect =  new BitCrusherEffectDef(EffectType.BitCrush, new EffectDuration(0.25f), 1.0f, 10);
+                    //m_audioController.SetEffect(obj.Stream, effect, 1);
                 }
             }
         }
@@ -158,17 +171,25 @@ namespace theori.Game.States
         {
             switch (evt)
             {
-                case LaserApplicationEvent app:
-                {
-                } break;
+                case LaserApplicationEvent app: m_control.LaserApplication = app.Application; break;
                 
+                // TODO(local): left/right lasers separate + allow both independent if needed
+                case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
+                case LaserFilterKindEvent filterKind: m_audioController.SetEffect(6, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6)); break;
+
                 case LaserParamsEvent pars:
                 {
+                    if (pars.LaserIndex.HasFlag(LaserIndex.Left))  m_control.LeftLaserParams = pars.Params;
+                    if (pars.LaserIndex.HasFlag(LaserIndex.Right)) m_control.RightLaserParams = pars.Params;
                 } break;
                 
+                case SlamVolumeEvent pars: m_slamSample.Volume = pars.Volume * 0.7f; break;
+
                 case SpinImpulseEvent spin: m_control.ApplySpin(spin.Params); break;
                 case SwingImpulseEvent swing: m_control.ApplySwing(swing.Params); break;
                 case WobbleImpulseEvent wobble: m_control.ApplyWobble(wobble.Params); break;
+
+                //default: Console.WriteLine($"Skipping Event: { evt }"); break;
             }
         }
 
@@ -332,7 +353,8 @@ namespace theori.Game.States
 
         private bool AreLasersActive => currentActiveLasers[0] || currentActiveLasers[1];
 
-        private const float BASE_LASER_MIX = 0.35f;
+        private const float BASE_LASER_MIX = 0.7f;
+        private float laserGain = 0.5f;
 
         private void UpdateLaserEffects()
         {
@@ -358,7 +380,7 @@ namespace theori.Game.States
 
             m_audioController.UpdateEffect(6, alpha);
 
-            float mix = BASE_LASER_MIX;
+            float mix = BASE_LASER_MIX * laserGain;
             if (alpha < 0.1f)
                 mix *= alpha / 0.1f;
 

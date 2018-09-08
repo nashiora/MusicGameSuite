@@ -5,28 +5,17 @@ namespace System
     public static class MathL
     {
         private static Random random = new Random();
-
-        /// <summary>
-        /// Represents the ratio of the circumference of a circle to its diameter, specified
-        //     by the constant, π.
-        /// </summary>
-        public const double Pi = 3.1415926535897931;
-        public const double TwoPi = 2 * Pi;
-        /// <summary>
-        /// Represents the natural logarithmic base, specified by the constant, e.
-        /// </summary>
-        public const double E = 2.7182818284590451;
         
         /// <summary>
         /// Represents the ratio of the circumference of a circle to its diameter, specified
         //     by the constant, π.
         /// </summary>
-        public const float Pi_f = 3.1415926535897931f;
-        public const float TwoPi_f = 2 * Pi_f;
+        public const float Pi = 3.14159265358979323846f;
+        public const float TwoPi = 2 * Pi;
         /// <summary>
         /// Represents the natural logarithmic base, specified by the constant, e.
         /// </summary>
-        public const float E_f = 2.7182818284590451f;
+        public const float E = 2.7182818284590452354f;
         
         public static Vector2 Abs(Vector2 value) => Vector2.Abs(value);
         public static Vector3 Abs(Vector3 value) => Vector3.Abs(value);
@@ -344,10 +333,10 @@ namespace System
         public static float Tanhd(float degrees) => (float)Math.Tanh(ToRadians(degrees));
         
         public static double ToDegrees(double radians) => radians * 180 / Pi;
-        public static float ToDegrees(float radians) => radians * 180 / Pi_f;
+        public static float ToDegrees(float radians) => radians * 180 / Pi;
         
         public static double ToRadians(double degrees) => degrees * Pi / 180;
-        public static float ToRadians(float degrees) => degrees * Pi_f / 180;
+        public static float ToRadians(float degrees) => degrees * Pi / 180;
 
         public static decimal Truncate(decimal value) => Math.Truncate(value);
         public static double Truncate(double value) => Math.Truncate(value);

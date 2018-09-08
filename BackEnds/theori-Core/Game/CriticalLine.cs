@@ -84,7 +84,7 @@ namespace theori.Game
         private void UpdateOrientation()
         {
             Position = new Vector2(Window.Width / 2, HorizonHeight);
-            Rotation = -LaserRoll - MathL.Sin(EffectRoll * MathL.Pi_f * 2) * 30;
+            Rotation = -LaserRoll - MathL.Sin(EffectRoll * MathL.Pi * 2) * 30;
 
             float critDist = CriticalHeight - HorizonHeight;
             float desiredCritWidth = Window.Width * 0.75f;

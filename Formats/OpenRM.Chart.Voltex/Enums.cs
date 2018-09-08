@@ -23,12 +23,12 @@
         /// Spin, Swing, Wobble
         /// </summary>
         HighwayEffect,
-
-        LaserApplicationKind,
-        /// <summary>
-        /// Gain, Filter Kind
-        /// </summary>
+        
         LaserParams,
+        LaserApplicationKind,
+        LaserFilterGain,
+        LaserFilterKind,
+        SlamVolume,
 
         #endregion
 
@@ -94,51 +94,6 @@
     }
 
     [System.Flags]
-    public enum LaserFunction : ushort
-    {
-        /// <summary>
-        /// The input value is discarded entirely.
-        /// </summary>
-        Zero = 0,
-
-        /// <summary>
-        /// Keep the input value as-is.
-        /// </summary>
-        Source = 0x0001,
-
-        /// <summary>
-        /// Negate the input value.
-        /// </summary>
-        NegativeSource = 0x0002,
-        /// <summary>
-        /// Subtract the input value from 1.
-        /// </summary>
-        OneMinusSource = 0x0003,
-        
-        // TODO(local): figure out the actual values for laser roll amplitudes.
-
-        /// <summary>
-        /// Multiply the result by the "normal" laser amplitude.
-        /// </summary>
-        Normal = 0x1000,
-        /// <summary>
-        /// Multiply the result value by half of the "normal" laser amplitude.
-        /// </summary>
-        Smaller = 0x2000,
-        /// <summary>
-        /// Multiply the result value by 1.5 of the "normal" laser amplitude.
-        /// </summary>
-        Bigger = 0x3000,
-        /// <summary>
-        /// Multiply the result value by twice the "normal" laser amplitude.
-        /// </summary>
-        Biggest = 0x4000,
-
-        FunctionMask = 0x0FFF,
-        FlagMask = 0xF000,
-    }
-
-    [System.Flags]
     public enum LaserApplication : ushort
     {
         /// <summary>
@@ -192,5 +147,61 @@
         
         ApplicationMask = 0x0FFF,
         FlagMask = 0xF000,
+    }
+
+    [System.Flags]
+    public enum LaserFunction : ushort
+    {
+        /// <summary>
+        /// The input value is discarded entirely.
+        /// </summary>
+        Zero = 0,
+
+        /// <summary>
+        /// Keep the input value as-is.
+        /// </summary>
+        Source = 0x0001,
+
+        /// <summary>
+        /// Negate the input value.
+        /// </summary>
+        NegativeSource = 0x0002,
+        /// <summary>
+        /// Subtract the input value from 1.
+        /// </summary>
+        OneMinusSource = 0x0003,
+        
+        // TODO(local): figure out the actual values for laser roll amplitudes.
+
+        /// <summary>
+        /// Multiply the result by the "normal" laser amplitude.
+        /// </summary>
+        Normal = 0x1000,
+        /// <summary>
+        /// Multiply the result value by half of the "normal" laser amplitude.
+        /// </summary>
+        Smaller = 0x2000,
+        /// <summary>
+        /// Multiply the result value by 1.5 of the "normal" laser amplitude.
+        /// </summary>
+        Bigger = 0x3000,
+        /// <summary>
+        /// Multiply the result value by twice the "normal" laser amplitude.
+        /// </summary>
+        Biggest = 0x4000,
+
+        FunctionMask = 0x0FFF,
+        FlagMask = 0xF000,
+    }
+    
+    [System.Flags]
+    public enum LaserIndex
+    {
+        Neither = 0x00,
+
+        Left = 0x01,
+        Right = 0x02,
+
+        Both = Left | Right,
     }
 }

@@ -74,6 +74,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MoonSharp.2.0.0.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
+    </Reference>
     <Reference Include="NVorbis">
       <HintPath>..\..\packages\NVorbis.0.8.5.0\lib\NVorbis.dll</HintPath>
     </Reference>
@@ -134,6 +137,7 @@
     <Compile Include="Keyboard.cs" />
     <Compile Include="KeyboardData.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="LuaScript.cs" />
     <Compile Include="Mouse.cs" />
     <Compile Include="MouseData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -191,7 +195,9 @@
       <Name>Local-Lib</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.106.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.106.0\build\net45\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

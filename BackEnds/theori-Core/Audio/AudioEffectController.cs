@@ -105,6 +105,8 @@ namespace theori.Audio
             dsp.Mix = mix;
         }
 
+        public float GetEffectMix(int i) => dsps[i]?.Mix ?? 0;
+
         public void Play() => Track.Play();
         public void Stop() => Track.Stop();
 

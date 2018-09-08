@@ -159,7 +159,7 @@ namespace theori.Game
         {
             //float decay = MathL.Lerp(1, decayTo, 1 - (1 - t) * (1 - t));
             float decay = MathL.Lerp(1, decayTo, t);
-            return amplitude * decay * MathL.Sin(frequency * 2 * t * MathL.Pi_f);
+            return amplitude * decay * MathL.Sin(frequency * 2 * t * MathL.Pi);
         }
 
         public void Update()

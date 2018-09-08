@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using OpenRM.Audio.Effects;
 using OpenRM.Voltex;
 
 namespace OpenRM.Convert
@@ -60,7 +61,27 @@ namespace OpenRM.Convert
             {
                 if (double.TryParse(ksh.Metadata.BeatsPerMinute, out double bpm))
                     voltex.ControlPoints.Root.BeatsPerMinute = bpm;
+                
+                var laserParams = voltex[(int)StreamIndex.LaserParams].Add<LaserParamsEvent>(0);
+                laserParams.LaserIndex = LaserIndex.Both;
+                laserParams.Params.Function = LaserFunction.Source | LaserFunction.Normal;
+
+                var laserGain = voltex[(int)StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(0);
+                laserGain.LaserIndex = LaserIndex.Both;
+                laserGain.Gain = ksh.Metadata.PFilterGain / 100.0f;
+                
+                var laserFilter = voltex[(int)StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
+                laserFilter.LaserIndex = LaserIndex.Both;
+                switch (ksh.Metadata.FilterType)
+                {
+                    default:
+                    case "peak": laserFilter.FilterEffect = EffectDef.GetDefault(EffectType.PeakingFilter); break;
+                }
+
+                var slamVoume = voltex[(int)StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
+                slamVoume.Volume = ksh.Metadata.SlamVolume / 100.0f;
             }
+
 
             var lastCp = voltex.ControlPoints.Root;
             int lastTsBlock = 0;
