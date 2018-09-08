@@ -134,7 +134,6 @@
     <Compile Include="Keyboard.cs" />
     <Compile Include="KeyboardData.cs" />
     <Compile Include="Logger.cs" />
-    <Compile Include="Mathf.cs" />
     <Compile Include="Mouse.cs" />
     <Compile Include="MouseData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

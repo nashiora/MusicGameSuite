@@ -53,8 +53,8 @@ namespace System
         public static double Atan(double value) => Math.Atan(value);
         public static float Atan(float value) => (float)Math.Atan(value);
 
-        public static double Atan2(double y, double x) => Math.Atan2(y, x);
-        public static float Atan2(float y, float x) => (float)Math.Atan2(y, x);
+        public static double Atan(double y, double x) => Math.Atan2(y, x);
+        public static float Atan(float y, float x) => (float)Math.Atan2(y, x);
 
         public static long BigMul(int a, int b) => Math.BigMul(a, b);
         
@@ -122,6 +122,8 @@ namespace System
         public static int FloorToInt(float value) => (int)Math.Floor(value);
 
         public static double IEEERemainder(double x, double y) => Math.IEEERemainder(x, y);
+
+        public static float InverseSqrt(float value) => 1.0f / (float)Math.Sqrt(value);
         
         public static double Lerp(double from, double to, double amount) => from + (to - from) * amount;
         public static float Lerp(float from, float to, float amount) => from + (to - from) * amount;

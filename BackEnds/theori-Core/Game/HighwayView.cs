@@ -182,13 +182,13 @@ namespace theori.Game
 
             void LerpTo(ref float value, float target, float speed = 10)
             {
-                float diff = Mathf.Abs(target - value);
+                float diff = MathL.Abs(target - value);
                 float change = diff * Time.Delta * 10;
-                change = Mathf.Min(speed * 0.02f, change);
+                change = MathL.Min(speed * 0.02f, change);
 
                 if (target < value)
-                    value = Mathf.Max(value - change, target);
-                else value = Mathf.Min(value + change, target);
+                    value = MathL.Max(value - change, target);
+                else value = MathL.Min(value + change, target);
             }
             
             //float rollScale = 1;
@@ -227,20 +227,20 @@ namespace theori.Game
             zoomDir = Vector3.Normalize(zoomDir);
             
             float zoomAmt;
-            if (zoom <= 0) zoomAmt = Mathf.Pow(ZOOM_POW, -zoom) - 1;
-            else zoomAmt = highwayDist * (Mathf.Pow(ZOOM_POW, -Mathf.Pow(zoom, 1.35f)) - 1);
+            if (zoom <= 0) zoomAmt = MathL.Pow(ZOOM_POW, -zoom) - 1;
+            else zoomAmt = highwayDist * (MathL.Pow(ZOOM_POW, -MathL.Pow(zoom, 1.35f)) - 1);
 
             WorldTransform = worldNormal * Transform.Translation(zoomDir * zoomAmt);
 
             var critDir = Vector3.Normalize(((Matrix4x4)worldNoRoll).Translation);
-            float rotToCrit = Mathf.Atan(critDir.Y, -critDir.Z);
+            float rotToCrit = MathL.Atan(critDir.Y, -critDir.Z);
             
             float cameraRot = Camera.FieldOfView / 2 - Camera.FieldOfView * critScreenY;
-            float cameraPitch = rotToCrit + Mathf.ToRadians(cameraRot);
+            float cameraPitch = rotToCrit + MathL.ToRadians(cameraRot);
 
             Camera.Rotation = Quaternion.CreateFromYawPitchRoll(0, cameraPitch, 0);
 
-            float pitchDeg = Mathf.ToDegrees(cameraPitch);
+            float pitchDeg = MathL.ToDegrees(cameraPitch);
             HorizonHeight = (0.5f + (pitchDeg / Camera.FieldOfView)) * Camera.ViewportHeight;
 
             Camera.Position = CameraOffset;

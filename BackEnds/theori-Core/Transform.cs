@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 
 namespace theori
 {
@@ -14,9 +15,9 @@ namespace theori
         public static Transform Translation(float x, float y, float z) => new Transform(Matrix4x4.CreateTranslation(x, y, z));
         public static Transform Translation(Vector3 translation) => new Transform(Matrix4x4.CreateTranslation(translation));
 
-        public static Transform RotationX(float xDeg) => new Transform(Matrix4x4.CreateRotationX(Mathf.ToRadians(xDeg)));
-        public static Transform RotationY(float yDeg) => new Transform(Matrix4x4.CreateRotationY(Mathf.ToRadians(yDeg)));
-        public static Transform RotationZ(float zDeg) => new Transform(Matrix4x4.CreateRotationZ(Mathf.ToRadians(zDeg)));
+        public static Transform RotationX(float xDeg) => new Transform(Matrix4x4.CreateRotationX(MathL.ToRadians(xDeg)));
+        public static Transform RotationY(float yDeg) => new Transform(Matrix4x4.CreateRotationY(MathL.ToRadians(yDeg)));
+        public static Transform RotationZ(float zDeg) => new Transform(Matrix4x4.CreateRotationZ(MathL.ToRadians(zDeg)));
         
         public static Transform Scale(float x, float y, float z) => new Transform(Matrix4x4.CreateScale(x, y, z));
         public static Transform Scale(Vector3 scale) => new Transform(Matrix4x4.CreateScale(scale));

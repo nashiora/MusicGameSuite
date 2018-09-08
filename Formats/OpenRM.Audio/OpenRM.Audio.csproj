@@ -53,6 +53,7 @@
     <Compile Include="Effects\EffectType.cs" />
     <Compile Include="Effects\IMixable.cs" />
     <Compile Include="Effects\Phaser.cs" />
+    <Compile Include="Effects\Gate.cs" />
     <Compile Include="Effects\Retrigger.cs" />
     <Compile Include="Effects\SideChain.cs" />
     <Compile Include="Effects\TapeStop.cs" />
@@ -62,6 +63,10 @@
     <ProjectReference Include="..\..\Utils\Local-Lib\Local-Lib.csproj">
       <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
       <Name>Local-Lib</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\OpenRM.Chart\OpenRM.Chart.csproj">
+      <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
+      <Name>OpenRM.Chart</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using OpenRM;
 using theori.Graphics;
 
@@ -6,7 +7,7 @@ namespace theori.Game
 {
     internal abstract class ObjectRenderable3D : Disposable
     {
-        public readonly Object Object;
+        public readonly OpenRM.Object Object;
         
         public abstract Transform Transform { get; }
 
@@ -29,10 +30,10 @@ namespace theori.Game
             obj.PropertyChanged += UpdateRenderState_Base;
         }
 
-        public abstract void UpdateRenderState(Object.PropertyChangedEventArgs args);
+        public abstract void UpdateRenderState(OpenRM.Object.PropertyChangedEventArgs args);
         public abstract void UpdateDuration(float len);
 
-        private void UpdateRenderState_Base(Object obj, Object.PropertyChangedEventArgs args)
+        private void UpdateRenderState_Base(OpenRM.Object obj, OpenRM.Object.PropertyChangedEventArgs args)
         {
             UpdateRenderState(args);
         }
@@ -57,7 +58,7 @@ namespace theori.Game
             Mesh = mesh;
         }
 
-        public override void UpdateRenderState(Object.PropertyChangedEventArgs args)
+        public override void UpdateRenderState(OpenRM.Object.PropertyChangedEventArgs args)
         {
         }
 
@@ -81,7 +82,7 @@ namespace theori.Game
             
             float range = 5 / 6.0f * (obj.RangeExtended ? 2 : 1);
 
-            float min = Mathf.Min(obj.InitialValue, obj.FinalValue) * range;
+            float min = MathL.Min(obj.InitialValue, obj.FinalValue) * range;
             
             m_transform = Transform.Scale(1, 1, len);
             //Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width, 1, Anchor.BottomCenter);
@@ -133,7 +134,7 @@ namespace theori.Game
             }
         }
 
-        public override void UpdateRenderState(Object.PropertyChangedEventArgs args)
+        public override void UpdateRenderState(OpenRM.Object.PropertyChangedEventArgs args)
         {
         }
 
@@ -181,7 +182,7 @@ namespace theori.Game
             Mesh.SetVertices(vertices);
         }
 
-        public override void UpdateRenderState(Object.PropertyChangedEventArgs args)
+        public override void UpdateRenderState(OpenRM.Object.PropertyChangedEventArgs args)
         {
         }
 

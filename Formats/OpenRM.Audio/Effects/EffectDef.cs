@@ -64,6 +64,13 @@ namespace OpenRM.Audio.Effects
                             reduction);
                     }
                     
+                case EffectType.Gate:
+                    {
+                        float gating = 0.5f;
+
+                        return new GateEffectDef(new EffectDuration(0.25f), 1.0f, gating);
+                    }
+                    
                 case EffectType.Retrigger:
                     {
                         float gating = 0.7f;
