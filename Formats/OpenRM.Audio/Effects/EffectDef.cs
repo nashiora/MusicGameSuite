@@ -40,7 +40,7 @@ namespace OpenRM.Audio.Effects
                     
                 case EffectType.LowPassFilter:
                     {
-                        var q = new EffectParamF(6, 10);
+                        var q = new EffectParamF(7, 10);
                         var freq = new EffectParamF(10_000, 700, lpfEasingCurve);
 
                         return new BiQuadFilterEffectDef(type, new EffectDuration(0.25f), 1.0f,

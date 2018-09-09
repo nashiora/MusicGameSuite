@@ -12,14 +12,8 @@ namespace OpenRM.Convert
         class TempButtonState
         {
             public tick_t StartPosition;
-            public tick_t Duration;
 
-            //public EffectType EffectType;
-            //public readonly ushort[] EffectParams = new ushort[2];
-
-            public bool FineSnap;
-
-            public Object Previous;
+            public EffectDef EffectDef;
 
             public byte SampleIndex = 0xFF;
             public bool UsingSample = false;
@@ -35,14 +29,9 @@ namespace OpenRM.Convert
             public ControlPoint ControlPoint;
 
             public tick_t StartPosition;
-            public tick_t Duration;
-            
-            //public EffectType EffectType;
-            //public byte EffectParams;
-
             public float StartAlpha;
-
-            public AnalogObject Previous;
+            
+            public EffectDef EffectDef;
 
             public TempLaserState(tick_t pos, ControlPoint cp)
             {
@@ -53,6 +42,20 @@ namespace OpenRM.Convert
 
         public static Chart ToVoltex(this KShootMania.Chart ksh)
         {
+            EffectDef ParseFilterType(string str)
+            {
+                switch (str)
+                {
+                    case "hpf1": return EffectDef.GetDefault(EffectType.HighPassFilter);
+                    case "lpf1": return EffectDef.GetDefault(EffectType.LowPassFilter);
+                    case "peak": return EffectDef.GetDefault(EffectType.PeakingFilter);
+                    case "fx;bitc":
+                    case "bitc": return EffectDef.GetDefault(EffectType.BitCrush);
+                        
+                    default: return null;
+                }
+            }
+
             var voltex = new Chart((int)StreamIndex.COUNT)
             {
                 Offset = ksh.Metadata.OffsetMillis / 1_000.0
@@ -72,11 +75,7 @@ namespace OpenRM.Convert
                 
                 var laserFilter = voltex[(int)StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
                 laserFilter.LaserIndex = LaserIndex.Both;
-                switch (ksh.Metadata.FilterType)
-                {
-                    default:
-                    case "peak": laserFilter.FilterEffect = EffectDef.GetDefault(EffectType.PeakingFilter); break;
-                }
+                laserFilter.FilterEffect = ParseFilterType(ksh.Metadata.FilterType);
 
                 var slamVoume = voltex[(int)StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
                 slamVoume.Volume = ksh.Metadata.SlamVolume / 100.0f;
@@ -105,6 +104,26 @@ namespace OpenRM.Convert
                     string key = setting.Key;
                     switch (key)
                     {
+                        case "pfiltergain":
+                        {
+                            var laserGain = voltex[(int)StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(chartPos);
+                            laserGain.LaserIndex = LaserIndex.Both;
+                            laserGain.Gain = setting.Value.ToInt() / 100.0f;
+                        } break;
+
+                        case "filtertype":
+                        {
+                            var laserFilter = voltex[(int)StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
+                            laserFilter.LaserIndex = LaserIndex.Both;
+                            laserFilter.FilterEffect = ParseFilterType(setting.Value.ToString());
+                        } break;
+
+                        case "chokkakuvol":
+                        {
+                            var slamVoume = voltex[(int)StreamIndex.SlamVolume].Add<SlamVolumeEvent>(chartPos);
+                            slamVoume.Volume = setting.Value.ToInt() / 100.0f;
+                        } break;
+
                         case "laserrange_l": { laserIsExtended[0] = true; } break;
                         case "laserrange_r": { laserIsExtended[1] = true; } break;
                         
@@ -140,17 +159,18 @@ namespace OpenRM.Convert
                     bool isFx = b >= 4;
                     
                     var data = isFx ? tick.Fx[b - 4] : tick.Bt[b];
-                    var state = data.State;
                     var fxKind = data.FxKind;
 
                     void CreateHold(tick_t endPos)
                     {
-                        var startPos = buttonStates[b].StartPosition;
-                        voltex[b].Add<ButtonObject>(startPos, endPos - startPos);
+                        var state = buttonStates[b];
+
+                        var startPos = state.StartPosition;
+                        var button = voltex[b].Add<ButtonObject>(startPos, endPos - startPos);
                         //System.Diagnostics.Trace.WriteLine($"{ endPos } - { startPos } = { endPos - startPos }");
                     }
 
-                    switch (state)
+                    switch (data.State)
                     {
                         case KShootMania.ButtonState.Off:
                         {

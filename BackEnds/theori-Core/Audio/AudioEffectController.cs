@@ -40,6 +40,15 @@ namespace theori.Audio
         
         public bool EffectsActive { get; set; } = true;
 
+        #if false
+        private double m_playbackSpeed = 1, m_invPlaybackSpeed = 1;
+        public double PlaybackSpeed
+        {
+            get => m_playbackSpeed;
+            set => m_invPlaybackSpeed = 1 / (m_playbackSpeed = MathL.Clamp(value, 0.1f, 9999));
+        }
+        #endif
+
         private readonly EffectDef[] effectDefs;
         private readonly Dsp[] dsps;
 

@@ -124,19 +124,54 @@ namespace theori.Audio
             PlaybackState = PlaybackState.Stopped;
         }
 
+        private long m_realSampleIndex;
+
         public override int Read(float[] buffer, int offset, int count)
         {
             switch (PlaybackState)
             {
                 case PlaybackState.Playing:
+                {
+                    if (m_realSampleIndex < 0)
+                    {
+                        lastSourcePosition = TimeSpan.FromSeconds(m_realSampleIndex / (double)(Source.WaveFormat.SampleRate * Source.WaveFormat.Channels));
+
+                        if (-m_realSampleIndex >= count)
+                        {
+                            for (int i = 0; i < count; i++)
+                                buffer[offset + i] = 0;
+                            m_realSampleIndex += count;
+                            return count;
+                        }
+                        else
+                        {
+                            int numEmptySamples = -(int)m_realSampleIndex;
+                            for (int i = 0; i < numEmptySamples; i++)
+                                buffer[offset + i] = 0;
+
+                            offset += numEmptySamples;
+                            count -= numEmptySamples;
+
+                            int result = Source.Read(buffer, offset, count);
+                            for (int i = 0; i < result; i++)
+                                buffer[offset + i] *= Volume;
+
+                            m_realSampleIndex += result + numEmptySamples;
+                            return numEmptySamples + result;
+                        }
+                    }
+                    else
                     {
                         lastSourcePosition = ((IAudioSource)Source).GetPosition();
 
                         int result = Source.Read(buffer, offset, count);
                         for (int i = 0; i < result; i++)
-                            buffer[i] *= Volume;
+                            buffer[i + offset] *= Volume;
+
+                        m_realSampleIndex += result;
                         return result;
                     }
+                }
 
                 case PlaybackState.Stopped:
                     for (int i = 0; i < count; i++)
@@ -150,8 +185,12 @@ namespace theori.Audio
         public override void Seek(time_t position)
         {
             if (!CanSeek) throw new InvalidOperationException("cannot seek");
+            
+            double posSeconds = MathL.Max(0, position.Seconds);
+            ((IAudioSource)Source).SetPosition(TimeSpan.FromSeconds(posSeconds));
 
-            ((IAudioSource)Source).SetPosition(lastSourcePosition = TimeSpan.FromSeconds(position.Seconds));
+            lastSourcePosition = TimeSpan.FromSeconds(position.Seconds);
+            m_realSampleIndex = (long)(position.Seconds * Source.WaveFormat.SampleRate * Source.WaveFormat.Channels);
         }
 
         protected override void DisposeManaged()

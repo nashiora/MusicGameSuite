@@ -1,14 +1,19 @@
-﻿namespace OpenRM.Voltex
+﻿using OpenRM.Audio.Effects;
+
+namespace OpenRM.Voltex
 {
     public sealed class ButtonObject : Object
     {
-        private string m_chipSample;
-
         public ButtonObject Head => FirstConnectedOf<ButtonObject>();
         public ButtonObject Tail => LastConnectedOf<ButtonObject>();
 
         public bool IsChip => IsInstant;
+        public bool IsHold => !IsInstant;
 
-        public bool HasChipSample => IsInstant && m_chipSample != null;
+        public bool HasSample => Sample != null;
+        public bool HasEffect => Effect != null;
+
+        public EffectDef Effect { get; set; }
+        private string Sample { get; set; }
     }
 }

@@ -58,10 +58,10 @@ namespace theori.Game.States
             //const string DIR = @"D:\kshootmania\songs\Local\rocknroll";
             //const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
             
-            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
+            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "nov.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "loc.ksh"));
-            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
+            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
             
             string audioFile = Path.Combine(DIR, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
 
@@ -89,7 +89,10 @@ namespace theori.Game.States
 
             minStartTime -= 3;
             if (minStartTime < 0)
-                ;//m_audio.Position = minStartTime;
+            {
+                m_audio.Position = minStartTime;   
+                Console.WriteLine($"{ minStartTime }, { m_audio.Position }");
+            }
 
             highwayView = new HighwayView(m_chart);
             m_control = new HighwayControl();
@@ -127,7 +130,6 @@ end
             {
                 if (obj.IsInstant)
                 {
-                    //m_control.ShakeCamera(-MathL.Sign(aobj.FinalValue - aobj.InitialValue));
                     m_luaScript.Call("OnSlamHit", aobj.FinalValue - aobj.InitialValue);
                     m_slamSample.Play();
                 }
@@ -140,11 +142,9 @@ end
             }
             else if (obj is ButtonObject bobj)
             {
-                if (obj.Stream >= 4)
-                {
-                    //var effect =  new BitCrusherEffectDef(EffectType.BitCrush, new EffectDuration(0.25f), 1.0f, 10);
-                    //m_audioController.SetEffect(obj.Stream, effect, 1);
-                }
+                if (bobj.HasEffect)
+                    m_audioController.SetEffect(obj.Stream, bobj.Effect);
+                else m_audioController.RemoveEffect(obj.Stream);
             }
         }
 
@@ -160,10 +160,7 @@ end
             }
             if (obj is ButtonObject bobj)
             {
-                if (obj.Stream >= 4)
-                {
-                    m_audioController.RemoveEffect(bobj.Stream);
-                }
+                m_audioController.RemoveEffect(obj.Stream);
             }
         }
 
@@ -219,6 +216,8 @@ end
                         m_audioController.Position = minStartTime;
                 } break;
 
+                case KeyCode.PAGEUP: m_audioController.Position += 5; break;
+
                 case KeyCode.D1: actionKind = 0; break;
                 case KeyCode.D2: actionKind = 1; break;
                 case KeyCode.D3: actionKind = 2; break;
@@ -271,6 +270,7 @@ end
         public override void Update()
         {
             time_t position = m_audio.Position;
+            //Console.WriteLine($"{ Time.Total } :: { position }");
 
             m_control.Position = position;
             m_playback.Position = position;
