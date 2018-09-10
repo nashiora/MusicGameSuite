@@ -155,13 +155,11 @@
         /// <summary>
         /// The input value is discarded entirely.
         /// </summary>
-        Zero = 0,
-
+        Zero = 0x0000,
         /// <summary>
         /// Keep the input value as-is.
         /// </summary>
         Source = 0x0001,
-
         /// <summary>
         /// Negate the input value.
         /// </summary>
@@ -172,15 +170,15 @@
         OneMinusSource = 0x0003,
         
         // TODO(local): figure out the actual values for laser roll amplitudes.
-
-        /// <summary>
-        /// Multiply the result by the "normal" laser amplitude.
-        /// </summary>
-        Normal = 0x1000,
+        
         /// <summary>
         /// Multiply the result value by half of the "normal" laser amplitude.
         /// </summary>
-        Smaller = 0x2000,
+        Smaller = 0x1000,
+        /// <summary>
+        /// Multiply the result by the "normal" laser amplitude.
+        /// </summary>
+        Normal = 0x2000,
         /// <summary>
         /// Multiply the result value by 1.5 of the "normal" laser amplitude.
         /// </summary>

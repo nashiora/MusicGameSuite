@@ -5,6 +5,10 @@ namespace OpenRM
 {
     public class Object : ILinkable<Object>, IComparable<Object>, ICloneable
     {
+        private static long creationIndexCounter = 0;
+
+        private readonly long m_id = ++creationIndexCounter;
+
         private tick_t m_position, m_duration;
         private time_t m_calcPosition = (time_t)long.MinValue,
                        m_calcDuration = (time_t)long.MinValue;
@@ -169,7 +173,7 @@ namespace OpenRM
                 return 1;
 
             // oh well, we tried
-            return m_duration.CompareTo(other.m_duration);
+            return m_id.CompareTo(other.m_id);;
         }
         
         int IComparable<Object>.CompareTo(Object other) => CompareTo(other);
@@ -215,8 +219,6 @@ namespace OpenRM
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
                 return;
-
-            System.Diagnostics.Debug.WriteLine(propertyName);
 
             field = value;
             OnPropertyChanged(propertyName);

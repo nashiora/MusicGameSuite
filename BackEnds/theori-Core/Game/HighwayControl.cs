@@ -164,6 +164,8 @@ namespace theori.Game
 
         public void Update()
         {
+            if (MathL.Abs(m_combinedLaserOutput) < 0.001f) m_combinedLaserOutput = 0;
+
             if (m_shake != null && m_shake.StartTime + m_shake.Duration < m_position)
                 m_shake = null;
 
@@ -321,6 +323,7 @@ namespace theori.Game
             {
                 float output = value;
 
+                //Console.WriteLine(p.Function & LaserFunction.FunctionMask);
                 switch (p.Function & LaserFunction.FunctionMask)
                 {
                     case LaserFunction.Zero: return 0;
@@ -333,8 +336,8 @@ namespace theori.Game
                 {
                     case LaserFunction.Normal: break;
                     case LaserFunction.Smaller: output *= 0.5f; break;
-                    case LaserFunction.Bigger: output *= 1.5f; break;
-                    case LaserFunction.Biggest: output *= 2.0f; break;
+                    case LaserFunction.Bigger: output *= 2.0f; break;
+                    case LaserFunction.Biggest: output *= 3.0f; break;
                 }
 
                 return output * LASER_BASE_STRENGTH;

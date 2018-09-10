@@ -53,10 +53,11 @@ namespace theori.Game.States
             m_slamSample.Volume = 0.5f * 0.7f;
             Application.Mixer.MasterChannel.AddSource(m_slamSample);
             
-            const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
+            //const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
             //const string DIR = @"D:\kshootmania\songs\Local\racemization";
             //const string DIR = @"D:\kshootmania\songs\Local\rocknroll";
-            //const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
+            const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
+            //const string DIR = @"D:\kshootmania\songs\Local\instant_heaven";
             
             var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "nov.ksh"));
@@ -104,7 +105,9 @@ namespace theori.Game.States
 
             m_playback.ObjectBegin += PlaybackObjectBegin;
             m_playback.ObjectEnd += PlaybackObjectEnd;
-
+            
+            //m_audio.PlaybackSpeed = 1.25f;
+            m_playback.ViewDuration *= m_audio.PlaybackSpeed;
             highwayView.ViewDuration = m_playback.ViewDuration;
 
             foreUiRoot = new Panel()

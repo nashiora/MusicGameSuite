@@ -34,7 +34,7 @@ namespace OpenRM
         
         private time_t m_lastObjectPosition;
 
-        private time_t m_position = 0;
+        private time_t m_position = double.MinValue;
         public time_t Position
         {
             get => m_position;
@@ -48,7 +48,7 @@ namespace OpenRM
 
         public time_t EndPosition => Position + ViewDuration;
 
-        private time_t m_viewDuration = 1;
+        private time_t m_viewDuration = 0.75;
         public time_t ViewDuration
         {
             get => m_viewDuration;

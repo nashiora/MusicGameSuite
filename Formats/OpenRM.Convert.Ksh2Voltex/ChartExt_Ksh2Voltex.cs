@@ -151,6 +151,30 @@ namespace OpenRM.Convert
                             var point = voltex[(int)StreamIndex.Roll].Add<PathPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 360.0f;
                         } break;
+
+                        case "tilt":
+                        {
+                            var laserApps = voltex[(int)StreamIndex.LaserParams].Add<LaserApplicationEvent>(chartPos);
+
+                            string v = setting.Value.ToString();
+                            if (v.StartsWith("keep_"))
+                            {
+                                laserApps.Application = LaserApplication.Additive | LaserApplication.KeepMax;
+                                v = v.Substring(5);
+                            }
+                            
+                            var laserParams = voltex[(int)StreamIndex.LaserParams].Add<LaserParamsEvent>(chartPos);
+                            laserParams.LaserIndex = LaserIndex.Both;
+
+                            switch (v)
+                            {
+                                default:
+                                case "zero": laserParams.Params.Function = LaserFunction.Zero; break;
+                                case "normal": laserParams.Params.Function = LaserFunction.Source | LaserFunction.Normal; break;
+                                case "bigger": laserParams.Params.Function = LaserFunction.Source | LaserFunction.Bigger; break;
+                                case "biggest": laserParams.Params.Function = LaserFunction.Source | LaserFunction.Biggest; break;
+                            }
+                        } break;
                     }
                 }
 

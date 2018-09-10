@@ -94,6 +94,13 @@ namespace theori.Audio
 
         public PlaybackState PlaybackState { get; private set; } = PlaybackState.Stopped;
 
+        private float m_playbackSpeed = 1, m_invPlaybackSpeed = 1;
+        public float PlaybackSpeed
+        {
+            get => m_playbackSpeed;
+            set => m_invPlaybackSpeed = 1 / (m_playbackSpeed = MathL.Clamp(value, 0.1f, 9999));
+        }
+
         internal AudioTrack(ISampleSource source)
         {
             Source = source;
@@ -125,6 +132,7 @@ namespace theori.Audio
         }
 
         private long m_realSampleIndex;
+        private float[] m_resampleBuffer = new float[2048];
 
         public override int Read(float[] buffer, int offset, int count)
         {
@@ -132,45 +140,39 @@ namespace theori.Audio
             {
                 case PlaybackState.Playing:
                 {
-                    if (m_realSampleIndex < 0)
+                    lastSourcePosition = TimeSpan.FromSeconds(m_realSampleIndex / (double)(Source.WaveFormat.SampleRate * Source.WaveFormat.Channels));
+
+                    int realSampleCount = (int)(count * m_playbackSpeed);
+                    if (m_resampleBuffer.Length < realSampleCount)
                     {
-                        lastSourcePosition = TimeSpan.FromSeconds(m_realSampleIndex / (double)(Source.WaveFormat.SampleRate * Source.WaveFormat.Channels));
-
-                        if (-m_realSampleIndex >= count)
-                        {
-                            for (int i = 0; i < count; i++)
-                                buffer[offset + i] = 0;
-                            m_realSampleIndex += count;
-                            return count;
-                        }
-                        else
-                        {
-                            int numEmptySamples = -(int)m_realSampleIndex;
-                            for (int i = 0; i < numEmptySamples; i++)
-                                buffer[offset + i] = 0;
-
-                            offset += numEmptySamples;
-                            count -= numEmptySamples;
-
-                            int result = Source.Read(buffer, offset, count);
-                            for (int i = 0; i < result; i++)
-                                buffer[offset + i] *= Volume;
-
-                            m_realSampleIndex += result + numEmptySamples;
-                            return numEmptySamples + result;
-                        }
+                        int newLen = m_resampleBuffer.Length;
+                        while (newLen < realSampleCount)
+                            newLen *= 2;
+                        Array.Resize(ref m_resampleBuffer, newLen);
                     }
-                    else
+                    
+                    float LerpSample(float[] arr, double index)
                     {
-                        lastSourcePosition = ((IAudioSource)Source).GetPosition();
-
-                        int result = Source.Read(buffer, offset, count);
-                        for (int i = 0; i < result; i++)
-                            buffer[i + offset] *= Volume;
-
-                        m_realSampleIndex += result;
-                        return result;
+                        index = MathL.Clamp(index, 0, arr.Length);
+                        if (index == 0) return arr[0];
+                        if (index == arr.Length) return arr[arr.Length - 1];
+                        int min = (int)index, max = min + 1;
+                        return MathL.Lerp(arr[min], arr[max], (float)(index - min));
                     }
+
+                    int numEmptySamples = (int)(MathL.Clamp(-(int)m_realSampleIndex, 0, count) * m_playbackSpeed);
+                    for (int e = 0; e < numEmptySamples; e++)
+                        m_resampleBuffer[e] = 0;
+
+                    int numReadSamples = Source.Read(m_resampleBuffer, numEmptySamples, realSampleCount - numEmptySamples);
+                    int totalSamplesRead = numReadSamples + numEmptySamples;
+
+                    int numSamplesToWrite = (int)(totalSamplesRead * m_invPlaybackSpeed);
+                    for (int i = 0; i < numSamplesToWrite; i++)
+                        buffer[i] = LerpSample(m_resampleBuffer, i * m_playbackSpeed) * Volume;
+
+                    m_realSampleIndex += totalSamplesRead;
+                    return numSamplesToWrite;
                 }
 
                 case PlaybackState.Stopped:
