@@ -116,6 +116,9 @@ namespace OpenRM.Convert
                     case "SideChain": return new SideChainEffectDef(1, 1.0f,
                         (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["period"].Number);
 
+                    case "Wobble": return new WobbleEffectDef(1,
+                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
+
                     case "TapeStop": return new TapeStopEffectDef(1, 16.0f / MathL.Max(def["speed"].Number, 1));
 
                     case "Phaser": return new PhaserEffectDef(0.5f);

@@ -278,6 +278,14 @@ namespace KShootMania
                         def = new EffectDefinition() { EffectName = effectName };
                         def.Parameters["period"] = new ParamValue(1.0f / step);
                     } break;
+                    
+                    case "Wobble":
+                    {
+                        int step = 12;
+
+                        def = new EffectDefinition() { EffectName = effectName };
+                        def.Parameters["waveLength"] = new ParamValue(1.0f / step);
+                    } break;
 
                     case "TapeStop":
                     {
