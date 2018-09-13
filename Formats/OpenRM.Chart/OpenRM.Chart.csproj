@@ -40,9 +40,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BiDirectionalPlayer.cs" />
     <Compile Include="Chart.cs" />
     <Compile Include="ChartMetadata.cs" />
-    <Compile Include="ChartPlayback.cs" />
+    <Compile Include="SimpleChartPlayback.cs" />
     <Compile Include="ControlPoint.cs" />
     <Compile Include="EditStack.cs" />
     <Compile Include="Enums.cs" />

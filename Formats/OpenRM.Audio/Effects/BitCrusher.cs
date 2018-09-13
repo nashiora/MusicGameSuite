@@ -10,7 +10,7 @@
         /// <summary>
         /// Make larger than 1 to stretch out samples across a longer period of samples
         /// </summary>
-        public double Reduction { get; set; } = 3.5;
+        public double Reduction = 4;
 
         public BitCrusher()
             : base(0)
@@ -40,10 +40,9 @@
     public sealed class BitCrusherEffectDef : EffectDef
     {
         public EffectParamF Reduction { get; }
-
-        public BitCrusherEffectDef(EffectType type, EffectParam<EffectDuration> duration, EffectParamF mix,
-            EffectParamF reduction)
-            : base(type, duration, mix)
+        
+        public BitCrusherEffectDef(EffectParamF mix, EffectParamF reduction)
+            : base(EffectType.BitCrush, mix)
         {
             Reduction = reduction;
         }
@@ -52,6 +51,7 @@
 
         public override void ApplyToDsp(Dsp effect, float alpha = 0)
         {
+            base.ApplyToDsp(effect, alpha);
             if (effect is BitCrusher bitCrusher)
             {
                 bitCrusher.Reduction = Reduction.Sample(alpha);

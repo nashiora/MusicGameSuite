@@ -48,7 +48,6 @@
     <Compile Include="Effects\BiQuadFilter.cs" />
     <Compile Include="Effects\BitCrusher.cs" />
     <Compile Include="Effects\EffectDef.cs" />
-    <Compile Include="Effects\EffectDuration.cs" />
     <Compile Include="Effects\EffectParam.cs" />
     <Compile Include="Effects\EffectType.cs" />
     <Compile Include="Effects\IMixable.cs" />

@@ -295,7 +295,7 @@ namespace theori.Game
 
                         float z = LENGTH_BASE * (float)((position - PlaybackPosition) / ViewDuration);
 
-                        Transform t = objr.Transform * Transform.Translation(0, 0.1f, -z) * WorldTransform;
+                        Transform t = objr.Transform * Transform.Translation(0, 0.05f, -z) * WorldTransform;
                         queue.Draw(t, objr.Mesh, volMaterial, i == 0 ? lVolParams : rVolParams);
                     }
                 }

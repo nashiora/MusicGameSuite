@@ -487,6 +487,17 @@ namespace OpenRM
 				    action(cp);
 			    }
             }
+
+            public ControlPoint FindAt(tick_t pos)
+            {
+			    for (int i = 0; i < m_controlPoints.Count; i++)
+			    {
+				    var cp = m_controlPoints[i];
+                    if (cp.Position == pos)
+                        return cp;
+                }
+                return null;
+            }
         }
     }
 }

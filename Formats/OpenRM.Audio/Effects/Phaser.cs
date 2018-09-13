@@ -6,12 +6,12 @@ namespace OpenRM.Audio.Effects
     {
         private const int NumBands = 6;
 
-        private float feedback;
+        private float feedback = 0.35f;
         private double time;
         private APF[] allPassFilters = new APF[NumBands * 2]; // 6 bands - Stereo
         private float[] feedbackBuffer = new float[2];
-        private float maxmimumFrequency = 15000.0f;
-        private float minimumFrequency = 5000.0f;
+        private float maxmimumFrequency = 20000.0f;
+        private float minimumFrequency = 12000.0f;
         private float frequencyDelta;
 
         public Phaser(int sampleRate)
@@ -109,5 +109,23 @@ namespace OpenRM.Audio.Effects
             public float a1;
             public float za;
         };
+    }
+
+    public sealed class PhaserEffectDef : EffectDef
+    {
+        public PhaserEffectDef(EffectParamF mix)
+            : base(EffectType.Phaser, mix)
+        {
+        }
+
+        public override Dsp CreateEffectDsp(int sampleRate) => new Phaser(sampleRate);
+
+        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        {
+            base.ApplyToDsp(effect, alpha);
+            if (effect is Phaser p)
+            {
+            }
+        }
     }
 }

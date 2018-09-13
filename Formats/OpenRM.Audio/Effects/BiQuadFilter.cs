@@ -114,17 +114,15 @@ namespace OpenRM.Audio.Effects
 
     public sealed class BiQuadFilterEffectDef : EffectDef
     {
-        public EffectParamF PeakQ { get; }
         public EffectParamF Q { get; }
 
         public EffectParamF Gain { get; }
         public EffectParamF Freq { get; }
         
-        public BiQuadFilterEffectDef(EffectType type, EffectParam<EffectDuration> duration, EffectParamF mix,
-            EffectParamF peakQ, EffectParamF q, EffectParamF gain, EffectParamF freq)
-            : base(type, duration, mix)
+        public BiQuadFilterEffectDef(EffectType type, EffectParamF mix,
+            EffectParamF q, EffectParamF gain, EffectParamF freq)
+            : base(type, mix)
         {
-            PeakQ = peakQ;
             Q = q;
             Gain = gain;
             Freq = freq;

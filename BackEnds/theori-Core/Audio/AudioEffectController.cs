@@ -84,6 +84,11 @@ namespace theori.Audio
         {
             if (f == effectDefs[i])
                 return;
+            if (f == null)
+            {
+                RemoveEffect(i);
+                return;
+            }
 
             RemoveEffect(i);
 

@@ -29,13 +29,16 @@ namespace theori.Game.States
         private CriticalLine critRoot;
         
         private Chart m_chart;
-        private ChartPlayback m_playback;
+        private SimpleChartPlayback m_playback;
 
         private AudioEffectController m_audioController;
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
         private int actionKind = 0;
+
+        private bool m_isPlayback = false;
+        private tick_t m_navPos = 0;
 
         public override void ClientSizeChanged(int width, int height)
         {
@@ -54,15 +57,17 @@ namespace theori.Game.States
             Application.Mixer.MasterChannel.AddSource(m_slamSample);
             
             //const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
+            const string DIR = @"D:\kshootmania\songs\SDVX IV\isekai_not_pumpy";
             //const string DIR = @"D:\kshootmania\songs\Local\racemization";
             //const string DIR = @"D:\kshootmania\songs\Local\rocknroll";
-            const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
+            //const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
             //const string DIR = @"D:\kshootmania\songs\Local\instant_heaven";
+            //const string DIR = @"D:\kshootmania\songs\Local\Effect Test";
             
-            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
+            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "nov.ksh"));
             //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "loc.ksh"));
-            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
+            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
             
             string audioFile = Path.Combine(DIR, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
 
@@ -79,26 +84,12 @@ namespace theori.Game.States
             };
             
             m_chart = ksh.ToVoltex();
-
-            time_t minStartTime = m_chart.TimeEnd;
-            for (int i = 0; i < 8; i++)
-            {
-                time_t startTime = m_chart[i].FirstObject?.AbsolutePosition ?? 0;
-                if (startTime < minStartTime)
-                    minStartTime = startTime;
-            }
-
-            minStartTime -= 3;
-            if (minStartTime < 0)
-            {
-                m_audio.Position = minStartTime;   
-                Console.WriteLine($"{ minStartTime }, { m_audio.Position }");
-            }
+            m_audio.Position = m_chart.Offset;
 
             highwayView = new HighwayView(m_chart);
             m_control = new HighwayControl();
 
-            m_playback = new ChartPlayback(m_chart);
+            m_playback = new SimpleChartPlayback(m_chart);
             m_playback.ObjectAppear += highwayView.RenderableObjectAppear;
             m_playback.ObjectDisappear += highwayView.RenderableObjectDisappear;
             m_playback.EventTrigger += PlaybackEventTrigger;
@@ -123,6 +114,24 @@ function OnSlamHit(magnitude)
     XShakeCamera(-math.sign(magnitude));
 end
 ");
+        }
+
+        private void ResetPlayback()
+        {
+            time_t minStartTime = m_chart.TimeEnd;
+            for (int i = 0; i < 8; i++)
+            {
+                time_t startTime = m_chart[i].FirstObject?.AbsolutePosition ?? 0;
+                if (startTime < minStartTime)
+                    minStartTime = startTime;
+            }
+
+            minStartTime -= 3;
+            if (minStartTime < 0)
+            {
+                m_audio.Position = minStartTime;   
+                Console.WriteLine($"{ minStartTime }, { m_audio.Position }");
+            }
             
             m_audioController.Play();
         }
@@ -146,7 +155,10 @@ end
             else if (obj is ButtonObject bobj)
             {
                 if (bobj.HasEffect)
+                {
+                    Console.WriteLine($"Setting FX{ obj.Stream } to { bobj.Effect.Type }");
                     m_audioController.SetEffect(obj.Stream, bobj.Effect);
+                }
                 else m_audioController.RemoveEffect(obj.Stream);
             }
         }
@@ -175,7 +187,10 @@ end
                 
                 // TODO(local): left/right lasers separate + allow both independent if needed
                 case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
-                case LaserFilterKindEvent filterKind: m_audioController.SetEffect(6, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6)); break;
+                case LaserFilterKindEvent filterKind:
+                {
+                    m_audioController.SetEffect(6, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6));
+                } break;
 
                 case LaserParamsEvent pars:
                 {
@@ -219,7 +234,10 @@ end
                         m_audioController.Position = minStartTime;
                 } break;
 
-                case KeyCode.PAGEUP: m_audioController.Position += 5; break;
+                case KeyCode.PAGEUP:
+                {
+                    m_audioController.Position += 5;
+                } break;
 
                 case KeyCode.D1: actionKind = 0; break;
                 case KeyCode.D2: actionKind = 1; break;
@@ -273,7 +291,6 @@ end
         public override void Update()
         {
             time_t position = m_audio.Position;
-            //Console.WriteLine($"{ Time.Total } :: { position }");
 
             m_control.Position = position;
             m_playback.Position = position;
@@ -297,10 +314,10 @@ end
             m_control.LeftLaserInput = GetTempRollValue(position, 6);
             m_control.RightLaserInput = GetTempRollValue(position, 7, true);
             
-            m_control.Zoom = GetPathValueLerped((int)StreamIndex.Zoom);
-            m_control.Pitch = GetPathValueLerped((int)StreamIndex.Pitch);
-            m_control.Offset = GetPathValueLerped((int)StreamIndex.Offset) * 5 / 6.0f;
-            m_control.Roll = GetPathValueLerped((int)StreamIndex.Roll);
+            m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
+            m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
+            m_control.Offset = GetPathValueLerped(StreamIndex.Offset) * 5 / 6.0f;
+            m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
 
             m_control.Update();
             m_control.ApplyToView(highwayView);
@@ -384,11 +401,13 @@ end
             m_audioController.UpdateEffect(6, alpha);
 
             float mix = BASE_LASER_MIX * laserGain;
-            if (alpha < 0.1f)
-                mix *= alpha / 0.1f;
-
-            else if (alpha > 0.8f)
-                mix *= 1 - (alpha - 0.8f) / 0.2f;
+            if (currentLaserEffectDef != null && currentLaserEffectDef.Type == EffectType.PeakingFilter)
+            {
+                if (alpha < 0.1f)
+                    mix *= alpha / 0.1f;
+                else if (alpha > 0.8f)
+                    mix *= 1 - (alpha - 0.8f) / 0.2f;
+            }
 
             m_audioController.SetEffectMix(6, mix);
         }

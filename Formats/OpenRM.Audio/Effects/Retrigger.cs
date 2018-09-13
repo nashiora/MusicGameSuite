@@ -46,7 +46,7 @@ namespace OpenRM.Audio.Effects
 
             double sll = SampleRate * Duration;
             int sampleDuration = (int)(SampleRate * Duration);
-            int sampleGatingLength = (int)(sll * (1.0-Gating));
+            int sampleGatingLength = (int)(sll * Gating);
 
             if(retriggerBuffer.Length < (sampleDuration*2))
                 Array.Resize(ref retriggerBuffer, sampleDuration * 2);
@@ -91,15 +91,14 @@ namespace OpenRM.Audio.Effects
 
     public sealed class RetriggerEffectDef : EffectDef
     {
+        public EffectParamF GateDuration { get; }
         public EffectParamF Gating { get; }
-        public new EffectParamF Duration { get; }
-
-        public RetriggerEffectDef(EffectParam<EffectDuration> duration, EffectParamF mix,
-            EffectParamF gating, EffectParamF retriggerDuration)
-            : base(EffectType.Retrigger, duration, mix)
+        
+        public RetriggerEffectDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
+            : base(EffectType.Retrigger, mix)
         {
+            GateDuration = gateDuration;
             Gating = gating;
-            Duration = retriggerDuration;
         }
         
         public override Dsp CreateEffectDsp(int sampleRate) => new Retrigger(sampleRate);
@@ -108,8 +107,9 @@ namespace OpenRM.Audio.Effects
         {
             if (effect is Retrigger retrigger)
             {
+                retrigger.Mix = Mix.Sample(alpha);
                 retrigger.Gating = Gating.Sample(alpha);
-                retrigger.Duration = Duration.Sample(alpha);
+                retrigger.Duration = GateDuration.Sample(alpha);
             }
         }
     }

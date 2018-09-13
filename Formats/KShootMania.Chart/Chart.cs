@@ -168,14 +168,44 @@ namespace KShootMania
         public Tick Tick;
     }
 
+    public enum ParamKind
+    {
+        Numeric,
+        String
+    }
+
+    public struct ParamValue
+    {
+        public readonly ParamKind Kind;
+
+        public readonly float Number;
+        public readonly string String;
+
+        public ParamValue(float num)
+        {
+            Kind = ParamKind.Numeric;
+            Number = num;
+            String = "";
+        }
+
+        public ParamValue(string str)
+        {
+            Kind = ParamKind.String;
+            Number = 0;
+            String = str;
+        }
+
+        public override string ToString() => Kind == ParamKind.Numeric ? Number.ToString() : String;
+    }
+
     public class EffectDefinition
     {
-        public string Name;
-        public readonly Dictionary<string, string> Parameters = new Dictionary<string, string>();
+        public string EffectName;
+        public readonly Dictionary<string, ParamValue> Parameters = new Dictionary<string, ParamValue>();
 
-        public EffectDefinition(string name)
+        public ParamValue this[string key]
         {
-            Name = name;
+            get => Parameters[key];
         }
     }
 
@@ -198,6 +228,84 @@ namespace KShootMania
             {
                 Metadata = ChartMetadata.Create(reader)
             };
+            
+            void TryAddBuiltInFx(string effect)
+            {
+                string effectName = effect;
+                if (effect.TrySplit(';', out string _name, out string paramList))
+                    effectName = _name;
+                else paramList = "";
+
+                if (string.IsNullOrEmpty(effectName))
+                    return;
+
+                string[] pars = paramList.Split(';');
+
+                EffectDefinition def = null;
+                switch (effectName)
+                {
+                    case "BitCrusher":
+                    {
+                        float reduction = 4;
+                        if (pars.Length > 0) reduction = float.Parse(pars[0]);
+
+                        def = new EffectDefinition() { EffectName = effectName };
+                        def.Parameters["reduction"] = new ParamValue(reduction);
+                    } break;
+
+                    case "Retrigger":
+                    {
+                        int step = 8;
+                        if (pars.Length > 0) step = int.Parse(pars[0]);
+
+                        def = new EffectDefinition() { EffectName = effectName };
+                        def.Parameters["waveLength"] = new ParamValue(1.0f / step);
+                    } break;
+
+                    case "Gate":
+                    {
+                        int step = 8;
+                        if (pars.Length > 0) step = int.Parse(pars[0]);
+
+                        def = new EffectDefinition() { EffectName = effectName };
+                        def.Parameters["waveLength"] = new ParamValue(1.0f / step);
+                    } break;
+                    
+                    case "SideChain":
+                    {
+                        int step = 4;
+
+                        def = new EffectDefinition() { EffectName = effectName };
+                        def.Parameters["period"] = new ParamValue(1.0f / step);
+                    } break;
+
+                    case "TapeStop":
+                    {
+                        int speed = 50;
+                        if (pars.Length > 0) speed = int.Parse(pars[0]);
+
+                        def = new EffectDefinition() { EffectName = effectName };
+                        def.Parameters["speed"] = new ParamValue(speed);
+                    } break;
+
+                    case "Phaser":
+                    {
+                        def = new EffectDefinition() { EffectName = effectName };
+                    } break;
+                        
+                    default:
+                    {
+                        Console.WriteLine($"Unrecognized fx type { effectName }");
+                    } break;
+                }
+
+                if (def != null)
+                    chart.FxDefines[effect] = def;
+            }
+            
+            void AddBuiltInFilter(string effect)
+            {
+            }
 
             var block = new Block();
             var tick = new Tick();
@@ -211,24 +319,71 @@ namespace KShootMania
 
                 if (line[0] == '#')
                 {
-                    if (!line.TrySplit(' ', out string defKind, out string fxType, out string args))
+                    if (!line.TrySplit(' ', out string defKind, out string defKey, out string args))
                         continue;
 
-                    var def = new EffectDefinition(fxType);
+                    var def = new EffectDefinition();
                     foreach (string a in args.Split(';'))
                     {
                         if (!a.TrySplit('=', out string k, out string v))
                             continue;
-                        def.Parameters[k] = v;
+
+                        k = k.Trim();
+                        v = v.Trim();
+
+                        if (k == "type")
+                        {
+                            Console.WriteLine($"ksh fx type: { v }");
+                            def.EffectName = v;
+                        }
+                        else
+                        {
+                            ParamValue pv;
+                            if (v.Contains("on"))
+                                pv = new ParamValue(1);
+                            else if (v.Contains("off"))
+                                pv = new ParamValue(0);
+                            if (v.Contains('/'))
+                                pv = new ParamValue(1.0f / int.Parse(v.Substring(v.IndexOf('/') + 1)));
+                            else if (v.Contains('%'))
+                                pv = new ParamValue(1.0f / int.Parse(v.Substring(0, v.IndexOf('%'))));
+                            else if (v.Contains("samples"))
+                                pv = new ParamValue(int.Parse(v.Substring(0, v.IndexOf("samples"))) / 41000.0f);
+                            else if (v.Contains("ms"))
+                                pv = new ParamValue(int.Parse(v.Substring(0, v.IndexOf("ms"))) / 1000.0f);
+                            else if (v.Contains("s"))
+                                pv = new ParamValue(int.Parse(v.Substring(0, v.IndexOf("s"))) / 1000.0f);
+                            else if (v.Contains("kHz"))
+                                pv = new ParamValue(float.Parse(v.Substring(0, v.IndexOf("kHz"))) * 1000.0f);
+                            else if (v.Contains("Hz"))
+                                pv = new ParamValue(float.Parse(v.Substring(0, v.IndexOf("Hz"))));
+                            else if (v.Contains("dB"))
+                                pv = new ParamValue(float.Parse(v.Substring(0, v.IndexOf("dB"))));
+                            else if (float.TryParse(v, out float result))
+                                pv = new ParamValue(result);
+                            else pv = new ParamValue(v);
+
+                            Console.WriteLine($"  ksh fx param: { k } = { pv }");
+                            def.Parameters[k] = pv;
+                        }
                     }
                     
                     if (defKind == "#define_fx")
-                        chart.FxDefines[fxType] = def;
+                        chart.FxDefines[defKey] = def;
                     else if (defKind == "#define_filter")
-                        chart.FilterDefines[fxType] = def;
+                        chart.FilterDefines[defKey] = def;
                 }
                 if (line.TrySplit('=', out string key, out string value))
+                {
                     tick.Settings.Add(new TickSetting(key, value));
+                    // defined fx should probably be named different than the defaults,
+                    //  so it's like slightly safe to assume that failing to create
+                    //  a built-in definition from this for either means its a defined effect?
+                    if (key == "fx-l" || key == "fx-r")
+                        TryAddBuiltInFx(value);
+                    else if (key == "filtertype")
+                        AddBuiltInFilter(value);
+                }
                 if (line == SEP)
                 {
                     chart.m_blocks.Add(block);

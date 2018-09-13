@@ -6,6 +6,10 @@
         /// What function is applied to this laser's output.
         /// </summary>
         public LaserFunction Function;
+        /// <summary>
+        /// How to scale the laser's output.
+        /// </summary>
+        public LaserScale Scale;
     }
 
     public struct SpinParams

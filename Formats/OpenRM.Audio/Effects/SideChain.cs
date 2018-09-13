@@ -1,12 +1,15 @@
-﻿namespace OpenRM.Audio.Effects
+﻿using System;
+
+namespace OpenRM.Audio.Effects
 {
     public sealed class SideChain : Dsp
     {
+        private static CubicBezier Curve = new CubicBezier(0.39f, 0.575f, 0.565f, 1);
+
         private double time;
 
-        public float Amount { get; set; } = 1.0f;
-
-        public double Duration { get; set; } = 0.5;
+        public float Amount = 1.0f;
+        public double Duration = 0.5;
 
         public SideChain(int sampleRate)
             : base(sampleRate)
@@ -24,10 +27,10 @@
             {
                 float r = (float)(time / Duration);
                 // FadeIn
-                const float fadeIn = 0.05f;
+                const float fadeIn = 0.08f;
                 if(r < fadeIn)
                     r = 1.0f - r / fadeIn;
-                else r = Curve((r - fadeIn) / (1.0f - fadeIn));
+                else r = Curve.Sample((r - fadeIn) / (1.0f - fadeIn));
                 float sampleGain = 1.0f - Amount * (1.0f - r);
                 buffer[offset + i * 2 + 0] *= sampleGain;
                 buffer[offset + i * 2 + 1] *= sampleGain;
@@ -37,21 +40,15 @@
                     time = 0;
             }
         }
-
-        private float Curve(float input)
-        {
-            return input;
-        }
     }
 
     public sealed class SideChainEffectDef : EffectDef
     {
         public EffectParamF Amount { get; }
-        public new EffectParamF Duration { get; }
+        public EffectParamF Duration { get; }
         
-        public SideChainEffectDef(EffectParam<EffectDuration> duration, EffectParamF mix,
-            EffectParamF amount, EffectParamF dur)
-            : base(EffectType.SideChain, duration, mix)
+        public SideChainEffectDef(EffectParamF mix, EffectParamF amount, EffectParamF dur)
+            : base(EffectType.SideChain, mix)
         {
             Amount = amount;
             Duration = dur;
@@ -61,6 +58,7 @@
 
         public override void ApplyToDsp(Dsp effect, float alpha = 0)
         {
+            base.ApplyToDsp(effect);
             if (effect is SideChain sc)
             {
                 sc.Amount = Amount.Sample(alpha);

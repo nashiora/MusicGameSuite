@@ -39,7 +39,10 @@ namespace OpenRM
                 Chart?.ControlPoints.Resort();
             }
         }
-
+        
+        /// <summary>
+        /// Time Signature Numerator
+        /// </summary>
         public int BeatCount
         {
             get => m_beatCount;
@@ -52,6 +55,9 @@ namespace OpenRM
             }
         }
 
+        /// <summary>
+        /// Time Signature Denominator
+        /// </summary>
         public int BeatKind
         {
             get => m_beatKind;

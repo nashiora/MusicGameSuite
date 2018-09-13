@@ -42,6 +42,39 @@ namespace OpenRM.Convert
 
         public static Chart ToVoltex(this KShootMania.Chart ksh)
         {
+            var voltex = new Chart(StreamIndex.COUNT)
+            {
+                Offset = ksh.Metadata.OffsetMillis / 1_000.0
+            };
+
+            {
+                if (double.TryParse(ksh.Metadata.BeatsPerMinute, out double bpm))
+                    voltex.ControlPoints.Root.BeatsPerMinute = bpm;
+                
+                var laserParams = voltex[StreamIndex.LaserParams].Add<LaserParamsEvent>(0);
+                laserParams.LaserIndex = LaserIndex.Both;
+
+                var laserGain = voltex[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(0);
+                laserGain.LaserIndex = LaserIndex.Both;
+                laserGain.Gain = ksh.Metadata.PFilterGain / 100.0f;
+                
+                var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
+                laserFilter.LaserIndex = LaserIndex.Both;
+                laserFilter.FilterEffect = ParseFilterType(ksh.Metadata.FilterType);
+
+                var slamVoume = voltex[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
+                slamVoume.Volume = ksh.Metadata.SlamVolume / 100.0f;
+            }
+
+            var lastCp = voltex.ControlPoints.Root;
+            int lastTsBlock = 0;
+
+            var buttonStates = new TempButtonState[6];
+            var laserStates = new TempLaserState[2];
+
+            var currentFx = new EffectDef[6];
+            bool[] laserIsExtended = new bool[2] { false, false };
+            
             EffectDef ParseFilterType(string str)
             {
                 switch (str)
@@ -52,43 +85,44 @@ namespace OpenRM.Convert
                     case "fx;bitc":
                     case "bitc": return EffectDef.GetDefault(EffectType.BitCrush);
                         
+                    default:
+                    {
+                        Console.WriteLine($"Unrecognized filter type { str }");
+                        if (ksh.FilterDefines.TryGetValue(str, out var def))
+                        {
+                            Console.WriteLine("Temporarily ignoring effect defines");
+                        }
+                        return null;
+                    }
+                }
+            }
+            
+            EffectDef CreateFx(string fx)
+            {
+                if (!ksh.FxDefines.ContainsKey(fx))
+                    return null;
+
+                var def = ksh.FxDefines[fx];
+                switch (def.EffectName)
+                {
+                    case "Retrigger": return new RetriggerEffectDef(1, 0.7f,
+                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
+
+                    case "Gate": return new GateEffectDef(1, 0.7f,
+                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
+
+                    case "BitCrusher": return new BitCrusherEffectDef(1, def["reduction"].Number);
+
+                    case "SideChain": return new SideChainEffectDef(1, 1.0f,
+                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["period"].Number);
+
+                    case "TapeStop": return new TapeStopEffectDef(1, 16.0f / MathL.Max(def["speed"].Number, 1));
+
+                    case "Phaser": return new PhaserEffectDef(0.5f);
+
                     default: return null;
                 }
             }
-
-            var voltex = new Chart((int)StreamIndex.COUNT)
-            {
-                Offset = ksh.Metadata.OffsetMillis / 1_000.0
-            };
-
-            {
-                if (double.TryParse(ksh.Metadata.BeatsPerMinute, out double bpm))
-                    voltex.ControlPoints.Root.BeatsPerMinute = bpm;
-                
-                var laserParams = voltex[(int)StreamIndex.LaserParams].Add<LaserParamsEvent>(0);
-                laserParams.LaserIndex = LaserIndex.Both;
-                laserParams.Params.Function = LaserFunction.Source | LaserFunction.Normal;
-
-                var laserGain = voltex[(int)StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(0);
-                laserGain.LaserIndex = LaserIndex.Both;
-                laserGain.Gain = ksh.Metadata.PFilterGain / 100.0f;
-                
-                var laserFilter = voltex[(int)StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
-                laserFilter.LaserIndex = LaserIndex.Both;
-                laserFilter.FilterEffect = ParseFilterType(ksh.Metadata.FilterType);
-
-                var slamVoume = voltex[(int)StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
-                slamVoume.Volume = ksh.Metadata.SlamVolume / 100.0f;
-            }
-
-
-            var lastCp = voltex.ControlPoints.Root;
-            int lastTsBlock = 0;
-
-            var buttonStates = new TempButtonState[6];
-            var laserStates = new TempLaserState[2];
-
-            bool[] laserIsExtended = new bool[2] { false, false };
 
             foreach (var tickRef in ksh)
             {
@@ -99,28 +133,68 @@ namespace OpenRM.Convert
 
                 //System.Diagnostics.Trace.WriteLine(chartPos);
 
+                // TODO(local): actually worry about param storage
                 foreach (var setting in tick.Settings)
                 {
                     string key = setting.Key;
                     switch (key)
                     {
+                        // TODO(local): provide a log hook?
+                        // TODO(local): check parsing as well
+                        case "beat":
+                        {
+                            if (!setting.Value.ToString().TrySplit('/', out string n, out string d))
+                            {
+                                n = d = "4";
+                                Console.WriteLine($"Chart Error: { setting.Value } is not a valid time signature.");
+                            }
+
+                            tick_t pos = MathL.Ceil((double)chartPos);
+                            ControlPoint cp = voltex.ControlPoints.GetOrCreate(pos, true);
+                            cp.BeatCount = int.Parse(n);
+                            cp.BeatKind = int.Parse(n);
+                            lastCp = cp;
+                        } break;
+
+                        case "t":
+                        {
+                            tick_t pos = MathL.Ceil((double)chartPos);
+                            ControlPoint cp = voltex.ControlPoints.GetOrCreate(pos, true);
+                            cp.BeatsPerMinute = double.Parse(setting.Value.ToString());
+                            lastCp = cp;
+                        } break;
+
+                        //case "fx-l": currentFx[4] = ParseFxAndParams(setting.Value.ToString()); break;
+                        //case "fx-r": currentFx[5] = ParseFxAndParams(setting.Value.ToString()); break;
+
+                        case "fx-l": currentFx[4] = CreateFx(setting.Value.ToString()); break;
+                        case "fx-r": currentFx[5] = CreateFx(setting.Value.ToString()); break;
+
+                        case "fx-l_param1":
+                        {
+                        } break;
+
+                        case "fx-r_param1":
+                        {
+                        } break;
+
                         case "pfiltergain":
                         {
-                            var laserGain = voltex[(int)StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(chartPos);
+                            var laserGain = voltex[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(chartPos);
                             laserGain.LaserIndex = LaserIndex.Both;
                             laserGain.Gain = setting.Value.ToInt() / 100.0f;
                         } break;
 
                         case "filtertype":
                         {
-                            var laserFilter = voltex[(int)StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
+                            var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
                             laserFilter.LaserIndex = LaserIndex.Both;
                             laserFilter.FilterEffect = ParseFilterType(setting.Value.ToString());
                         } break;
 
                         case "chokkakuvol":
                         {
-                            var slamVoume = voltex[(int)StreamIndex.SlamVolume].Add<SlamVolumeEvent>(chartPos);
+                            var slamVoume = voltex[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(chartPos);
                             slamVoume.Volume = setting.Value.ToInt() / 100.0f;
                         } break;
 
@@ -129,32 +203,32 @@ namespace OpenRM.Convert
                         
                         case "zoom_bottom":
                         {
-                            var point = voltex[(int)StreamIndex.Zoom].Add<PathPointEvent>(chartPos);
+                            var point = voltex[StreamIndex.Zoom].Add<PathPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             //System.Diagnostics.Trace.WriteLine($"ZOOM_BOTTOM @ { chartPos }: { setting.Value } -> { point.Value }");
                         } break;
                         
                         case "zoom_top":
                         {
-                            var point = voltex[(int)StreamIndex.Pitch].Add<PathPointEvent>(chartPos);
+                            var point = voltex[StreamIndex.Pitch].Add<PathPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                         } break;
                         
                         case "zoom_side":
                         {
-                            var point = voltex[(int)StreamIndex.Offset].Add<PathPointEvent>(chartPos);
+                            var point = voltex[StreamIndex.Offset].Add<PathPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                         } break;
                         
                         case "roll":
                         {
-                            var point = voltex[(int)StreamIndex.Roll].Add<PathPointEvent>(chartPos);
+                            var point = voltex[StreamIndex.Roll].Add<PathPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 360.0f;
                         } break;
 
                         case "tilt":
                         {
-                            var laserApps = voltex[(int)StreamIndex.LaserParams].Add<LaserApplicationEvent>(chartPos);
+                            var laserApps = voltex[StreamIndex.LaserParams].Add<LaserApplicationEvent>(chartPos);
 
                             string v = setting.Value.ToString();
                             if (v.StartsWith("keep_"))
@@ -163,17 +237,29 @@ namespace OpenRM.Convert
                                 v = v.Substring(5);
                             }
                             
-                            var laserParams = voltex[(int)StreamIndex.LaserParams].Add<LaserParamsEvent>(chartPos);
+                            var laserParams = voltex[StreamIndex.LaserParams].Add<LaserParamsEvent>(chartPos);
                             laserParams.LaserIndex = LaserIndex.Both;
 
                             switch (v)
                             {
                                 default:
                                 case "zero": laserParams.Params.Function = LaserFunction.Zero; break;
-                                case "normal": laserParams.Params.Function = LaserFunction.Source | LaserFunction.Normal; break;
-                                case "bigger": laserParams.Params.Function = LaserFunction.Source | LaserFunction.Bigger; break;
-                                case "biggest": laserParams.Params.Function = LaserFunction.Source | LaserFunction.Biggest; break;
+                                case "normal": laserParams.Params.Scale = LaserScale.Normal; break;
+                                case "bigger": laserParams.Params.Scale = LaserScale.Bigger; break;
+                                case "biggest": laserParams.Params.Scale = LaserScale.Biggest; break;
                             }
+                        } break;
+
+                        case "fx_sample":
+                        {
+                        } break;
+
+                        case "stop":
+                        {
+                        } break;
+
+                        case "lane_toggle":
+                        {
                         } break;
                     }
                 }
@@ -192,6 +278,7 @@ namespace OpenRM.Convert
                         var startPos = state.StartPosition;
                         var button = voltex[b].Add<ButtonObject>(startPos, endPos - startPos);
                         //System.Diagnostics.Trace.WriteLine($"{ endPos } - { startPos } = { endPos - startPos }");
+                        button.Effect = state.EffectDef;
                     }
 
                     switch (data.State)
@@ -214,7 +301,10 @@ namespace OpenRM.Convert
                         {
                             if (buttonStates[b] == null)
                             {
-                                buttonStates[b] = new TempButtonState(chartPos);
+                                buttonStates[b] = new TempButtonState(chartPos)
+                                {
+                                    EffectDef = currentFx[b],
+                                };
                             }
                         } break;
                     }
@@ -281,14 +371,14 @@ namespace OpenRM.Convert
                     case KShootMania.AddKind.Spin:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration * 2, 192);
-                        var spin = voltex[(int)StreamIndex.HighwayEffect].Add<SpinImpulseEvent>(chartPos, duration);
+                        var spin = voltex[StreamIndex.HighwayEffect].Add<SpinImpulseEvent>(chartPos, duration);
                         spin.Direction = (AngularDirection)tick.Add.Direction;
                     } break;
 
                     case KShootMania.AddKind.Swing:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration * 2, 192);
-                        var swing = voltex[(int)StreamIndex.HighwayEffect].Add<SwingImpulseEvent>(chartPos, duration);
+                        var swing = voltex[StreamIndex.HighwayEffect].Add<SwingImpulseEvent>(chartPos, duration);
                         swing.Direction = (AngularDirection)tick.Add.Direction;
                         swing.Amplitude = tick.Add.Amplitude * 70 / 100.0f;
                     } break;
@@ -296,7 +386,7 @@ namespace OpenRM.Convert
                     case KShootMania.AddKind.Wobble:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration, 192);
-                        var wobble = voltex[(int)StreamIndex.HighwayEffect].Add<WobbleImpulseEvent>(chartPos, duration);
+                        var wobble = voltex[StreamIndex.HighwayEffect].Add<WobbleImpulseEvent>(chartPos, duration);
                         wobble.Direction = (LinearDirection)tick.Add.Direction;
                         wobble.Amplitude = tick.Add.Amplitude / 250.0f;
                         wobble.Decay = (Decay)tick.Add.Decay;

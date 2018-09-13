@@ -34,10 +34,10 @@ namespace theori.Game
             LaserApplicationEvent appl;
             LaserParamsEvent pars;
             
-            left = m_chart[(int)StreamIndex.VolL].FirstObject as AnalogObject;
-            right = m_chart[(int)StreamIndex.VolR].FirstObject as AnalogObject;
-            appl = m_chart[(int)StreamIndex.LaserApplicationKind].FirstObject as LaserApplicationEvent;
-            pars = m_chart[(int)StreamIndex.LaserParams].FirstObject as LaserParamsEvent;
+            left = m_chart[StreamIndex.VolL].FirstObject as AnalogObject;
+            right = m_chart[StreamIndex.VolR].FirstObject as AnalogObject;
+            appl = m_chart[StreamIndex.LaserApplicationKind].FirstObject as LaserApplicationEvent;
+            pars = m_chart[StreamIndex.LaserParams].FirstObject as LaserParamsEvent;
 
             while (left != null || right != null)
             {

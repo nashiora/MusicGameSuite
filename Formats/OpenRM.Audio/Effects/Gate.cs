@@ -4,35 +4,34 @@ namespace OpenRM.Audio.Effects
 {
     public sealed class Gate : Dsp, IMixable
     {
-	    public float LowVolume = 0.1f;
-
-	    float m_gating = 0.75f;
-	    uint m_length = 0;
-	    uint m_fadeIn = 0; // Fade In mark
-	    uint m_fadeOut = 0; // Fade Out mark
-	    uint m_halfway; // Halfway mark
-	    uint m_currentSample = 0;
+	    private float m_lowVolume = 0.3f;
+	    private float m_gating = 0.75f;
+	    private uint m_gateDuration = 0;
+	    private uint m_fadeIn = 0; // Fade In mark
+	    private uint m_fadeOut = 0; // Fade Out mark
+	    private uint m_halfway; // Halfway mark
+	    private uint m_currentSample = 0;
 
         public Gate(int sampleRate)
             : base(sampleRate)
         {
         }
         
-        public void SetLength(time_t length)
+        public void SetGateDuration(double gateDuration)
         {
-	        float flength = (float)(length.Seconds * SampleRate);
-	        m_length = (uint)flength;
+	        m_gateDuration = (uint)(gateDuration * SampleRate);
 	        SetGating(m_gating);
         }
 
         public void SetGating(float gating)
         {
-	        float flength = m_length;
 	        m_gating = gating;
-	        m_halfway = (uint)(flength * gating);
+	        m_halfway = (uint)(m_gateDuration * gating);
+
 	        float fadeDuration = MathL.Min(0.05f, gating * 0.5f);
 	        m_fadeIn = (uint)(m_halfway * fadeDuration);
 	        m_fadeOut = (uint)(m_halfway * (1.0f - fadeDuration));
+
 	        m_currentSample = 0;
         }
 
@@ -47,38 +46,38 @@ namespace OpenRM.Audio.Effects
 		        {
 			        // Fade out before silence
 			        if(m_currentSample > m_fadeOut)
-				        c = 1-(float)(m_currentSample - m_fadeOut) / (float)m_fadeIn;
+				        c = 1 - (m_currentSample - m_fadeOut) / m_fadeIn;
 		        }
 		        else
 		        {
-			        uint t = m_currentSample - m_halfway;
 			        // Fade in again
+			        uint t = m_currentSample - m_halfway;
 			        if(t > m_fadeOut)
-				        c = (float)(t - m_fadeOut) / (float)m_fadeIn;
-			        else
-				        c = 0.0f;
+				        c = (t - m_fadeOut) / m_fadeIn;
+			        else c = 0.0f;
 		        }
 
 		        // Multiply volume
-		        c = (c * (1 - LowVolume) + LowVolume); // Range [low, 1]
+		        c = c * (1 - m_lowVolume) + m_lowVolume; // Range [low, 1]
 		        c = c * Mix + (1 - Mix);
 		        buffer[i * 2] *= c;
 		        buffer[i * 2 + 1] *= c;
 
 		        m_currentSample++;
-		        m_currentSample %= m_length;
+		        m_currentSample %= m_gateDuration;
             }
         }
     }
 
     public sealed class GateEffectDef : EffectDef
     {
+        public EffectParamF GateDuration { get; }
         public EffectParamF Gating { get; }
 
-        public GateEffectDef(EffectParam<EffectDuration> duration, EffectParamF mix,
-            EffectParamF gating)
-            : base(EffectType.Retrigger, duration, mix)
+        public GateEffectDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
+            : base(EffectType.Gate, mix)
         {
+            GateDuration = gateDuration;
             Gating = gating;
         }
         
@@ -86,8 +85,10 @@ namespace OpenRM.Audio.Effects
 
         public override void ApplyToDsp(Dsp effect, float alpha = 0)
         {
+            base.ApplyToDsp(effect, alpha);
             if (effect is Gate gate)
             {
+                gate.SetGateDuration(GateDuration.Sample(alpha));
                 gate.SetGating(Gating.Sample(alpha));
             }
         }

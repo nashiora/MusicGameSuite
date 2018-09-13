@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace OpenRM
@@ -9,7 +8,7 @@ namespace OpenRM
     public delegate void ObjectEventHandler(Object obj);
     public delegate void EventEventHandler(Event evt);
 
-    public class ChartPlayback
+    public class SimpleChartPlayback
     {
         public event ObjectEventHandler ObjectAppear;
         public event ObjectEventHandler ObjectDisappear;
@@ -74,7 +73,7 @@ namespace OpenRM
 
         public bool HasEnded { get; private set; }
 
-        public ChartPlayback(Chart chart)
+        public SimpleChartPlayback(Chart chart)
         {
             Chart = chart;
 
@@ -88,6 +87,17 @@ namespace OpenRM
             m_currentObjects.Fill(() => new List<Object>());
 
             m_lastObjectPosition = chart.TimeEnd;
+
+            UpdateView();
+        }
+
+        public void Reset()
+        {
+            m_position = double.MinValue;
+
+            m_objectsInView.ForEach(l => l.Clear());
+            m_objectsProcessed.ForEach(l => l.Clear());
+            m_currentObjects.ForEach(l => l.Clear());
 
             UpdateView();
         }

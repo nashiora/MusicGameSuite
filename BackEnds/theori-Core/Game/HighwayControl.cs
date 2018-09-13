@@ -323,8 +323,7 @@ namespace theori.Game
             {
                 float output = value;
 
-                //Console.WriteLine(p.Function & LaserFunction.FunctionMask);
-                switch (p.Function & LaserFunction.FunctionMask)
+                switch (p.Function)
                 {
                     case LaserFunction.Zero: return 0;
                     case LaserFunction.Source: break;
@@ -332,12 +331,12 @@ namespace theori.Game
                     case LaserFunction.OneMinusSource: output = 1 - output; break;
                 }
             
-                switch (p.Function & LaserFunction.FlagMask)
+                switch (p.Scale)
                 {
-                    case LaserFunction.Normal: break;
-                    case LaserFunction.Smaller: output *= 0.5f; break;
-                    case LaserFunction.Bigger: output *= 2.0f; break;
-                    case LaserFunction.Biggest: output *= 3.0f; break;
+                    case LaserScale.Normal: break;
+                    case LaserScale.Smaller: output *= 0.5f; break;
+                    case LaserScale.Bigger: output *= 2.0f; break;
+                    case LaserScale.Biggest: output *= 3.0f; break;
                 }
 
                 return output * LASER_BASE_STRENGTH;

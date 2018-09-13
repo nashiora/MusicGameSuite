@@ -1,6 +1,6 @@
 ﻿namespace OpenRM.Voltex
 {
-    public enum StreamIndex : int
+    internal enum EnumStreamIndex : int
     {
         #region Playables
 
@@ -57,6 +57,65 @@
         #endregion
 
         COUNT,
+    }
+
+    public static class StreamIndex
+    {
+        #region Playables
+
+        public const int BtA = (int)EnumStreamIndex.BtA;
+        public const int BtB = (int)EnumStreamIndex.BtB;
+        public const int BtC = (int)EnumStreamIndex.BtC;
+        public const int BtD = (int)EnumStreamIndex.BtD;
+
+        public const int FxL = (int)EnumStreamIndex.FxL;
+        public const int FxR = (int)EnumStreamIndex.FxR;
+
+        public const int VolL = (int)EnumStreamIndex.VolL;
+        public const int VolR = (int)EnumStreamIndex.VolR;
+
+        #endregion
+
+        #region Analog
+
+        /// <summary>
+        /// Spin; Swing; Wobble
+        /// </summary>
+        public const int HighwayEffect = (int)EnumStreamIndex.HighwayEffect;
+        
+        public const int LaserParams = (int)EnumStreamIndex.LaserParams;
+        public const int LaserApplicationKind = (int)EnumStreamIndex.LaserApplicationKind;
+        public const int LaserFilterGain = (int)EnumStreamIndex.LaserFilterKind;
+        public const int LaserFilterKind = (int)EnumStreamIndex.LaserFilterGain;
+        public const int SlamVolume = (int)EnumStreamIndex.SlamVolume;
+
+        #endregion
+
+        #region Visual Playback
+
+        public const int Stop = (int)EnumStreamIndex.Stop;
+        public const int Reverse = (int)EnumStreamIndex.Reverse;
+        public const int Hide = (int)EnumStreamIndex.Hide;
+
+        #endregion
+
+        #region Camera
+
+        public const int Zoom = (int)EnumStreamIndex.Zoom;
+        public const int Pitch = (int)EnumStreamIndex.Pitch;
+        public const int Offset = (int)EnumStreamIndex.Offset;
+        public const int Roll = (int)EnumStreamIndex.Roll;
+
+        #endregion
+
+        #region Stage
+
+        public const int SetBackground = (int)EnumStreamIndex.SetBackground;
+        public const int SetImage = (int)EnumStreamIndex.SetImage;
+
+        #endregion
+
+        public const int COUNT = (int)EnumStreamIndex.COUNT;
     }
 
     public enum Damping : byte
@@ -149,47 +208,44 @@
         FlagMask = 0xF000,
     }
 
-    [System.Flags]
-    public enum LaserFunction : ushort
+    public enum LaserFunction : byte
     {
-        /// <summary>
-        /// The input value is discarded entirely.
-        /// </summary>
-        Zero = 0x0000,
         /// <summary>
         /// Keep the input value as-is.
         /// </summary>
-        Source = 0x0001,
+        Source,
+        /// <summary>
+        /// The input value is discarded entirely.
+        /// </summary>
+        Zero,
         /// <summary>
         /// Negate the input value.
         /// </summary>
-        NegativeSource = 0x0002,
+        NegativeSource,
         /// <summary>
         /// Subtract the input value from 1.
         /// </summary>
-        OneMinusSource = 0x0003,
-        
-        // TODO(local): figure out the actual values for laser roll amplitudes.
-        
-        /// <summary>
-        /// Multiply the result value by half of the "normal" laser amplitude.
-        /// </summary>
-        Smaller = 0x1000,
+        OneMinusSource,
+    }
+
+    public enum LaserScale : byte
+    {
         /// <summary>
         /// Multiply the result by the "normal" laser amplitude.
         /// </summary>
-        Normal = 0x2000,
+        Normal,
+        /// <summary>
+        /// Multiply the result value by half of the "normal" laser amplitude.
+        /// </summary>
+        Smaller,
         /// <summary>
         /// Multiply the result value by 1.5 of the "normal" laser amplitude.
         /// </summary>
-        Bigger = 0x3000,
+        Bigger,
         /// <summary>
         /// Multiply the result value by twice the "normal" laser amplitude.
         /// </summary>
-        Biggest = 0x4000,
-
-        FunctionMask = 0x0FFF,
-        FlagMask = 0xF000,
+        Biggest,
     }
     
     [System.Flags]
