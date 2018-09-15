@@ -174,6 +174,7 @@ namespace KShootMania
         String
     }
 
+    // TODO(local): make the param value more useful and not shitty
     public struct ParamValue
     {
         public readonly ParamKind Kind;
@@ -296,6 +297,11 @@ namespace KShootMania
                         def.Parameters["speed"] = new ParamValue(speed);
                     } break;
 
+                    case "Flanger":
+                    {
+                        def = new EffectDefinition() { EffectName = effectName };
+                    } break;
+
                     case "Phaser":
                     {
                         def = new EffectDefinition() { EffectName = effectName };
@@ -311,8 +317,40 @@ namespace KShootMania
                     chart.FxDefines[effect] = def;
             }
             
-            void AddBuiltInFilter(string effect)
+            void TryAddBuiltInFilter(string effectName)
             {
+                EffectDefinition def = null;
+                switch (effectName)
+                {
+                    case "hpf1":
+                    {
+                        def = new EffectDefinition() { EffectName = "HighPass" };
+                    } break;
+
+                    case "lpf1":
+                    {
+                        def = new EffectDefinition() { EffectName = "LowPass" };
+                    } break;
+
+                    case "peak":
+                    {
+                        def = new EffectDefinition() { EffectName = "Peaking" };
+                    } break;
+
+                    case "fx;bitc":
+                    case "bitc":
+                    {
+                        def = new EffectDefinition() { EffectName = "BitCrusher" };
+                    } break;
+                        
+                    default:
+                    {
+                        Console.WriteLine($"Unrecognized filter type { effectName }");
+                    } break;
+                }
+
+                if (def != null)
+                    chart.FilterDefines[effectName] = def;
             }
 
             var block = new Block();
@@ -390,7 +428,7 @@ namespace KShootMania
                     if (key == "fx-l" || key == "fx-r")
                         TryAddBuiltInFx(value);
                     else if (key == "filtertype")
-                        AddBuiltInFilter(value);
+                        TryAddBuiltInFilter(value);
                 }
                 if (line == SEP)
                 {

@@ -50,6 +50,7 @@
     <Compile Include="Effects\EffectDef.cs" />
     <Compile Include="Effects\EffectParam.cs" />
     <Compile Include="Effects\EffectType.cs" />
+    <Compile Include="Effects\Flanger.cs" />
     <Compile Include="Effects\IMixable.cs" />
     <Compile Include="Effects\Phaser.cs" />
     <Compile Include="Effects\Gate.cs" />

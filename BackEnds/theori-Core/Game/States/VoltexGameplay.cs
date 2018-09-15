@@ -291,6 +291,7 @@ end
         public override void Update()
         {
             time_t position = m_audio.Position;
+            m_luaScript["audioTime"] = position.Seconds;
 
             m_control.Position = position;
             m_playback.Position = position;

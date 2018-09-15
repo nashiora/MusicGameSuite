@@ -79,11 +79,17 @@ namespace OpenRM.Convert
             {
                 switch (str)
                 {
-                    case "hpf1": return EffectDef.GetDefault(EffectType.HighPassFilter);
-                    case "lpf1": return EffectDef.GetDefault(EffectType.LowPassFilter);
-                    case "peak": return EffectDef.GetDefault(EffectType.PeakingFilter);
-                    case "fx;bitc":
-                    case "bitc": return EffectDef.GetDefault(EffectType.BitCrush);
+                    case "hpf1":
+                    case "HighPass": return EffectDef.GetDefault(EffectType.HighPassFilter);
+                        
+                    case "lpf1":
+                    case "LowPass": return EffectDef.GetDefault(EffectType.LowPassFilter);
+                        
+                    case "peak":
+                    case "Peaking": return EffectDef.GetDefault(EffectType.PeakingFilter);
+
+                    case "bitc": case "fx;bitc":
+                    case "BitCrusher": return EffectDef.GetDefault(EffectType.BitCrush);
                         
                     default:
                     {
@@ -120,6 +126,8 @@ namespace OpenRM.Convert
                         (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
 
                     case "TapeStop": return new TapeStopEffectDef(1, 16.0f / MathL.Max(def["speed"].Number, 1));
+
+                    case "Flanger": return new FlangerEffectDef(1.0f);
 
                     case "Phaser": return new PhaserEffectDef(0.5f);
 
