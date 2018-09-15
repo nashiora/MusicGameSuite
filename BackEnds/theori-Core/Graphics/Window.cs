@@ -192,21 +192,21 @@ namespace theori.Graphics
                         int id = evt.cdevice.which;
                         string name = SDL_GameControllerNameForIndex(id);
 
-                        Logger.Log($"Constroller Added: [{ id }] { name }", LogPriority.Verbose); 
+                        Logger.Log($"Controller Added: [{ id }] { name }", LogPriority.Verbose); 
                     } break;
                     case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
                     {
                         int id = evt.cdevice.which;
                         string name = SDL_GameControllerNameForIndex(id);
 
-                        Logger.Log($"Constroller Removed: [{ id }] { name }", LogPriority.Verbose);
+                        Logger.Log($"Controller Removed: [{ id }] { name }", LogPriority.Verbose);
                     } break;
                     case SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
                     {
                         int id = evt.cdevice.which;
                         string name = SDL_GameControllerNameForIndex(id);
 
-                        Logger.Log($"Constroller Remapped: [{ id }] { name }", LogPriority.Verbose);
+                        Logger.Log($"Controller Remapped: [{ id }] { name }", LogPriority.Verbose);
                     } break;
                     case SDL_EventType.SDL_CONTROLLERAXISMOTION: break;
                     case SDL_EventType.SDL_CONTROLLERBUTTONDOWN: break;
@@ -217,7 +217,7 @@ namespace theori.Graphics
 
                     case SDL_EventType.SDL_JOYAXISMOTION:
                     {
-                        Logger.Log($"Joystick[{ evt.jaxis.which }].Axis{ evt.jaxis.axis } = { evt.jaxis.axisValue }");
+                        //Logger.Log($"Joystick[{ evt.jaxis.which }].Axis{ evt.jaxis.axis } = { evt.jaxis.axisValue }");
                         Gamepad.HandleAxisEvent(evt.jaxis.which, evt.jaxis.axis, evt.jaxis.axisValue);
                     } break;
                     case SDL_EventType.SDL_JOYBALLMOTION: break;

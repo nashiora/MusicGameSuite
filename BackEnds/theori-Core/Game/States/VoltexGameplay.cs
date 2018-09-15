@@ -16,6 +16,7 @@ using System.Diagnostics;
 using theori.Audio;
 using OpenRM.Audio.Effects;
 using MoonSharp.Interpreter;
+using theori.Configuration;
 
 namespace theori.Game.States
 {

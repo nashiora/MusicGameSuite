@@ -6,21 +6,17 @@ namespace theori
     public static class Mouse
     {
         internal static int x, y;
+        internal static int dx, dy;
+        internal static int sx, sy;
 
-        public static int X
-        {
-            get => x;
-        }
+        public static int X => x;
+        public static int Y => y;
 
-        public static int Y
-        {
-            get => y;
-        }
+        public static int DeltaX => dx;
+        public static int DeltaY => dy;
 
-        public static Vector2 Position
-        {
-            get => new Vector2(x, y);
-        }
+        public static Vector2 Position => new Vector2(x, y);
+        public static Vector2 Delta => new Vector2(dx, dy);
         
         public static event Action<MouseButton> ButtonPress;
         public static event Action<MouseButton> ButtonRelease;
@@ -40,12 +36,13 @@ namespace theori
 
         internal static void InvokeMove(int mx, int my)
         {
-            Move?.Invoke(mx, my);
+            dx = mx - x; dy = my - y;
+            Move?.Invoke(x = mx, y = my);
         }
 
         internal static void InvokeScroll(int x, int y)
         {
-            Scroll?.Invoke(x, y);
+            Scroll?.Invoke(sx = x, sy = y);
         }
     }
 }

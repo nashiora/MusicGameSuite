@@ -4,6 +4,8 @@ namespace theori.Configuration
 {
     public class GameConfig : Config<GameConfigKey>
     {
+        public object GetIntGameConfigKey { get; internal set; }
+
         protected override void SetDefaults()
         {
 	        Set(GameConfigKey.ScreenWidth, 1280);
@@ -28,10 +30,9 @@ namespace theori.Configuration
 	        Set(GameConfigKey.Laser0Color, 200.0f);
 	        Set(GameConfigKey.Laser1Color, 330.0f);
 
-
 	        // Input settings
-	        Set(GameConfigKey.ButtonInputDevice, InputDevice.Keyboard);
-	        Set(GameConfigKey.LaserInputDevice, InputDevice.Keyboard);
+	        Set(GameConfigKey.ButtonInputDevice, InputDevice.Controller);
+	        Set(GameConfigKey.LaserInputDevice, InputDevice.Controller);
 
 	        // Default keyboard bindings
 	        Set(GameConfigKey.Key_BTS, KeyCode.D1); // Start button on Dao controllers
@@ -132,8 +133,8 @@ namespace theori.Configuration
 	    Key_FX0Alt,
 	    Key_FX1Alt,
 	    Key_Laser0Pos,
-	    Key_Laser0Neg,
 	    Key_Laser1Pos,
+	    Key_Laser0Neg,
 	    Key_Laser1Neg,
 	    Key_Sensitivity,
 	    Key_LaserReleaseTime,

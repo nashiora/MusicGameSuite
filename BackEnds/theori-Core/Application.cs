@@ -17,7 +17,8 @@ namespace theori
     public static class Application
     {
         public static Mixer Mixer { get; private set; }
-
+        
+        public static GameInput GameInput { get; private set; }
         public static GameConfig GameConfig { get; private set; }
 
         internal static ProgramPipeline Pipeline { get; private set; }
@@ -28,6 +29,7 @@ namespace theori
         {
             GameConfig = new GameConfig();
             // TODO(local): load config
+            GameInput = new GameInput(GameConfig.GetInt(GameConfigKey.Controller_DeviceID));
 
             Window.Create();
             Window.VSync = VSyncMode.Off;
@@ -53,8 +55,9 @@ namespace theori
                 cd = Directory.GetParent(cd).FullName;
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
             #endif
-
-            state = new VoltexGameplay();
+            
+            //state = new VoltexGameplay();
+            state = new VoltexChartSelect_SDVX();
 
             state.Init();
 

@@ -10,11 +10,15 @@ namespace theori.Input
         public static bool operator false(Gamepad g) => g.joystick == IntPtr.Zero;
 
         private static readonly Dictionary<int, Gamepad> openGamepads = new Dictionary<int, Gamepad>();
+        
+        public static event Action<int> Connect;
+        public static event Action<int> Disconnect;
 
         internal static void Destroy()
         {
             foreach (var g in openGamepads.Values)
-                g.Dispose();
+                SDL_JoystickClose(g.joystick);
+            openGamepads.Clear();
         }
 
         public static int NumConnected()
@@ -45,11 +49,15 @@ namespace theori.Input
         {
             string name = SDL_JoystickNameForIndex(deviceIndex);
             Logger.Log($"Joystick Added: [{ deviceIndex }] \"{ name }\"", LogPriority.Verbose);
+
+            Connect?.Invoke(deviceIndex);
         }
 
         internal static void HandleRemovedEvent(int deviceIndex)
         {
             Logger.Log($"Joystick Removed: [{ deviceIndex }]", LogPriority.Verbose);
+            
+            Disconnect?.Invoke(deviceIndex);
             openGamepads.Remove(deviceIndex);
         }
 
