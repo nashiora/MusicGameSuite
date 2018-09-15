@@ -116,7 +116,7 @@
     <Compile Include="Game\ObjectRenderable3D.cs" />
     <Compile Include="Game\PositionFunc.cs" />
     <Compile Include="Game\State.cs" />
-    <Compile Include="Game\States\VoltexChartSelect_SDVX.cs" />
+    <Compile Include="Game\States\VoltexChartSelect_KSH.cs" />
     <Compile Include="Game\States\VoltexGameplay.cs" />
     <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Graphics\BasicCamera.cs" />

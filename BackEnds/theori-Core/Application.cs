@@ -56,8 +56,8 @@ namespace theori
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
             #endif
             
-            //state = new VoltexGameplay();
-            state = new VoltexChartSelect_SDVX();
+            state = new VoltexGameplay();
+            //state = new VoltexChartSelect_KSH();
 
             state.Init();
 
