@@ -46,7 +46,7 @@ namespace theori.Graphics
             if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) != 0)
             {
                 string err = SDL_GetError();
-                Logger.Log(err, LogCategory.System, LogPriority.Error);
+                Logger.Log(err, LogPriority.Error);
                 // can't continue, sorry
                 Application.Quit(1);
             }
@@ -69,7 +69,7 @@ namespace theori.Graphics
             if (window == IntPtr.Zero)
             {
                 string err = SDL_GetError();
-                Logger.Log(err, LogCategory.System, LogPriority.Error);
+                Logger.Log(err, LogPriority.Error);
                 // can't continue, sorry
                 Application.Quit(1);
             }
@@ -80,7 +80,7 @@ namespace theori.Graphics
             if (SDL_GL_SetSwapInterval(1) == -1)
             {
                 string err = SDL_GetError();
-                Logger.Log(err, LogCategory.System, LogPriority.Error);
+                Logger.Log(err, LogPriority.Error);
             }
             vsync = (VSyncMode)SDL_GL_GetSwapInterval();
 
@@ -192,21 +192,21 @@ namespace theori.Graphics
                         int id = evt.cdevice.which;
                         string name = SDL_GameControllerNameForIndex(id);
 
-                        Logger.Log($"Constroller Added: [{ id }] { name }", LogCategory.System, LogPriority.Verbose); 
+                        Logger.Log($"Constroller Added: [{ id }] { name }", LogPriority.Verbose); 
                     } break;
                     case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
                     {
                         int id = evt.cdevice.which;
                         string name = SDL_GameControllerNameForIndex(id);
 
-                        Logger.Log($"Constroller Removed: [{ id }] { name }", LogCategory.System, LogPriority.Verbose);
+                        Logger.Log($"Constroller Removed: [{ id }] { name }", LogPriority.Verbose);
                     } break;
                     case SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
                     {
                         int id = evt.cdevice.which;
                         string name = SDL_GameControllerNameForIndex(id);
 
-                        Logger.Log($"Constroller Remapped: [{ id }] { name }", LogCategory.System, LogPriority.Verbose);
+                        Logger.Log($"Constroller Remapped: [{ id }] { name }", LogPriority.Verbose);
                     } break;
                     case SDL_EventType.SDL_CONTROLLERAXISMOTION: break;
                     case SDL_EventType.SDL_CONTROLLERBUTTONDOWN: break;
@@ -236,8 +236,8 @@ namespace theori.Graphics
                     case SDL_EventType.SDL_DROPFILE: break;
                     case SDL_EventType.SDL_DROPTEXT: break;
 
-                    case SDL_EventType.SDL_AUDIODEVICEADDED: Logger.Log("Audio Device Added: " + evt.adevice.which, LogCategory.System, LogPriority.Verbose); break;
-                    case SDL_EventType.SDL_AUDIODEVICEREMOVED: Logger.Log("Audio Device Removed: " + evt.adevice.which, LogCategory.System, LogPriority.Verbose); break;
+                    case SDL_EventType.SDL_AUDIODEVICEADDED: Logger.Log("Audio Device Added: " + evt.adevice.which, LogPriority.Verbose); break;
+                    case SDL_EventType.SDL_AUDIODEVICEREMOVED: Logger.Log("Audio Device Removed: " + evt.adevice.which, LogPriority.Verbose); break;
 
                     case SDL_EventType.SDL_CLIPBOARDUPDATE: break;
                         

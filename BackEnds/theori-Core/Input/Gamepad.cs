@@ -44,12 +44,12 @@ namespace theori.Input
         internal static void HandleAddedEvent(int deviceIndex)
         {
             string name = SDL_JoystickNameForIndex(deviceIndex);
-            Logger.Log($"Joystick Added: [{ deviceIndex }] \"{ name }\"", LogCategory.System, LogPriority.Verbose);
+            Logger.Log($"Joystick Added: [{ deviceIndex }] \"{ name }\"", LogPriority.Verbose);
         }
 
         internal static void HandleRemovedEvent(int deviceIndex)
         {
-            Logger.Log($"Joystick Removed: [{ deviceIndex }]", LogCategory.System, LogPriority.Verbose);
+            Logger.Log($"Joystick Removed: [{ deviceIndex }]", LogPriority.Verbose);
             openGamepads.Remove(deviceIndex);
         }
 

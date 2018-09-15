@@ -60,6 +60,7 @@
     <Compile Include="HashCode.cs" />
     <Compile Include="Collections\OrderedLinkedList.cs" />
     <Compile Include="Collections\OrderedList.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="MathL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Ratio.cs" />

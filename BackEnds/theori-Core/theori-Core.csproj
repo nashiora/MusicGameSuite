@@ -137,7 +137,6 @@
     <Compile Include="Input\InputManager.cs" />
     <Compile Include="Keyboard.cs" />
     <Compile Include="KeyboardData.cs" />
-    <Compile Include="Logger.cs" />
     <Compile Include="LuaScript.cs" />
     <Compile Include="Mouse.cs" />
     <Compile Include="MouseData.cs" />
