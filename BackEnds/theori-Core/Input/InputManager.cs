@@ -21,7 +21,7 @@ namespace theori.Input
             Clear();
 
             int deviceIndex = Application.GameConfig.GetInt(GameConfigKey.Controller_DeviceID);
-            Gamepad = Gamepad.OpenGamepad(deviceIndex);
+            Gamepad = Gamepad.Open(deviceIndex);
         }
 
         public static void Clear()

@@ -17,7 +17,17 @@ namespace theori.Input
                 g.Dispose();
         }
 
-        public static Gamepad OpenGamepad(int deviceIndex)
+        public static int NumConnected()
+        {
+            return SDL_NumJoysticks();
+        }
+
+        public static string NameOf(int deviceIndex)
+        {
+            return SDL_JoystickNameForIndex(deviceIndex);
+        }
+
+        public static Gamepad Open(int deviceIndex)
         {
             if (!openGamepads.TryGetValue(deviceIndex, out var gamepad))
             {
@@ -29,6 +39,18 @@ namespace theori.Input
                 }
             }
             return gamepad;
+        }
+
+        internal static void HandleAddedEvent(int deviceIndex)
+        {
+            string name = SDL_JoystickNameForIndex(deviceIndex);
+            Logger.Log($"Joystick Added: [{ deviceIndex }] \"{ name }\"", LogCategory.System, LogPriority.Verbose);
+        }
+
+        internal static void HandleRemovedEvent(int deviceIndex)
+        {
+            Logger.Log($"Joystick Removed: [{ deviceIndex }]", LogCategory.System, LogPriority.Verbose);
+            openGamepads.Remove(deviceIndex);
         }
 
         internal static void HandleInputEvent(int deviceIndex, uint buttonIndex, uint newState)
@@ -76,6 +98,7 @@ namespace theori.Input
         protected override void DisposeUnmanaged()
         {
             SDL_JoystickClose(joystick);
+            openGamepads.Remove(DeviceIndex);
         }
 
         public bool ButtonDown(uint buttonIndex) => buttonStates[buttonIndex] != 0;
