@@ -47,7 +47,7 @@ namespace OpenRM
 
         public time_t EndPosition => Position + ViewDuration;
 
-        private time_t m_viewDuration = 0.75;
+        private time_t m_viewDuration = 1.0;
         public time_t ViewDuration
         {
             get => m_viewDuration;
