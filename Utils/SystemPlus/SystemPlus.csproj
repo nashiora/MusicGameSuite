@@ -7,8 +7,8 @@
     <ProjectGuid>{FCD58F40-266A-485E-A2C2-6108398DA395}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Local</RootNamespace>
-    <AssemblyName>Local-Lib</AssemblyName>
+    <RootNamespace>System</RootNamespace>
+    <AssemblyName>SystemPlus</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

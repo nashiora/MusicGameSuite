@@ -49,9 +49,9 @@
     <Compile Include="ParamTypes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Utils\Local-Lib\Local-Lib.csproj">
-      <Project>{FCD58F40-266A-485E-A2C2-6108398DA395}</Project>
-      <Name>Local-Lib</Name>
+    <ProjectReference Include="..\..\Utils\SystemPlus\SystemPlus.csproj">
+      <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
+      <Name>SystemPlus</Name>
     </ProjectReference>
     <ProjectReference Include="..\OpenRM.Audio\OpenRM.Audio.csproj">
       <Project>{5f953552-2c86-403f-ae3d-ba7d2bc2c81a}</Project>

@@ -191,9 +191,9 @@
       <Project>{85480198-8711-4355-830e-72fd794ad3f6}</Project>
       <Name>SDL2-CS</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Utils\Local-Lib\Local-Lib.csproj">
-      <Project>{FCD58F40-266A-485E-A2C2-6108398DA395}</Project>
-      <Name>Local-Lib</Name>
+    <ProjectReference Include="..\..\Utils\SystemPlus\SystemPlus.csproj">
+      <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
+      <Name>SystemPlus</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -47,9 +47,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Utils\Local-Lib\Local-Lib.csproj">
+    <ProjectReference Include="..\..\Utils\SystemPlus\SystemPlus.csproj">
       <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
-      <Name>Local-Lib</Name>
+      <Name>SystemPlus</Name>
     </ProjectReference>
     <ProjectReference Include="..\KShootMania.Chart\KShootMania.Chart.csproj">
       <Project>{7aaa44d8-b107-4d92-9f06-614942d63bf1}</Project>
