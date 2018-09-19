@@ -105,7 +105,7 @@ namespace theori.Input
 
         protected override void DisposeUnmanaged()
         {
-            SDL_JoystickClose(joystick);
+            if (joystick != IntPtr.Zero) SDL_JoystickClose(joystick);
             openGamepads.Remove(DeviceIndex);
         }
 
