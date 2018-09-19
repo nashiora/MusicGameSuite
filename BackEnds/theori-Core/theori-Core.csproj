@@ -183,11 +183,11 @@
       <Project>{b08a0842-fec7-4a0b-a09d-ddc7a1d11305}</Project>
       <Name>OpenRM.Convert.Ksh2Voltex</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ThirdParty\NaGL\NaGL.csproj">
+    <ProjectReference Include="..\..\NativeWrappers\NaGL\NaGL.csproj">
       <Project>{dbd0f498-06d6-4d51-89a4-0210e4c098e1}</Project>
       <Name>NaGL</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\ThirdParty\SDL2#\SDL2-CS.csproj">
+    <ProjectReference Include="..\..\NativeWrappers\SDL2#\SDL2-CS.csproj">
       <Project>{85480198-8711-4355-830e-72fd794ad3f6}</Project>
       <Name>SDL2-CS</Name>
     </ProjectReference>
