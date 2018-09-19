@@ -54,8 +54,8 @@ namespace theori.Game.States
             m_luaScript["XShakeCamera"] = (Action<float>)(magnitude => m_control.ShakeCamera(magnitude));
 
             m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
+            m_slamSample.Channel = Application.Mixer.MasterChannel;
             m_slamSample.Volume = 0.5f * 0.7f;
-            Application.Mixer.MasterChannel.AddSource(m_slamSample);
             
             //const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
             const string DIR = @"D:\kshootmania\songs\SDVX IV\isekai_not_pumpy";

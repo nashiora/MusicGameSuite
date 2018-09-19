@@ -1,10 +1,13 @@
-﻿namespace theori.Win32
+﻿using theori.Game.States;
+
+namespace theori.Win32
 {
     static class Program
     {
         static void Main(string[] args)
         {
-            Application.Start();
+            Application.Init();
+            Application.Start(new VoltexGameplay());
         }
     }
 }

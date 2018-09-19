@@ -76,11 +76,21 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game\CriticalLine.cs" />
+    <Compile Include="Game\HighwayControl.cs" />
+    <Compile Include="Game\HighwayView.cs" />
+    <Compile Include="Game\LaserRollSampler.cs" />
+    <Compile Include="Game\ObjectRenderable3D.cs" />
+    <Compile Include="Game\PositionFunc.cs" />
+    <Compile Include="Game\States\VoltexChartSelect_KSH.cs" />
+    <Compile Include="Game\States\VoltexGameplay.cs" />
+    <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -96,6 +106,22 @@
     <ProjectReference Include="..\..\BackEnds\theori-Core\theori-Core.csproj">
       <Project>{280d88d1-6e6f-49f1-bf69-497e5fefa220}</Project>
       <Name>theori-Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Formats\ChartData\ChartData.csproj">
+      <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
+      <Name>ChartData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\NativeWrappers\NaGL\NaGL.csproj">
+      <Project>{dbd0f498-06d6-4d51-89a4-0210e4c098e1}</Project>
+      <Name>NaGL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\NativeWrappers\SDL2#\SDL2-CS.csproj">
+      <Project>{85480198-8711-4355-830e-72fd794ad3f6}</Project>
+      <Name>SDL2-CS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Utils\SystemPlus\SystemPlus.csproj">
+      <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
+      <Name>SystemPlus</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

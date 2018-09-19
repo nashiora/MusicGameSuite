@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using CSCore;
@@ -8,7 +9,6 @@ using theori.Audio;
 using theori.Audio.NVorbis;
 using theori.Configuration;
 using theori.Game;
-using theori.Game.States;
 using theori.Graphics;
 using theori.Input;
 
@@ -23,9 +23,20 @@ namespace theori
 
         internal static ProgramPipeline Pipeline { get; private set; }
 
-        private static State state;
+        private static readonly Stack<State> states = new Stack<State>();
+        private static State State => states.Count == 0 ? null : states.Peek();
 
-        public static void Start()
+        public static void PushState(State state)
+        {
+            states.Push(state);
+        }
+
+        public static State PopState()
+        {
+            return states.Pop();
+        }
+
+        public static void Init()
         {
             GameConfig = new GameConfig();
             // TODO(local): load config
@@ -37,7 +48,7 @@ namespace theori
 
             Window.ClientSizeChanged += (w, h) =>
             {
-                state.ClientSizeChanged(w, h);
+                State.ClientSizeChanged(w, h);
             };
             
             Window.Update();
@@ -55,11 +66,12 @@ namespace theori
                 cd = Directory.GetParent(cd).FullName;
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
             #endif
-            
-            state = new VoltexGameplay();
-            //state = new VoltexChartSelect_KSH();
+        }
 
-            state.Init();
+        public static void Start(State initialState)
+        {
+            PushState(initialState);
+            State.Init();
 
             var timer = Stopwatch.StartNew();
 
@@ -88,7 +100,7 @@ namespace theori
                         return;
                     }
 
-                    state.Update();
+                    State.Update();
 
                     
                     if (Window.Width > 0 && Window.Height > 0)
@@ -96,7 +108,7 @@ namespace theori
                         GL.ClearColor(0, 0, 0, 1);
                         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                        state.Render();
+                        State.Render();
 
                         Window.SwapBuffer();
                     }

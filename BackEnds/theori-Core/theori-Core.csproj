@@ -107,16 +107,7 @@
     <Compile Include="Extensions\NumericExt.cs" />
     <Compile Include="Extensions\ShaderProgramExt.cs" />
     <Compile Include="Extensions\StringExt.cs" />
-    <Compile Include="Game\CriticalLine.cs" />
-    <Compile Include="Game\HighwayControl.cs" />
-    <Compile Include="Game\HighwayView.cs" />
-    <Compile Include="Game\LaserRollSampler.cs" />
-    <Compile Include="Game\ObjectRenderable3D.cs" />
-    <Compile Include="Game\PositionFunc.cs" />
     <Compile Include="Game\State.cs" />
-    <Compile Include="Game\States\VoltexChartSelect_KSH.cs" />
-    <Compile Include="Game\States\VoltexGameplay.cs" />
-    <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Graphics\BasicCamera.cs" />
     <Compile Include="Graphics\Material.cs" />
     <Compile Include="Graphics\MaterialParam.cs" />
