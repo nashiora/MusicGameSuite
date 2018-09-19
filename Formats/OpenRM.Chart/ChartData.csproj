@@ -37,12 +37,30 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Audio\Dsp.cs" />
+    <Compile Include="Audio\Effects\BiQuadFilter.cs" />
+    <Compile Include="Audio\Effects\BitCrusher.cs" />
+    <Compile Include="Audio\Effects\EffectDef.cs" />
+    <Compile Include="Audio\Effects\EffectParam.cs" />
+    <Compile Include="Audio\Effects\EffectType.cs" />
+    <Compile Include="Audio\Effects\Flanger.cs" />
+    <Compile Include="Audio\Effects\Gate.cs" />
+    <Compile Include="Audio\Effects\IMixable.cs" />
+    <Compile Include="Audio\Effects\Phaser.cs" />
+    <Compile Include="Audio\Effects\Retrigger.cs" />
+    <Compile Include="Audio\Effects\SideChain.cs" />
+    <Compile Include="Audio\Effects\TapeStop.cs" />
+    <Compile Include="Audio\Effects\Wobble.cs" />
     <Compile Include="BiDirectionalPlayer.cs" />
     <Compile Include="Chart.cs" />
     <Compile Include="ChartMetadata.cs" />
+    <Compile Include="Convert\ChartExt_Ksh2Voltex.cs" />
+    <Compile Include="KShootMania\Chart.cs" />
+    <Compile Include="KShootMania\ChartMetadata.cs" />
     <Compile Include="SimpleChartPlayback.cs" />
     <Compile Include="ControlPoint.cs" />
     <Compile Include="EditStack.cs" />
@@ -54,6 +72,11 @@
     <Compile Include="SerializeFieldAttribute.cs" />
     <Compile Include="tick_t.cs" />
     <Compile Include="time_t.cs" />
+    <Compile Include="Voltex\AnalogObject.cs" />
+    <Compile Include="Voltex\ButtonObject.cs" />
+    <Compile Include="Voltex\Enums.cs" />
+    <Compile Include="Voltex\Events.cs" />
+    <Compile Include="Voltex\ParamTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Utils\SystemPlus\SystemPlus.csproj">
@@ -61,5 +84,6 @@
       <Name>SystemPlus</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

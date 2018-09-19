@@ -65,9 +65,9 @@
       <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
       <Name>SystemPlus</Name>
     </ProjectReference>
-    <ProjectReference Include="..\OpenRM.Chart\OpenRM.Chart.csproj">
+    <ProjectReference Include="..\OpenRM.Chart\ChartData.csproj">
       <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
-      <Name>OpenRM.Chart</Name>
+      <Name>ChartData</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

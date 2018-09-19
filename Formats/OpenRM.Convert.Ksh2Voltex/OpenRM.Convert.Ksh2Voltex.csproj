@@ -51,21 +51,9 @@
       <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
       <Name>SystemPlus</Name>
     </ProjectReference>
-    <ProjectReference Include="..\KShootMania.Chart\KShootMania.Chart.csproj">
-      <Project>{7aaa44d8-b107-4d92-9f06-614942d63bf1}</Project>
-      <Name>KShootMania.Chart</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenRM.Audio\OpenRM.Audio.csproj">
-      <Project>{5F953552-2C86-403F-AE3D-BA7D2BC2C81A}</Project>
-      <Name>OpenRM.Audio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenRM.Chart.Voltex\OpenRM.Chart.Voltex.csproj">
-      <Project>{c0a9333f-ee94-4cfd-9633-ce2a631058b0}</Project>
-      <Name>OpenRM.Chart.Voltex</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\OpenRM.Chart\OpenRM.Chart.csproj">
+    <ProjectReference Include="..\OpenRM.Chart\ChartData.csproj">
       <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
-      <Name>OpenRM.Chart</Name>
+      <Name>ChartData</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

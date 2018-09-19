@@ -163,25 +163,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Formats\KShootMania.Chart\KShootMania.Chart.csproj">
-      <Project>{7aaa44d8-b107-4d92-9f06-614942d63bf1}</Project>
-      <Name>KShootMania.Chart</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Formats\OpenRM.Audio\OpenRM.Audio.csproj">
-      <Project>{5f953552-2c86-403f-ae3d-ba7d2bc2c81a}</Project>
-      <Name>OpenRM.Audio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Formats\OpenRM.Chart.Voltex\OpenRM.Chart.Voltex.csproj">
-      <Project>{C0A9333F-EE94-4CFD-9633-CE2A631058B0}</Project>
-      <Name>OpenRM.Chart.Voltex</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Formats\OpenRM.Chart\OpenRM.Chart.csproj">
+    <ProjectReference Include="..\..\Formats\OpenRM.Chart\ChartData.csproj">
       <Project>{C113C0A4-990B-4DE6-863C-D2518DED3D13}</Project>
-      <Name>OpenRM.Chart</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Formats\OpenRM.Convert.Ksh2Voltex\OpenRM.Convert.Ksh2Voltex.csproj">
-      <Project>{b08a0842-fec7-4a0b-a09d-ddc7a1d11305}</Project>
-      <Name>OpenRM.Convert.Ksh2Voltex</Name>
+      <Name>ChartData</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeWrappers\NaGL\NaGL.csproj">
       <Project>{dbd0f498-06d6-4d51-89a4-0210e4c098e1}</Project>
