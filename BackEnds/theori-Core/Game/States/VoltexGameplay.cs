@@ -130,10 +130,32 @@ end
             minStartTime -= 3;
             if (minStartTime < 0)
             {
-                m_audio.Position = minStartTime;   
+                m_audio.Position = minStartTime;
                 Console.WriteLine($"{ minStartTime }, { m_audio.Position }");
             }
+            else m_audio.Position = 0;
+
+            #if false
+            if (m_playback != null)
+            {
+                m_playback.ObjectAppear -= highwayView.RenderableObjectAppear;
+                m_playback.ObjectDisappear -= highwayView.RenderableObjectDisappear;
+                m_playback.EventTrigger -= PlaybackEventTrigger;
+                m_playback.ObjectBegin -= PlaybackObjectBegin;
+                m_playback.ObjectEnd -= PlaybackObjectEnd;
+            }
+
+            m_playback = new SimpleChartPlayback(m_chart);
+            m_playback.ObjectAppear += highwayView.RenderableObjectAppear;
+            m_playback.ObjectDisappear += highwayView.RenderableObjectDisappear;
+            m_playback.EventTrigger += PlaybackEventTrigger;
+            m_playback.ObjectBegin += PlaybackObjectBegin;
+            m_playback.ObjectEnd += PlaybackObjectEnd;
+
+            m_playback.ViewDuration *= m_audio.PlaybackSpeed;
+            #endif
             
+            //m_audio.PlaybackSpeed = 1.25f;
             m_audioController.Play();
         }
 
@@ -271,6 +293,11 @@ end
                             Frequency = 3,
                         }); break;
                     }
+                } break;
+                
+                case KeyCode.F5:
+                {
+                    ResetPlayback();
                 } break;
             }
         }
