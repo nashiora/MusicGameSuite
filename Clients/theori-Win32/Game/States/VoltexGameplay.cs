@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define OLD_PLAYBACK
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,7 +32,11 @@ namespace theori.Game.States
         private CriticalLine critRoot;
         
         private Chart m_chart;
+        #if OLD_PLAYBACK
         private SimpleChartPlayback m_playback;
+        #else
+        private SlidingChartPlayback m_playback;
+        #endif
 
         private AudioEffectController m_audioController;
         private AudioTrack m_audio;
@@ -74,6 +80,7 @@ namespace theori.Game.States
 
             m_audio = AudioTrack.FromFile(audioFile);
             m_audio.Channel = Application.Mixer.MasterChannel;
+            //m_audio.PlaybackSpeed = 1.25f;
 
             m_audioController = new AudioEffectController(8, m_audio, true)
             {
@@ -89,7 +96,8 @@ namespace theori.Game.States
 
             highwayView = new HighwayView(m_chart);
             m_control = new HighwayControl();
-
+            
+            #if OLD_PLAYBACK
             m_playback = new SimpleChartPlayback(m_chart);
             m_playback.ObjectAppear += highwayView.RenderableObjectAppear;
             m_playback.ObjectDisappear += highwayView.RenderableObjectDisappear;
@@ -98,9 +106,24 @@ namespace theori.Game.States
             m_playback.ObjectBegin += PlaybackObjectBegin;
             m_playback.ObjectEnd += PlaybackObjectEnd;
             
-            //m_audio.PlaybackSpeed = 1.25f;
             m_playback.ViewDuration *= m_audio.PlaybackSpeed;
             highwayView.ViewDuration = m_playback.ViewDuration;
+            #else
+            m_playback = new SlidingChartPlayback(m_chart);
+            m_playback.ObjectHeadCrossPrimary += (dir, obj) => highwayView.RenderableObjectAppear(obj);
+            //m_playback.ObjectTailCrossSecondary += (dir, obj) => highwayView.RenderableObjectDisappear(obj);
+
+            m_playback.ObjectHeadCrossCritical += (dir, obj) =>
+            {
+                if (obj is Event evt)
+                    PlaybackEventTrigger(evt);
+                else PlaybackObjectBegin(obj);
+            };
+            m_playback.ObjectTailCrossCritical += (dir, obj) => PlaybackObjectEnd(obj);
+
+            m_playback.LookAhead *= m_audio.PlaybackSpeed;
+            highwayView.ViewDuration = m_playback.LookAhead;
+            #endif
 
             foreUiRoot = new Panel()
             {
