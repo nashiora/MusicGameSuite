@@ -158,7 +158,7 @@ namespace OpenRM
                 // Lastly, check for objects which have passed the back cursor.
                 // These can only come from the secondary section
 
-                time_t newBehindEdge = nextPos;
+                time_t newBehindEdge = nextPos - m_lookBehind;
 
                 for (int stream = 0; stream < Chart.StreamCount; stream++)
                 {

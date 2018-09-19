@@ -111,7 +111,7 @@ namespace theori.Game.States
             #else
             m_playback = new SlidingChartPlayback(m_chart);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) => highwayView.RenderableObjectAppear(obj);
-            //m_playback.ObjectTailCrossSecondary += (dir, obj) => highwayView.RenderableObjectDisappear(obj);
+            m_playback.ObjectTailCrossSecondary += (dir, obj) => highwayView.RenderableObjectDisappear(obj);
 
             m_playback.ObjectHeadCrossCritical += (dir, obj) =>
             {
