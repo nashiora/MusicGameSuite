@@ -20,4 +20,6 @@ This project currently doesn't have any tests. That'll need fixed.
 
 ## License
 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 ## Acknowledgments
