@@ -53,7 +53,7 @@
     <Compile Include="Audio\Effects\SideChain.cs" />
     <Compile Include="Audio\Effects\TapeStop.cs" />
     <Compile Include="Audio\Effects\Wobble.cs" />
-    <Compile Include="BiDirectionalPlayer.cs" />
+    <Compile Include="SlidingChartPlayback.cs" />
     <Compile Include="Chart.cs" />
     <Compile Include="ChartMetadata.cs" />
     <Compile Include="Convert\ChartExt_Ksh2Voltex.cs" />

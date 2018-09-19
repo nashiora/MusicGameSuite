@@ -11,7 +11,7 @@ namespace OpenRM
         Forward, Backward,
     }
 
-    public class BiDirectionalPlayer
+    public class SlidingChartPlayback
     {
         public Chart Chart { get; }
         
@@ -33,7 +33,7 @@ namespace OpenRM
 
         private List<Object>[] m_objsPrimary, m_objsSecondary;
 
-        public BiDirectionalPlayer(Chart chart)
+        public SlidingChartPlayback(Chart chart)
         {
             Chart = chart;
             Position = chart.Offset;
