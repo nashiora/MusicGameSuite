@@ -85,110 +85,42 @@ namespace OpenRM
 
             if (isForward)
             {
-                // First, check for objects have passed the front cursor.
-                time_t newAheadEdge = nextPos + LookAhead;
-                
-                for (int stream = 0; stream < Chart.StreamCount; stream++)
+                void CheckEdge(time_t edge, List<Object>[] objsFrom, List<Object>[] objsTo, Action<PlayDirection, Object> headCross, Action<PlayDirection, Object> tailCross)
                 {
-                    var ahead = m_objsAhead[stream];
-                    for (int i = 0; i < ahead.Count; )
+                    for (int stream = 0; stream < Chart.StreamCount; stream++)
                     {
-                        var obj = ahead[i];
-                        if (obj.AbsolutePosition < newAheadEdge)
+                        var from = objsFrom[stream];
+                        for (int i = 0; i < from.Count; )
                         {
-                            var primary = m_objsPrimary[stream];
-                            if (!primary.Contains(obj))
+                            var obj = from[i];
+                            if (obj.AbsolutePosition < edge)
                             {
-                                // entered the seconary section, passed the critical-edge.
-                                primary.Add(obj);
-                                OnHeadCrossPrimary(PlayDirection.Forward, obj);
-                            }
+                                var to = objsTo[stream];
+                                if (!to.Contains(obj))
+                                {
+                                    // entered the seconary section, passed the critical-edge.
+                                    to.Add(obj);
+                                    headCross(PlayDirection.Forward, obj);
+                                }
 
-                            if (obj.AbsoluteEndPosition < newAheadEdge)
-                            {
-                                // completely passed the critical-edge, now only in the secondary section.
-                                ahead.RemoveAt(i);
-                                OnTailCrossPrimary(PlayDirection.Forward, obj);
+                                if (obj.AbsoluteEndPosition < edge)
+                                {
+                                    // completely passed the critical-edge, now only in the secondary section.
+                                    from.RemoveAt(i);
+                                    tailCross(PlayDirection.Forward, obj);
                                 
-                                // don't increment `i` if we removed something
-                                continue;
+                                    // don't increment `i` if we removed something
+                                    continue;
+                                }
                             }
+                            i++;
                         }
-                        i++;
                     }
                 }
 
-                // Second, check for objects which have passed the critical cursor.
-                // These can only come from the primary section
-
-                // Really this step is processing everything in the Primary section.
-
-                time_t newCriticalEdge = nextPos;
-
-                for (int stream = 0; stream < Chart.StreamCount; stream++)
-                {
-                    var primary = m_objsPrimary[stream];
-                    for (int i = 0; i < primary.Count; )
-                    {
-                        var obj = primary[i];
-                        if (obj.AbsolutePosition < newCriticalEdge)
-                        {
-                            var secondary = m_objsSecondary[stream];
-                            if (!secondary.Contains(obj))
-                            {
-                                // entered the seconary section, passed the critical-edge.
-                                secondary.Add(obj);
-                                OnHeadCrossCritical(PlayDirection.Forward, obj);
-                            }
-
-                            if (obj.AbsoluteEndPosition < newCriticalEdge)
-                            {
-                                // completely passed the critical-edge, now only in the secondary section.
-                                primary.RemoveAt(i);
-                                OnTailCrossCritical(PlayDirection.Forward, obj);
-                                
-                                // don't increment `i` if we removed something
-                                continue;
-                            }
-                        }
-                        i++;
-                    }
-                }
-
-                // Lastly, check for objects which have passed the back cursor.
-                // These can only come from the secondary section
-
-                time_t newBehindEdge = nextPos - m_lookBehind;
-
-                for (int stream = 0; stream < Chart.StreamCount; stream++)
-                {
-                    var secondary = m_objsSecondary[stream];
-                    for (int i = 0; i < secondary.Count; )
-                    {
-                        var obj = secondary[i];
-                        if (obj.AbsolutePosition < newBehindEdge)
-                        {
-                            var behind = m_objsBehind[stream];
-                            if (!behind.Contains(obj))
-                            {
-                                // entered the seconary section, passed the critical-edge.
-                                behind.Add(obj);
-                                OnHeadCrossSecondary(PlayDirection.Forward, obj);
-                            }
-
-                            if (obj.AbsoluteEndPosition < newBehindEdge)
-                            {
-                                // completely passed the critical-edge, now only in the secondary section.
-                                secondary.RemoveAt(i);
-                                OnTailCrossSecondary(PlayDirection.Forward, obj);
-                                
-                                // don't increment `i` if we removed something
-                                continue;
-                            }
-                        }
-                        i++;
-                    }
-                }
+                CheckEdge(nextPos + LookAhead, m_objsAhead, m_objsPrimary, OnHeadCrossPrimary, OnTailCrossPrimary);
+                CheckEdge(nextPos, m_objsPrimary, m_objsSecondary, OnHeadCrossCritical, OnTailCrossCritical);
+                CheckEdge(nextPos - LookBehind, m_objsSecondary, m_objsBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
             }
             else
             {
