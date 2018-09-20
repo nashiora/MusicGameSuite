@@ -132,6 +132,7 @@ namespace OpenRM.Audio.Effects
 
         public override void ApplyToDsp(Dsp effect, float alpha = 0)
         {
+            base.ApplyToDsp(effect, alpha);
             if (effect is BiQuadFilter filter)
             {
                 switch (Type)
@@ -141,11 +142,11 @@ namespace OpenRM.Audio.Effects
                         break;
                         
                     case EffectType.LowPassFilter:
-                        filter.SetLowPass(Q.Sample(alpha), Freq.Sample(alpha));
+                        filter.SetLowPass(Q.Sample(alpha) * Mix.Sample(alpha) + 0.1f, Freq.Sample(alpha));
                         break;
                         
                     case EffectType.HighPassFilter:
-                        filter.SetHighPass(Q.Sample(alpha), Freq.Sample(alpha));
+                        filter.SetHighPass(Q.Sample(alpha) * Mix.Sample(alpha) + 0.1f, Freq.Sample(alpha));
                         break;
                 }
             }

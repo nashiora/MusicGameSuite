@@ -41,7 +41,7 @@ namespace OpenRM.Audio.Effects
 		        filter.Process(buffer, i * 2, 2);
 
 		        // Apply slight mixing
-		        float mix = 0.5f;
+		        float mix = 0.85f;
 		        buffer[i * 2 + 0] = buffer[i * 2 + 0] * mix + s[0] * (1.0f - mix);
 		        buffer[i * 2 + 1] = buffer[i * 2 + 1] * mix + s[1] * (1.0f - mix);
 
