@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using OpenRM.Convert;
+using theori.Audio;
 using theori.Graphics;
 using theori.Gui;
 
@@ -21,6 +24,40 @@ namespace theori.Game.States
                 {
                 }
             };
+
+            Keyboard.KeyPress += Keyboard_KeyPress;
+        }
+
+        private void Keyboard_KeyPress(KeyInfo key)
+        {
+            if (key.KeyCode == KeyCode.O)
+            {
+                if (RuntimeInfo.IsWindows)
+                {
+                    var d = new System.Windows.Forms.OpenFileDialog()
+                    {
+                        Filter = "K-Shoot MANIA Files (*.ksh)|*.ksh",
+                    };
+                    if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        string kshChart = d.FileName;
+
+                        string fileDir = Directory.GetParent(kshChart).FullName;
+                        var ksh = KShootMania.Chart.CreateFromFile(kshChart);
+
+                        string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
+
+                        var audio = AudioTrack.FromFile(audioFile);
+                        audio.Channel = Application.Mixer.MasterChannel;
+                        audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
+
+                        var voltex = new VoltexGameplay(ksh.ToVoltex(), audio);
+                        Application.PushState(voltex);
+
+                        return;
+                    }
+                }
+            }
         }
 
         public override void Update()

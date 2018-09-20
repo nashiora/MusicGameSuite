@@ -47,6 +47,12 @@ namespace theori.Game.States
         private bool m_isPlayback = false;
         private tick_t m_navPos = 0;
 
+        public VoltexGameplay(Chart chart, AudioTrack audio)
+        {
+            m_chart = chart;
+            m_audio = audio;
+        }
+
         public override void ClientSizeChanged(int width, int height)
         {
             highwayView.Camera.AspectRatio = Window.Aspect;
@@ -63,23 +69,6 @@ namespace theori.Game.States
             m_slamSample.Channel = Application.Mixer.MasterChannel;
             m_slamSample.Volume = 0.5f * 0.7f;
             
-            //const string DIR = @"D:\kshootmania\songs\SDVX IV\two-torial";
-            const string DIR = @"D:\kshootmania\songs\SDVX IV\isekai_not_pumpy";
-            //const string DIR = @"D:\kshootmania\songs\Local\racemization";
-            //const string DIR = @"D:\kshootmania\songs\Local\rocknroll";
-            //const string DIR = @"D:\kshootmania\songs\Local\moonlightsonata";
-            //const string DIR = @"D:\kshootmania\songs\Local\instant_heaven";
-            //const string DIR = @"D:\kshootmania\songs\Local\Effect Test";
-            
-            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "exh.ksh"));
-            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "nov.ksh"));
-            //var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "loc.ksh"));
-            var ksh = KShootMania.Chart.CreateFromFile(Path.Combine(DIR, "mxm.ksh"));
-            
-            string audioFile = Path.Combine(DIR, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
-
-            m_audio = AudioTrack.FromFile(audioFile);
-            m_audio.Channel = Application.Mixer.MasterChannel;
             //m_audio.PlaybackSpeed = 1.25f;
 
             m_audioController = new AudioEffectController(8, m_audio, true)
@@ -91,7 +80,6 @@ namespace theori.Game.States
                 Console.WriteLine("track complete");
             };
             
-            m_chart = ksh.ToVoltex();
             m_audio.Position = m_chart.Offset;
 
             highwayView = new HighwayView(m_chart);

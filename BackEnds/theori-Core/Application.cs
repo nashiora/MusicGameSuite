@@ -29,6 +29,8 @@ namespace theori
         public static void PushState(State state)
         {
             states.Push(state);
+            // TODO(local): queue up inits better
+            state.Init();
         }
 
         public static State PopState()
@@ -71,7 +73,6 @@ namespace theori
         public static void Start(State initialState)
         {
             PushState(initialState);
-            State.Init();
 
             var timer = Stopwatch.StartNew();
 
