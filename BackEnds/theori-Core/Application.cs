@@ -58,7 +58,7 @@ namespace theori
             Pipeline.Bind();
             
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
-            Mixer = new Mixer(2, 48000);
+            Mixer = new Mixer(2);
 
             #if DEBUG
             string cd = Environment.CurrentDirectory;

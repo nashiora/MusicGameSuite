@@ -37,11 +37,11 @@ namespace theori.Audio
 
         public MixerChannel MasterChannel { get; }
 
-        public Mixer(int channelCount, int sampleRate)
+        public Mixer(int channelCount)
         {
-            MasterChannel = new MixerChannel("Master", channelCount, sampleRate);
-            
             output = new WasapiOut() { Latency = 1 };
+            MasterChannel = new MixerChannel("Master", channelCount, output.Device.DeviceFormat.SampleRate);
+
             var w = new MixerChannelToCSCore(MasterChannel).ToWaveSource();
             output.Initialize(w);
             output.Play();
