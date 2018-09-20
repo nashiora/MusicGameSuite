@@ -58,6 +58,7 @@
     <Compile Include="MathL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reinterpret.cs" />
+    <Compile Include="RuntimeInfo.cs" />
     <Compile Include="Variant.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

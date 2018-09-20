@@ -24,14 +24,13 @@ THE SOFTWARE.
 
  */
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace OpenGL
+namespace System
 {
-    internal static class RuntimeInfo
+    public static class RuntimeInfo
     {
         [DllImport(@"kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         internal static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
