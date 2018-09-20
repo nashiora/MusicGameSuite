@@ -429,7 +429,7 @@ namespace OpenRM
 
             public ControlPoint MostRecent(tick_t position)
             {
-                for (int i = 0, count = m_controlPoints.Count; i < count; i++)
+                for (int i = m_controlPoints.Count - 1; i >= 0; i--)
                 {
                     var cp = m_controlPoints[i];
                     if (cp.Position <= position)
@@ -440,7 +440,7 @@ namespace OpenRM
 
             public ControlPoint MostRecent(time_t position)
             {
-                for (int i = 0, count = m_controlPoints.Count; i < count; i++)
+                for (int i = m_controlPoints.Count - 1; i >= 0; i--)
                 {
                     var cp = m_controlPoints[i];
                     if (cp.AbsolutePosition <= position)

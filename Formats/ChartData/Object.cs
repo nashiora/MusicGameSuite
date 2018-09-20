@@ -11,7 +11,7 @@ namespace OpenRM
 
         private tick_t m_position, m_duration;
         private time_t m_calcPosition = (time_t)long.MinValue,
-                       m_calcDuration = (time_t)long.MinValue;
+                       m_calcEndPosition = (time_t)long.MinValue;
 
         internal int m_stream;
 
@@ -59,24 +59,23 @@ namespace OpenRM
             }
         }
 
-        public time_t AbsoluteEndPosition => AbsolutePosition + AbsoluteDuration;
-
-        public time_t AbsoluteDuration
+        public time_t AbsoluteEndPosition
         {
             get
             {
                 if (Chart == null)
                     throw new InvalidOperationException("Cannot calculate the absolute duration of an object without an assigned Chart.");
 
-                if (m_calcDuration == (time_t)long.MinValue)
+                if (m_calcEndPosition == (time_t)long.MinValue)
                 {
-                    tick_t endPos = m_position + m_duration;
-                    ControlPoint cp = Chart.ControlPoints.MostRecent(endPos);
-                    m_calcDuration = cp.AbsolutePosition + cp.MeasureDuration * (endPos - cp.Position) - AbsolutePosition;
+                    ControlPoint cp = Chart.ControlPoints.MostRecent(EndPosition);
+                    m_calcEndPosition = cp.AbsolutePosition + cp.MeasureDuration * (EndPosition - cp.Position);
                 }
-                return m_calcDuration;
+                return m_calcEndPosition;
             }
         }
+
+        public time_t AbsoluteDuration => AbsoluteEndPosition - AbsolutePosition;
 
         public int Stream
         {
@@ -181,7 +180,7 @@ namespace OpenRM
         internal void InvalidateTimingCalc()
         {
             m_calcPosition = (time_t)long.MinValue;
-            m_calcDuration = (time_t)long.MinValue;
+            m_calcEndPosition = (time_t)long.MinValue;
         }
 
         public delegate void PropertyChangedEventHandler(Object sender, PropertyChangedEventArgs args);
