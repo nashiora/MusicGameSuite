@@ -421,7 +421,10 @@ end
         private void UpdateLaserEffects()
         {
             if (!AreLasersActive)
+            {
+                m_audioController.SetEffectMix(6, 0);
                 return;
+            }
 
             float LaserAlpha(int index)
             {
