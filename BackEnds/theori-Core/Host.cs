@@ -11,11 +11,14 @@ using theori.Configuration;
 using theori.Game;
 using theori.Graphics;
 using theori.Input;
+using theori.Platform;
 
 namespace theori
 {
     public static class Host
     {
+        public static IPlatform Platform { get; private set; }
+
         public static Mixer Mixer { get; private set; }
         
         public static GameInput GameInput { get; private set; }
@@ -38,8 +41,10 @@ namespace theori
             return states.Pop();
         }
 
-        public static void Init()
+        public static void Init(IPlatform platformImpl)
         {
+            Platform = platformImpl;
+
             GameConfig = new GameConfig();
             // TODO(local): load config
             GameInput = new GameInput(GameConfig.GetInt(GameConfigKey.Controller_DeviceID));

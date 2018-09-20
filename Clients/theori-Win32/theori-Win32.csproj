@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{DB6FC625-F3D4-46C3-8E89-13B957009AAA}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>FxMania.Win32</RootNamespace>
-    <AssemblyName>FxMania.Win32</AssemblyName>
+    <RootNamespace>theori.Win32</RootNamespace>
+    <AssemblyName>theori.Win32</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -92,6 +92,7 @@
     <Compile Include="Game\States\VoltexChartSelect_KSH.cs" />
     <Compile Include="Game\States\VoltexGameplay.cs" />
     <Compile Include="Game\Ui\CriticalLine.cs" />
+    <Compile Include="Platform\PlatformWin32.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
