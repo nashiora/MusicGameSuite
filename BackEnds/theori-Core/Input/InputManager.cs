@@ -20,7 +20,7 @@ namespace theori.Input
         {
             Clear();
 
-            int deviceIndex = Application.GameConfig.GetInt(GameConfigKey.Controller_DeviceID);
+            int deviceIndex = Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID);
             Gamepad = Gamepad.Open(deviceIndex);
         }
 

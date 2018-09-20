@@ -48,7 +48,7 @@ namespace theori.Graphics
                 string err = SDL_GetError();
                 Logger.Log(err, LogPriority.Error);
                 // can't continue, sorry
-                Application.Quit(1);
+                Host.Quit(1);
             }
             
             SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_CONTEXT_PROFILE_MASK, (int)SDL_GLprofile.SDL_GL_CONTEXT_PROFILE_CORE);
@@ -71,7 +71,7 @@ namespace theori.Graphics
                 string err = SDL_GetError();
                 Logger.Log(err, LogPriority.Error);
                 // can't continue, sorry
-                Application.Quit(1);
+                Host.Quit(1);
             }
 
             context = SDL_GL_CreateContext(window);

@@ -116,7 +116,7 @@ namespace theori.Graphics
                 if (!program || !program.Linked)
                 {
                     Logger.Log(program.InfoLog);
-                    Application.Quit(1);
+                    Host.Quit(1);
                 }
 
                 AssignShader(program);

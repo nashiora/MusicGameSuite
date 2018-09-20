@@ -8,8 +8,8 @@ namespace theori.Win32
         [STAThread]
         static void Main(string[] args)
         {
-            Application.Init();
-            Application.Start(new VoltexChartSelect_KSH());
+            Host.Init();
+            Host.Start(new VoltexChartSelect_KSH());
         }
     }
 }

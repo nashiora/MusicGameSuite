@@ -19,7 +19,7 @@ namespace theori.Audio
         public static AudioTrack FromFile(string fileName)
         {
             var fileSource = CodecFactory.Instance.GetCodec(fileName);
-            var sampleSource = fileSource.ChangeSampleRate(Application.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
+            var sampleSource = fileSource.ChangeSampleRate(Host.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
 
             return new AudioTrack(sampleSource);
         }
@@ -34,7 +34,7 @@ namespace theori.Audio
                 default: throw new NotImplementedException();
             }
 
-            var sampleSource = source.ChangeSampleRate(Application.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
+            var sampleSource = source.ChangeSampleRate(Host.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
             return new AudioTrack(sampleSource);
         }
         

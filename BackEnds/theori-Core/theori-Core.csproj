@@ -90,7 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Anchor.cs" />
-    <Compile Include="Application.cs" />
+    <Compile Include="Host.cs" />
     <Compile Include="Audio\AudioEffectController.cs" />
     <Compile Include="Audio\AudioSample.cs" />
     <Compile Include="Audio\AudioSource.cs" />
@@ -168,6 +168,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Platform\" />
   </ItemGroup>
   <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.106.0\build\net45\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.106.0\build\net45\System.Data.SQLite.Core.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

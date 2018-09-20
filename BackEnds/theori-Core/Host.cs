@@ -14,7 +14,7 @@ using theori.Input;
 
 namespace theori
 {
-    public static class Application
+    public static class Host
     {
         public static Mixer Mixer { get; private set; }
         

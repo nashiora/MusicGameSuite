@@ -21,8 +21,8 @@ namespace theori.Input
         private readonly int gamepadIndex;
         private Gamepad gamepad;
 
-        private InputDevice BtInputDevice => Application.GameConfig.GetEnum<InputDevice>(GameConfigKey.ButtonInputDevice);
-        private InputDevice VolInputDevice => Application.GameConfig.GetEnum<InputDevice>(GameConfigKey.LaserInputDevice);
+        private InputDevice BtInputDevice => Host.GameConfig.GetEnum<InputDevice>(GameConfigKey.ButtonInputDevice);
+        private InputDevice VolInputDevice => Host.GameConfig.GetEnum<InputDevice>(GameConfigKey.LaserInputDevice);
 
         public GameInput(int gamepadIndex)
         {
@@ -46,12 +46,12 @@ namespace theori.Input
             if (gamepad != null && BtInputDevice == InputDevice.Controller)
             {
                 GameConfigKey configKey = GameConfigKey.Controller_BTS + (int)button;
-                return gamepad.ButtonDown((uint)Application.GameConfig.GetInt(configKey));
+                return gamepad.ButtonDown((uint)Host.GameConfig.GetInt(configKey));
             }
             else
             {
                 GameConfigKey configKey = GameConfigKey.Key_BTS + (int)button;
-                return Keyboard.IsDown(Application.GameConfig.GetEnum<KeyCode>(configKey));
+                return Keyboard.IsDown(Host.GameConfig.GetEnum<KeyCode>(configKey));
             }
         }
 
@@ -60,22 +60,22 @@ namespace theori.Input
             if (gamepad != null && VolInputDevice == InputDevice.Controller)
             {
                 GameConfigKey configKey = GameConfigKey.Controller_Laser0Axis + (int)axis;
-                return gamepad.GetAxis((uint)Application.GameConfig.GetInt(configKey));
+                return gamepad.GetAxis((uint)Host.GameConfig.GetInt(configKey));
             }
             else if (VolInputDevice == InputDevice.Keyboard)
             {
-                float sens = Application.GameConfig.GetFloat(GameConfigKey.Key_Sensitivity);
-                int axisIndex = Application.GameConfig.GetInt(GameConfigKey.Mouse_Laser0Axis + (int)axis);
+                float sens = Host.GameConfig.GetFloat(GameConfigKey.Key_Sensitivity);
+                int axisIndex = Host.GameConfig.GetInt(GameConfigKey.Mouse_Laser0Axis + (int)axis);
                 
-                KeyCode pos = Application.GameConfig.GetEnum<KeyCode>(GameConfigKey.Key_Laser0Pos + (int)axis);
-                KeyCode neg = Application.GameConfig.GetEnum<KeyCode>(GameConfigKey.Key_Laser0Neg + (int)axis);
+                KeyCode pos = Host.GameConfig.GetEnum<KeyCode>(GameConfigKey.Key_Laser0Pos + (int)axis);
+                KeyCode neg = Host.GameConfig.GetEnum<KeyCode>(GameConfigKey.Key_Laser0Neg + (int)axis);
 
                 return (Keyboard.IsDown(pos) ? 1 : 0) + (Keyboard.IsDown(neg) ? -1 : 0);
             }
             else if (VolInputDevice == InputDevice.Mouse)
             {
-                float sens = Application.GameConfig.GetFloat(GameConfigKey.Mouse_Sensitivity);
-                int axisIndex = Application.GameConfig.GetInt(GameConfigKey.Mouse_Laser0Axis + (int)axis);
+                float sens = Host.GameConfig.GetFloat(GameConfigKey.Mouse_Sensitivity);
+                int axisIndex = Host.GameConfig.GetInt(GameConfigKey.Mouse_Laser0Axis + (int)axis);
                 
                 if (axisIndex == 0) return Mouse.DeltaX * sens;
                 if (axisIndex == 1) return Mouse.DeltaY * sens;

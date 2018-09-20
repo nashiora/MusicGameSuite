@@ -48,11 +48,11 @@ namespace theori.Game.States
                         string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
 
                         var audio = AudioTrack.FromFile(audioFile);
-                        audio.Channel = Application.Mixer.MasterChannel;
+                        audio.Channel = Host.Mixer.MasterChannel;
                         audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
 
                         var voltex = new VoltexGameplay(ksh.ToVoltex(), audio);
-                        Application.PushState(voltex);
+                        Host.PushState(voltex);
 
                         return;
                     }
