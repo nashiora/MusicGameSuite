@@ -24,7 +24,13 @@ namespace theori.Audio
         }
 
         public void Dispose() => Channel.Dispose();
-        public int Read(float[] buffer, int offset, int count) => Channel.Read(buffer, offset, count);
+        public int Read(float[] buffer, int offset, int count)
+        {
+            int numRead = Channel.Read(buffer, offset, count);
+            for (int i = 0; i < numRead; i++)
+                buffer[offset + i] = MathL.Clamp(buffer[offset + i], -1, 1);
+            return numRead;
+        }
     }
 
     public sealed class Mixer
