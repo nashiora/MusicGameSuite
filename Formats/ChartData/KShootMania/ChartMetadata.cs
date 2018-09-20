@@ -112,6 +112,8 @@ namespace KShootMania
                         else MusicFileNoFx = value;
                     }
                     return;
+
+                case "mvol": MusicVolume = int.Parse(value); return;
                         
                 case "o": OffsetMillis = int.Parse(value); return;
 
