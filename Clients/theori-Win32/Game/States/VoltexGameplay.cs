@@ -51,6 +51,8 @@ namespace theori.Game.States
         {
             m_chart = chart;
             m_audio = audio;
+
+            Logger.Log(audio.Volume);
         }
 
         public override void ClientSizeChanged(int width, int height)

@@ -9,6 +9,7 @@ using OpenRM.Convert;
 using theori.Audio;
 using theori.Graphics;
 using theori.Gui;
+using theori.Platform;
 
 namespace theori.Game.States
 {
@@ -34,13 +35,13 @@ namespace theori.Game.States
             {
                 if (RuntimeInfo.IsWindows)
                 {
-                    var d = new System.Windows.Forms.OpenFileDialog()
+                    var dialog = new OpenFileDialogDesc("Open Chart",
+                                     new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
+
+                    var result = FileSystem.ShowOpenFileDialog(dialog);
+                    if (result.DialogResult == DialogResult.OK)
                     {
-                        Filter = "K-Shoot MANIA Files (*.ksh)|*.ksh",
-                    };
-                    if (d.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    {
-                        string kshChart = d.FileName;
+                        string kshChart = result.FilePath;
 
                         string fileDir = Directory.GetParent(kshChart).FullName;
                         var ksh = KShootMania.Chart.CreateFromFile(kshChart);

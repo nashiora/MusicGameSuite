@@ -2,5 +2,6 @@
 {
     public interface IPlatform
     {
+        OpenFileResult ShowOpenFileDialog(OpenFileDialogDesc desc);
     }
 }
