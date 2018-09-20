@@ -409,10 +409,8 @@ namespace OpenRM
                 ControlPoint result;
                 if (clonePrevious && mostRecent != null)
                     result = mostRecent.Clone();
-                else result = new ControlPoint()
-                {
-                    Position = position,
-                };
+                else result = new ControlPoint();
+                result.Position = position;
 
                 Add(result);
                 return result;

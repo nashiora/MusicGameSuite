@@ -139,8 +139,8 @@ namespace OpenRM.Convert
             {
                 var tick = tickRef.Tick;
                 
-                int blockOffset = tickRef.Block - lastTsBlock;
-                tick_t chartPos = lastCp.Position + blockOffset + (double)tickRef.Index / tickRef.MaxIndex;
+                int blockOffset = tickRef.Block;
+                tick_t chartPos = blockOffset + (double)tickRef.Index / tickRef.MaxIndex;
 
                 //System.Diagnostics.Trace.WriteLine(chartPos);
 
@@ -163,7 +163,7 @@ namespace OpenRM.Convert
                             tick_t pos = MathL.Ceil((double)chartPos);
                             ControlPoint cp = voltex.ControlPoints.GetOrCreate(pos, true);
                             cp.BeatCount = int.Parse(n);
-                            cp.BeatKind = int.Parse(n);
+                            cp.BeatKind = int.Parse(d);
                             lastCp = cp;
                         } break;
 

@@ -112,9 +112,9 @@ namespace OpenRM
         }
         
         public time_t QuarterNoteDuration => m_qnDuration;
-        public time_t BeatDuration => m_qnDuration * 4 / m_beatKind;
+        public time_t BeatDuration => QuarterNoteDuration * 4 / BeatKind;
 
-        public time_t MeasureDuration => BeatDuration * m_beatCount;
+        public time_t MeasureDuration => BeatDuration * BeatCount;
         
         public bool HasPrevious => Previous != null;
         public bool HasNext => Next != null;
