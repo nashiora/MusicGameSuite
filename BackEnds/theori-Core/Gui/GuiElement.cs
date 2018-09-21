@@ -62,9 +62,9 @@ namespace theori.Gui
                     sizeY = ds.Y * sizeY;
 
                 var result = Transform.Translation(-Origin.X, -Origin.Y, 0)
-                           * Transform.Scale(Scale.X, Scale.Y, 0)
+                           * Transform.Scale(Scale.X * sizeX / Size.X, Scale.Y * sizeY / Size.Y, 0)
                            * Transform.RotationZ(Rotation)
-                           * Transform.Translation(Position.X, Position.Y, 0);
+                           * Transform.Translation(posX, posY, 0);
 
                 if (Parent != null)
                     result = result * Parent.CompleteTransform;
@@ -99,6 +99,8 @@ namespace theori.Gui
         public virtual void Render(GuiRenderQueue rq)
         {
         }
+
+        public virtual bool OnMouseButtonPress(MouseButton button) { return false; }
     }
 
     [Flags]

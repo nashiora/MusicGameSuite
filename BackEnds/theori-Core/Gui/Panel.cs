@@ -35,6 +35,8 @@ namespace theori.Gui
                 foreach (var child in value)
                     AddChild(child);
             }
+
+            get => children;
         }
 
         public void AddChild(GuiElement gui)
