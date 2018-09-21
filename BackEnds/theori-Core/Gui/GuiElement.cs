@@ -33,6 +33,54 @@ namespace theori.Gui
         public Vector2 Scale = Vector2.One;
         public Vector2 Origin;
 
+        public Vector2 DrawPosition
+        {
+            get
+            {
+                float posX = Position.X;
+                float posY = Position.Y;
+
+                Vector2 ds = default;
+                if (RelativePositionAxes != Axes.None)
+                {
+                    if (Parent == null)
+                        throw new Exception("Cannot use relative axes without a parent.");
+                    ds = Parent.ChildDrawSize;
+                }
+                
+                if (RelativePositionAxes.HasFlag(Axes.X))
+                    posX = ds.X * posX;
+                if (RelativePositionAxes.HasFlag(Axes.Y))
+                    posY = ds.Y * posY;
+
+                return new Vector2(posX, posY);
+            }
+        }
+
+        public Vector2 DrawSize
+        {
+            get
+            {
+                float sizeX = Size.X;
+                float sizeY = Size.Y;
+
+                Vector2 ds = default;
+                if (RelativeSizeAxes != Axes.None)
+                {
+                    if (Parent == null)
+                        throw new Exception("Cannot use relative axes without a parent.");
+                    ds = Parent.ChildDrawSize;
+                }
+                
+                if (RelativeSizeAxes.HasFlag(Axes.X))
+                    sizeX = ds.X * sizeX;
+                if (RelativeSizeAxes.HasFlag(Axes.Y))
+                    sizeY = ds.Y * sizeY;
+
+                return new Vector2(sizeX, sizeY);
+            }
+        }
+
         public Transform CompleteTransform
         {
             get
@@ -62,7 +110,7 @@ namespace theori.Gui
                     sizeY = ds.Y * sizeY;
 
                 var result = Transform.Translation(-Origin.X, -Origin.Y, 0)
-                           * Transform.Scale(Scale.X * sizeX / Size.X, Scale.Y * sizeY / Size.Y, 0)
+                           * Transform.Scale(Scale.X, Scale.Y, 0)
                            * Transform.RotationZ(Rotation)
                            * Transform.Translation(posX, posY, 0);
 
@@ -80,7 +128,7 @@ namespace theori.Gui
 
             Matrix3x2.Invert(transform, out transform);
 
-            screen -= Position;
+            screen -= DrawPosition;
             screen = Vector2.Transform(screen, transform);
 
             return screen;

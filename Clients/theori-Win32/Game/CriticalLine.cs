@@ -47,7 +47,6 @@ namespace theori.Game
                     {
                         m_image = new Sprite(critTexture),
                         m_capLeft = new Sprite(capTexture)
-
                         {
                             Position = new Vector2(20, 0),
                         },
@@ -57,6 +56,12 @@ namespace theori.Game
                         },
                     }
                 },
+
+                new Sprite(null)
+                {
+                    Size = new Vector2(1, 100),
+                    Color = new Vector4(1, 1, 0, 1),
+                }
             };
 
             float critImageWidth = m_image.Size.X;

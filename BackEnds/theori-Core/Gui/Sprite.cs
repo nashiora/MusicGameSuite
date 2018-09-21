@@ -41,7 +41,7 @@ namespace theori.Gui
         public override void Render(GuiRenderQueue rq)
         {
             base.Render(rq);
-            rq.DrawRect(CompleteTransform, new Rect(Position, Size), Texture ?? Texture.Empty, Color);
+            rq.DrawRect(CompleteTransform, new Rect(Vector2.Zero, DrawSize), Texture ?? Texture.Empty, Color);
         }
     }
 }

@@ -118,8 +118,12 @@ namespace theori.Game.States
                 {
                     openButton = new TempButtonTest()
                     {
+                        Origin = new Vector2(100, 25),
+
                         Size = new Vector2(200, 50),
-                        Position = new Vector2(50, 50),
+
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.5f, 50),
 
                         Pressed = OpenChart,
                     },
@@ -145,8 +149,19 @@ namespace theori.Game.States
 
                     string fileDir = Directory.GetParent(kshChart).FullName;
                     var ksh = KShootMania.Chart.CreateFromFile(kshChart);
+                    
+                    string audioFileFx = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? "");
+                    string audioFileNoFx = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? "");
 
-                    string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? ksh.Metadata.MusicFileNoFx);
+                    string audioFile = audioFileNoFx;
+                    if (File.Exists(audioFileFx))
+                        audioFile = audioFileFx;
+
+                    if (!File.Exists(audioFile))
+                    {
+                        Logger.Log("Couldn't find audio file for chart.");
+                        return;
+                    }
 
                     var audio = AudioTrack.FromFile(audioFile);
                     audio.Channel = Host.Mixer.MasterChannel;
