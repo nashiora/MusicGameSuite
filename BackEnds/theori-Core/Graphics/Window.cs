@@ -145,8 +145,8 @@ namespace theori.Graphics
                             Mouse.y = evt.button.y;
                             
                             if (evt.type == SDL_EventType.SDL_MOUSEBUTTONDOWN)
-                                Mouse.InvokePress((MouseButton)evt.button.which);
-                            else Mouse.InvokeRelease((MouseButton)evt.button.which);
+                                Mouse.InvokePress((MouseButton)evt.button.button);
+                            else Mouse.InvokeRelease((MouseButton)evt.button.button);
                         }
                         break;
                     case SDL_EventType.SDL_MOUSEMOTION:
