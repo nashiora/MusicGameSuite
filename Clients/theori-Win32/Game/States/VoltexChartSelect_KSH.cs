@@ -22,14 +22,12 @@ namespace theori.Game.States
         public TempUiManager(Panel root)
         {
             this.root = root;
-
-            Mouse.ButtonPress += Mouse_ButtonPress;
         }
 
         // TODO(local): move to update instead plz
         private void Mouse_ButtonPress(MouseButton button)
         {
-            if (currentHover != null) currentHover.OnMouseButtonPress(button);
+            
         }
 
         public void Update()
@@ -63,12 +61,19 @@ namespace theori.Game.States
                     Logger.Log("Just hovered new thing");
                 }
             }
+
+            if (Mouse.IsPressed(MouseButton.Left))
+            {
+                if (currentHover != null) currentHover.OnMouseButtonPress(MouseButton.Left);
+            }
         }
     }
 
     class TempButtonTest : Panel
     {
         private Sprite image;
+
+        public Action Pressed;
 
         public TempButtonTest()
         {
@@ -93,6 +98,7 @@ namespace theori.Game.States
 
         public override bool OnMouseButtonPress(MouseButton button)
         {
+            Pressed?.Invoke();
             Logger.Log("TempButtonTest pressed");
             return true;
         }
@@ -114,6 +120,8 @@ namespace theori.Game.States
                     {
                         Size = new Vector2(200, 50),
                         Position = new Vector2(50, 50),
+
+                        Pressed = OpenChart,
                     },
                 }
             };
@@ -123,35 +131,38 @@ namespace theori.Game.States
             Keyboard.KeyPress += Keyboard_KeyPress;
         }
 
+        private void OpenChart()
+        {
+            if (RuntimeInfo.IsWindows)
+            {
+                var dialog = new OpenFileDialogDesc("Open Chart",
+                                    new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
+
+                var result = FileSystem.ShowOpenFileDialog(dialog);
+                if (result.DialogResult == DialogResult.OK)
+                {
+                    string kshChart = result.FilePath;
+
+                    string fileDir = Directory.GetParent(kshChart).FullName;
+                    var ksh = KShootMania.Chart.CreateFromFile(kshChart);
+
+                    string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? ksh.Metadata.MusicFileNoFx);
+
+                    var audio = AudioTrack.FromFile(audioFile);
+                    audio.Channel = Host.Mixer.MasterChannel;
+                    audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
+
+                    var voltex = new VoltexGameplay(ksh.ToVoltex(), audio);
+                    Host.PushState(voltex);
+                }
+            }
+        }
+
         private void Keyboard_KeyPress(KeyInfo key)
         {
             if (key.KeyCode == KeyCode.O)
             {
-                if (RuntimeInfo.IsWindows)
-                {
-                    var dialog = new OpenFileDialogDesc("Open Chart",
-                                     new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
-
-                    var result = FileSystem.ShowOpenFileDialog(dialog);
-                    if (result.DialogResult == DialogResult.OK)
-                    {
-                        string kshChart = result.FilePath;
-
-                        string fileDir = Directory.GetParent(kshChart).FullName;
-                        var ksh = KShootMania.Chart.CreateFromFile(kshChart);
-
-                        string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? ksh.Metadata.MusicFileNoFx);
-
-                        var audio = AudioTrack.FromFile(audioFile);
-                        audio.Channel = Host.Mixer.MasterChannel;
-                        audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
-
-                        var voltex = new VoltexGameplay(ksh.ToVoltex(), audio);
-                        Host.PushState(voltex);
-
-                        return;
-                    }
-                }
+                OpenChart();
             }
         }
 

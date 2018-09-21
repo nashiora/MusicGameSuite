@@ -99,7 +99,10 @@ namespace theori
                     Time.Delta = actualDeltaTime / 1_000.0f;
                     Time.Total = lastFrameStart / 1_000.0f;
                     
+                    Keyboard.Update();
+                    Mouse.Update();
                     Window.Update();
+
                     if (Window.ShouldExitApplication)
                     {
                         Quit();
@@ -108,7 +111,6 @@ namespace theori
 
                     State.Update();
 
-                    
                     if (Window.Width > 0 && Window.Height > 0)
                     {
                         GL.ClearColor(0, 0, 0, 1);

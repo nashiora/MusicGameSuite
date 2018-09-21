@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace theori
@@ -23,14 +24,32 @@ namespace theori
         
         public static event Action<int, int> Move;
         public static event Action<int, int> Scroll;
+        
+        private static readonly HashSet<MouseButton> lastHeldButtons = new HashSet<MouseButton>();
+        private static readonly HashSet<MouseButton> heldButtons = new HashSet<MouseButton>();
+
+        internal static void Update()
+        {
+            lastHeldButtons.Clear();
+            foreach (var button in heldButtons)
+                lastHeldButtons.Add(button);
+        }
+        
+        public static bool IsDown(MouseButton button) => heldButtons.Contains(button);
+        public static bool IsUp(MouseButton button) => !heldButtons.Contains(button);
+        
+        public static bool IsPressed(MouseButton button) => heldButtons.Contains(button) && !lastHeldButtons.Contains(button);
+        public static bool IsReleased(MouseButton button) => !heldButtons.Contains(button) && lastHeldButtons.Contains(button);
 
         internal static void InvokePress(MouseButton button)
         {
+            System.Diagnostics.Debug.Assert(heldButtons.Add(button), "added a button which was pressed");
             ButtonPress?.Invoke(button);
         }
 
         internal static void InvokeRelease(MouseButton button)
         {
+            System.Diagnostics.Debug.Assert(heldButtons.Remove(button), "removed a button which wasn't pressed");
             ButtonRelease?.Invoke(button);
         }
 
