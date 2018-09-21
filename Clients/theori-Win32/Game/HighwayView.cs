@@ -244,7 +244,7 @@ namespace theori.Game
             HorizonHeight = (0.5f + (pitchDeg / Camera.FieldOfView)) * Camera.ViewportHeight;
 
             Camera.Position = CameraOffset;
-            Camera.FarDistance = Vector3.Transform(new Vector3(0, 0, LENGTH_BASE), WorldTransform.Matrix).Length();
+            Camera.FarDistance = Vector3.Transform(new Vector3(0, 0, LENGTH_BASE), WorldTransform.Matrix).Length() * 3;
         }
 
         public void Render()
@@ -257,13 +257,14 @@ namespace theori.Game
 
             using (var queue = new RenderQueue(renderState))
             {
+                queue.Draw(Transform.Scale(100, 100, 100) * Transform.RotationX(90) * Transform.Translation(0, 0, -LENGTH_BASE), btChipMesh, btChipMaterial, btChipParams);
+
                 var highwayParams = new MaterialParams();
                 highwayParams["LeftColor"] = new Vector3(0.0f, 0.12f, 1);
                 highwayParams["RightColor"] = new Vector3(1, 0.0f, 0.12f);
                 highwayParams["Hidden"] = 0.0f;
                 highwayParams["MainTexture"] = highwayTexture;
                 queue.Draw(Transform.Translation(0, 0, 1) * WorldTransform, highwayMesh, highwayMaterial, highwayParams);
-                
 
                 void RenderButtonStream(int i)
                 {

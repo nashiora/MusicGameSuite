@@ -370,7 +370,9 @@ end
             critRoot.LaserRoll = highwayView.LaserRoll + m_control.Roll * 360;
             critRoot.EffectRoll = m_control.EffectRoll;
             critRoot.EffectOffset = m_control.EffectOffset;
-            critRoot.HorizonHeight = highwayView.HorizonHeight;
+            // TODO(local): Adding this stuff doesn't FIX the problem but it's almost entirely NOT noticeable so uh fix it for real yeah
+            // NOTE(local): The problem in question is that the HorizonHeight doesn't match properly for the CritLine and oh well
+            critRoot.HorizonHeight = highwayView.HorizonHeight + (Window.Height - highwayView.CriticalHeight) / 2;
             critRoot.CriticalHeight = highwayView.CriticalHeight;
 
             foreUiRoot.Update();

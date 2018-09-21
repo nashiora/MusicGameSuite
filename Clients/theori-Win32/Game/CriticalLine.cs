@@ -61,6 +61,12 @@ namespace theori.Game
                 {
                     Size = new Vector2(1, 100),
                     Color = new Vector4(1, 1, 0, 1),
+                },
+
+                new Sprite(null)
+                {
+                    Size = new Vector2(100, 1),
+                    Color = new Vector4(1, 1, 0, 1),
                 }
             };
 
