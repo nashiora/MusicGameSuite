@@ -46,7 +46,7 @@ namespace theori.Game.States
                         string fileDir = Directory.GetParent(kshChart).FullName;
                         var ksh = KShootMania.Chart.CreateFromFile(kshChart);
 
-                        string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? ksh.Metadata.MusicFile);
+                        string audioFile = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? ksh.Metadata.MusicFileNoFx);
 
                         var audio = AudioTrack.FromFile(audioFile);
                         audio.Channel = Host.Mixer.MasterChannel;
