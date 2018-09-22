@@ -257,7 +257,7 @@ namespace theori.Game
 
             using (var queue = new RenderQueue(renderState))
             {
-                queue.Draw(Transform.Scale(100, 100, 100) * Transform.RotationX(90) * Transform.Translation(0, 0, -LENGTH_BASE), btChipMesh, btChipMaterial, btChipParams);
+                //queue.Draw(Transform.Scale(100, 100, 100) * Transform.RotationX(90) * Transform.Translation(0, 0, -LENGTH_BASE), btChipMesh, btChipMaterial, btChipParams);
 
                 var highwayParams = new MaterialParams();
                 highwayParams["LeftColor"] = new Vector3(0.0f, 0.12f, 1);
