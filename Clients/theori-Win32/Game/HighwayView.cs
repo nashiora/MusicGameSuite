@@ -244,7 +244,7 @@ namespace theori.Game
             HorizonHeight = (0.5f + (pitchDeg / Camera.FieldOfView)) * Camera.ViewportHeight;
 
             Camera.Position = CameraOffset;
-            Camera.FarDistance = Vector3.Transform(new Vector3(0, 0, LENGTH_BASE), WorldTransform.Matrix).Length() * 3;
+            Camera.FarDistance = Vector3.Transform(new Vector3(0, 0, LENGTH_BASE), WorldTransform.Matrix).Length();
         }
 
         public void Render()
