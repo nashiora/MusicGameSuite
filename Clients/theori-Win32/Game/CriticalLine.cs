@@ -16,12 +16,13 @@ namespace theori.Game
         private readonly Sprite m_image, m_capLeft, m_capRight;
 
         private float m_horHeight, m_critHeight;
-        private float m_laserRoll, m_addRoll, m_addOffset;
+        private float m_laserRoll, m_baseRoll, m_addRoll, m_addOffset;
 
         public float HorizonHeight { get => m_horHeight; set { m_horHeight = value; m_isDirty = true; } }
         public float CriticalHeight { get => m_critHeight; set { m_critHeight = value; m_isDirty = true; } }
         
         public float LaserRoll { get => m_laserRoll; set { m_laserRoll = value; m_isDirty = true; } }
+        public float BaseRoll { get => m_baseRoll; set { m_baseRoll = value; m_isDirty = true; } }
         public float EffectRoll { get => m_addRoll; set { m_addRoll = value; m_isDirty = true; } }
         public float EffectOffset { get => m_addOffset; set { m_addOffset = value; m_isDirty = true; } }
 
@@ -83,7 +84,7 @@ namespace theori.Game
         private void UpdateOrientation()
         {
             Position = new Vector2(Window.Width / 2, HorizonHeight);
-            Rotation = -LaserRoll - MathL.Sin(EffectRoll * MathL.Pi * 2) * 30;
+            Rotation = -(LaserRoll + BaseRoll) - MathL.Sin(EffectRoll * MathL.Pi * 2) * 30;
 
             float critDist = CriticalHeight - HorizonHeight;
             float desiredCritWidth = Window.Width * 0.75f;

@@ -366,8 +366,9 @@ end
             
             highwayView.PlaybackPosition = position;
             highwayView.Update();
-
-            critRoot.LaserRoll = highwayView.LaserRoll + m_control.Roll * 360;
+            
+            critRoot.LaserRoll = highwayView.LaserRoll;
+            critRoot.BaseRoll = m_control.Roll * 360;
             critRoot.EffectRoll = m_control.EffectRoll;
             critRoot.EffectOffset = m_control.EffectOffset;
             // TODO(local): Adding this stuff doesn't FIX the problem but it's almost entirely NOT noticeable so uh fix it for real yeah

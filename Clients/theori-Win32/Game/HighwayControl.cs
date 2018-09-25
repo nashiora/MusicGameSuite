@@ -9,7 +9,7 @@ namespace theori.Game
 {
     public sealed class HighwayControl
     {
-        private const float LASER_BASE_STRENGTH = 12;
+        private const float LASER_BASE_STRENGTH = 7;
 
         public static LaserParams DefaultLaserParams { get; } = new LaserParams()
         {
@@ -61,7 +61,6 @@ namespace theori.Game
         private LaserParams m_rightLaserParams = DefaultLaserParams;
         
         private float m_leftLaserInput, m_rightLaserInput;
-        private float m_laserMultiplier = 1.0f;
         private float m_combinedLaserOutput, m_targetCombinedLaserOutput;
         
         private float m_zoom, m_pitch, m_offset, m_roll;
@@ -89,8 +88,6 @@ namespace theori.Game
         public float LeftLaserInput  { set { m_leftLaserInput = value; } }
         public float RightLaserInput { set { m_rightLaserInput = value; } }
 
-        public float LaserMultiplier { set => m_laserMultiplier = value; }
-        
         public float LaserRoll { get { return m_combinedLaserOutput; } }
 
         public float Zoom { set { m_zoom = value; } }
@@ -210,26 +207,26 @@ namespace theori.Game
             {
                 case LaserApplication.KeepMax:
                 {
-                    if (m_combinedLaserOutput < 0)
-                        laserOutput = MathL.Min(laserOutput, m_combinedLaserOutput);
-                    else if (m_combinedLaserOutput > 0)
-                        laserOutput = MathL.Max(laserOutput, m_combinedLaserOutput);
+                    if (m_targetCombinedLaserOutput < 0)
+                        laserOutput = MathL.Min(laserOutput, m_targetCombinedLaserOutput);
+                    else if (m_targetCombinedLaserOutput > 0)
+                        laserOutput = MathL.Max(laserOutput, m_targetCombinedLaserOutput);
                 } break;
 
                 case LaserApplication.KeepMin:
                 {
-                    if (m_combinedLaserOutput < 0)
-                        laserOutput = MathL.Max(laserOutput, m_combinedLaserOutput);
-                    else if (m_combinedLaserOutput > 0)
-                        laserOutput = MathL.Min(laserOutput, m_combinedLaserOutput);
+                    if (m_targetCombinedLaserOutput < 0)
+                        laserOutput = MathL.Max(laserOutput, m_targetCombinedLaserOutput);
+                    else if (m_targetCombinedLaserOutput > 0)
+                        laserOutput = MathL.Min(laserOutput, m_targetCombinedLaserOutput);
                 } break;
             }
 
-            m_targetCombinedLaserOutput = laserOutput * m_laserMultiplier;
+            m_targetCombinedLaserOutput = laserOutput;
             switch (m_laserDamping)
             {
                 case Damping.Fast: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 1.50f, 25); break;
-                case Damping.Slow: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 0.15f, 10); break;
+                case Damping.Slow: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 0.50f, 10); break;
                 case Damping.Off:
                 {
                     const int SPEED = 60;
@@ -334,9 +331,9 @@ namespace theori.Game
                 switch (p.Scale)
                 {
                     case LaserScale.Normal: break;
-                    case LaserScale.Smaller: output *= 0.5f; break;
-                    case LaserScale.Bigger: output *= 2.0f; break;
-                    case LaserScale.Biggest: output *= 3.0f; break;
+                    case LaserScale.Smaller: output *= 0.65f; break;
+                    case LaserScale.Bigger: output *= 1.35f; break;
+                    case LaserScale.Biggest: output *= 1.85f; break;
                 }
 
                 return output * LASER_BASE_STRENGTH;
