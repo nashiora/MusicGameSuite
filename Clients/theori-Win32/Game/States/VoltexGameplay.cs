@@ -179,6 +179,8 @@ end
                 if (obj.IsInstant)
                 {
                     m_luaScript.Call("OnSlamHit", aobj.FinalValue - aobj.InitialValue);
+                    if (aobj.InitialValue == (aobj.Stream == 6 ? 0 : 1) && aobj.NextConnected == null)
+                        m_control.ApplyRollImpulse(MathL.Sign(aobj.FinalValue - aobj.InitialValue));
                     m_slamSample.Play();
                 }
 
@@ -352,6 +354,8 @@ end
                 }
                 else return mrPoint.Value;
             }
+
+            m_control.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
 
             m_control.LeftLaserInput = GetTempRollValue(position, 6);
             m_control.RightLaserInput = GetTempRollValue(position, 7, true);

@@ -9,7 +9,7 @@ namespace theori.Game
 {
     public sealed class HighwayControl
     {
-        private const float LASER_BASE_STRENGTH = 7;
+        private const float LASER_BASE_STRENGTH = 10;
 
         public static LaserParams DefaultLaserParams { get; } = new LaserParams()
         {
@@ -56,6 +56,7 @@ namespace theori.Game
         #region Private Data
         
         private time_t m_position;
+        private time_t m_measureDuration = 1;
 
         private LaserParams m_leftLaserParams = DefaultLaserParams;
         private LaserParams m_rightLaserParams = DefaultLaserParams;
@@ -72,6 +73,8 @@ namespace theori.Game
         private LaserApplication m_laserApplication = LaserApplication.Additive;
         private Damping m_laserDamping = Damping.Slow;
         
+        private Timed<float> m_impulse;
+
         private Timed<SpinParams> m_spin;
         private Timed<SwingParams> m_swing;
         private Timed<WobbleParams> m_wobble;
@@ -79,8 +82,9 @@ namespace theori.Game
         #endregion
 
         #region Programmable Control Interface
-
+        
         public time_t Position { set => m_position = value; }
+        public time_t MeasureDuration { set => m_measureDuration = value; }
 
         public LaserParams LeftLaserParams  { set => m_leftLaserParams  = value; }
         public LaserParams RightLaserParams { set => m_rightLaserParams = value; }
@@ -105,6 +109,17 @@ namespace theori.Game
         {
             var s = new Vector3(0.05f, 0.02f, 0) * dir;
             m_shake = new CameraShake(m_position, 0.1, s);
+        }
+        
+        // TODO(local): I have no idea how best to do roll impulse ono
+
+        /// <summary>
+        /// Applies a roll impulse (usually from a slam)
+        ///  to this highway using the given associated parameters.
+        /// </summary>
+        public void ApplyRollImpulse(float alpha)
+        {
+            m_impulse = new Timed<float>(m_position, alpha);
         }
 
         /// <summary>
@@ -223,17 +238,24 @@ namespace theori.Game
             }
 
             m_targetCombinedLaserOutput = laserOutput;
-            switch (m_laserDamping)
+            if (m_targetCombinedLaserOutput == 0)
             {
-                case Damping.Fast: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 1.50f, 25); break;
-                case Damping.Slow: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 0.50f, 10); break;
-                case Damping.Off:
+                LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 2.0f, (float)m_measureDuration.Seconds * 2);
+            }
+            else
+            {
+                switch (m_laserDamping)
                 {
-                    const int SPEED = 60;
-                    if (m_targetCombinedLaserOutput < m_combinedLaserOutput)
-                        m_combinedLaserOutput = Math.Max(m_targetCombinedLaserOutput, m_combinedLaserOutput - Time.Delta * SPEED);
-                    else m_combinedLaserOutput = Math.Min(m_targetCombinedLaserOutput, m_combinedLaserOutput + Time.Delta * SPEED);
-                } break;
+                    case Damping.Fast: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 2.00f, 10); break;
+                    case Damping.Slow: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 0.25f, 10); break;
+                    case Damping.Off:
+                    {
+                        const int SPEED = 60;
+                        if (m_targetCombinedLaserOutput < m_combinedLaserOutput)
+                            m_combinedLaserOutput = Math.Max(m_targetCombinedLaserOutput, m_combinedLaserOutput - Time.Delta * SPEED);
+                        else m_combinedLaserOutput = Math.Min(m_targetCombinedLaserOutput, m_combinedLaserOutput + Time.Delta * SPEED);
+                    } break;
+                }
             }
             
             float spinRoll = 0;
