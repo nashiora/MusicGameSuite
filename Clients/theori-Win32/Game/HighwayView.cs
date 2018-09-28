@@ -29,20 +29,23 @@ namespace theori.Game
         private Texture highwayTexture;
         private Texture btChipTexture, btHoldTexture;
         private Texture fxChipTexture, fxHoldTexture;
-        private Texture laserTexture;
+        private Texture laserTexture, laserEntryTexture, laserExitTexture;
 
         private Material basicMaterial, highwayMaterial;
         private Material btChipMaterial, btHoldMaterial;
         private Material fxChipMaterial, fxHoldMaterial;
-        private Material volMaterial;
+        private Material laserMaterial, laserEntryMaterial, laserExitMaterial;
         
         private Mesh highwayMesh;
         private Mesh btChipMesh, btHoldMesh;
         private Mesh fxChipMesh, fxHoldMesh;
+        private Mesh laserEntryMesh, laserExitMesh;
         
         private MaterialParams btChipParams, btHoldParams;
         private MaterialParams fxChipParams, fxHoldParams;
-        private MaterialParams lVolParams, rVolParams;
+        private MaterialParams lLaserParams, rLaserParams;
+        private MaterialParams lLaserEntryParams, rLaserEntryParams;
+        private MaterialParams lLaserExitParams, rLaserExitParams;
 
         internal Dictionary<OpenRM.Object, ObjectRenderable3D>[] renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
 
@@ -105,27 +108,49 @@ namespace theori.Game
             CreateTextureAndMesh("bt_chip", 1, true , ref btChipTexture, ref btChipMesh, ref btChipParams);
             CreateTextureAndMesh("bt_hold", 1, false, ref btHoldTexture, ref btHoldMesh, ref btHoldParams);
             CreateTextureAndMesh("fx_chip", 2, true , ref fxChipTexture, ref fxChipMesh, ref fxChipParams);
-            CreateTextureAndMesh("fx_hold", 2, false , ref fxHoldTexture, ref fxHoldMesh, ref fxHoldParams);
+            CreateTextureAndMesh("fx_hold", 2, false, ref fxHoldTexture, ref fxHoldMesh, ref fxHoldParams);
             
             laserTexture = new Texture();
             laserTexture.Load2DFromFile(@".\skins\Default\textures\laser.png");
+            
+            laserEntryTexture = new Texture();
+            laserEntryTexture.Load2DFromFile(@".\skins\Default\textures\laser_entry.png");
+            
+            laserExitTexture = new Texture();
+            laserExitTexture.Load2DFromFile(@".\skins\Default\textures\laser_exit.png");
+            
+            laserEntryMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (laserEntryTexture.Height / (float)laserEntryTexture.Width) / 6.0f, Anchor.TopCenter);
+            laserExitMesh  = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (laserExitTexture.Height  / (float)laserExitTexture.Width ) / 6.0f, Anchor.BottomCenter);
 
-            lVolParams = new MaterialParams();
-            lVolParams["Color"] = new Vector4(0, 0.5f, 1, 1);
-            lVolParams["MainTexture"] = laserTexture;
+            void CreateLaserMaterialsParams(Vector4 color, out MaterialParams laser, out MaterialParams laserEntry, out MaterialParams laserExit)
+            {
+                laser = new MaterialParams();
+                laser["Color"] = color;
+                laser["MainTexture"] = laserTexture;
                 
-            rVolParams = new MaterialParams();
-            rVolParams["Color"] = new Vector4(1, 0, 0.5f, 1);
-            rVolParams["MainTexture"] = laserTexture;
+                laserEntry = new MaterialParams();
+                laserEntry["Color"] = color;
+                laserEntry["MainTexture"] = laserEntryTexture;
+                
+                laserExit = new MaterialParams();
+                laserExit["Color"] = color;
+                laserExit["MainTexture"] = laserExitTexture;
+            }
+            
+            CreateLaserMaterialsParams(new Vector4(0, 0.5f, 1, 1), out lLaserParams, out lLaserEntryParams, out lLaserExitParams);
+            CreateLaserMaterialsParams(new Vector4(1, 0, 0.5f, 1), out rLaserParams, out rLaserEntryParams, out rLaserExitParams);
 
             btChipMaterial = basicMaterial;
             btHoldMaterial = basicMaterial;
             fxChipMaterial = basicMaterial;
             fxHoldMaterial = basicMaterial;
-            volMaterial = new Material("basic")
+
+            laserMaterial = new Material("basic")
             {
                 BlendMode = BlendMode.Additive,
             };
+            laserEntryMaterial = laserMaterial;
+            laserExitMaterial = laserMaterial;
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
@@ -288,16 +313,47 @@ namespace theori.Game
 
                 void RenderAnalogStream(int i)
                 {
+                    const float FLOAT = 0.05f;
+
                     foreach (var objr in renderables[i + 6].Values)
                     {
+                        var analog = objr.Object as AnalogObject;
+
                         time_t position = objr.Object.AbsolutePosition;
                         if (objr.Object.PreviousConnected != null && objr.Object.Previous.IsInstant)
                             position += SlamDurationTime(objr.Object.PreviousConnected);
 
                         float z = LENGTH_BASE * (float)((position - PlaybackPosition) / ViewDuration);
 
-                        Transform t = objr.Transform * Transform.Translation(0, 0.05f, -z) * WorldTransform;
-                        queue.Draw(t, objr.Mesh, volMaterial, i == 0 ? lVolParams : rVolParams);
+                        Transform t = objr.Transform * Transform.Translation(0, FLOAT, -z) * WorldTransform;
+                        queue.Draw(t, objr.Mesh, laserMaterial, i == 0 ? lLaserParams : rLaserParams);
+
+                        if (objr.Object.PreviousConnected == null)
+                        {
+                            float laneSpace = 5 / 6.0f;
+                            if (analog.RangeExtended) laneSpace *= 2;
+
+                            time_t entryPosition = objr.Object.AbsolutePosition;
+                            float zEntry = LENGTH_BASE * (float)((entryPosition - PlaybackPosition) / ViewDuration);
+
+                            Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, FLOAT, -zEntry) * WorldTransform;
+                            queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
+                        }
+
+                        if (objr.Object.NextConnected == null)
+                        {
+                            float laneSpace = 5 / 6.0f;
+                            if (analog.RangeExtended) laneSpace *= 2;
+
+                            time_t exitPosition = objr.Object.AbsoluteEndPosition;
+                            if (objr.Object.IsInstant)
+                                position += SlamDurationTime(objr.Object);
+
+                            float zExit = LENGTH_BASE * (float)((exitPosition - PlaybackPosition) / ViewDuration);
+
+                            Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, FLOAT, -zExit) * WorldTransform;
+                            queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
+                        }
                     }
                 }
 
