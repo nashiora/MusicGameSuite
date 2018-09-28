@@ -347,7 +347,7 @@ namespace theori.Game
 
                             time_t exitPosition = objr.Object.AbsoluteEndPosition;
                             if (objr.Object.IsInstant)
-                                position += SlamDurationTime(objr.Object);
+                                exitPosition += SlamDurationTime(objr.Object);
 
                             float zExit = LENGTH_BASE * (float)((exitPosition - PlaybackPosition) / ViewDuration);
 
