@@ -16,7 +16,7 @@ namespace OpenRM
         public Chart Chart { get; }
         
         private time_t m_position = -9999;
-        private time_t m_lookAhead = 1.0, m_lookBehind = 0.5;
+        private time_t m_lookAhead = 0.85, m_lookBehind = 0.5;
 
         public time_t Position
         {
