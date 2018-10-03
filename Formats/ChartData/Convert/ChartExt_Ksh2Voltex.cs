@@ -30,6 +30,8 @@ namespace OpenRM.Convert
 
             public tick_t StartPosition;
             public float StartAlpha;
+
+            public int HiResTickCount;
             
             public EffectDef EffectDef;
 
@@ -332,7 +334,8 @@ namespace OpenRM.Convert
                         float startAlpha = laserStates[l].StartAlpha;
 
                         var duration = endPos - startPos;
-                        if (duration <= tick_t.FromFraction(1, 32))
+                        //if (duration <= tick_t.FromFraction(1, 32 * lastCp.BeatCount / lastCp.BeatKind))
+                        if (laserStates[l].HiResTickCount == 2)
                             duration = 0;
 
                         var analog = voltex[l + 6].Add<AnalogObject>(startPos, duration);
@@ -357,6 +360,7 @@ namespace OpenRM.Convert
 
                         case KShootMania.LaserState.Lerp:
                         {
+                            laserStates[l].HiResTickCount += (64 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex;
                         } break;
                         
                         case KShootMania.LaserState.Position:
@@ -370,6 +374,7 @@ namespace OpenRM.Convert
                             laserStates[l] = new TempLaserState(startPos, lastCp)
                             {
                                 StartAlpha = alpha.Alpha,
+                                HiResTickCount = (64 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex,
                             };
                         } break;
                     }
