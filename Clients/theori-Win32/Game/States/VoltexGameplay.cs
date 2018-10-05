@@ -47,6 +47,15 @@ namespace theori.Game.States
         private bool m_isPlayback = false;
         private tick_t m_navPos = 0;
 
+        #region Edit Settings
+
+        private static readonly int[] quantDivisions = new[] { 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192 };
+
+        private int QuantizeIndex = 3;
+        private int QuantizeDivision => quantDivisions[QuantizeIndex];
+
+        #endregion
+
         public VoltexGameplay(Chart chart, AudioTrack audio)
         {
             m_chart = chart;
@@ -254,7 +263,12 @@ end
                 {
                     if (m_audioController.PlaybackState == PlaybackState.Stopped)
                         m_audioController.Play();
-                    else m_audioController.Stop();
+                    else
+                    {
+                        // TODO(local): Effects are gonna have to work from any point ono
+                        m_audioController.Stop();
+                        //m_audioController.Position = GetQuantizedTime(m_audioController.Position); 
+                    }
                 } break;
 
                 case KeyCode.RETURN:
@@ -331,6 +345,18 @@ end
             else return result;
         }
         
+        private time_t GetQuantizedTime(time_t position)
+        {
+            var cp = m_chart.ControlPoints.MostRecent(position);
+            time_t remaining = position - cp.AbsolutePosition;
+            time_t quantizeDuration = cp.BeatDuration * 4 / QuantizeDivision;
+
+            int numSteps = (int)(remaining / quantizeDuration);
+
+            Logger.Log($"{ position }, { cp.AbsolutePosition }, { remaining }, { quantizeDuration }, { numSteps }, { cp.AbsolutePosition + quantizeDuration * numSteps }");
+            return cp.AbsolutePosition + quantizeDuration * numSteps;
+        }
+
         public override void Update()
         {
             time_t position = m_audio.Position;

@@ -122,30 +122,33 @@ namespace theori.Game
             laserEntryMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (laserEntryTexture.Height / (float)laserEntryTexture.Width) / 6.0f, Anchor.TopCenter);
             laserExitMesh  = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (laserExitTexture.Height  / (float)laserExitTexture.Width ) / 6.0f, Anchor.BottomCenter);
 
-            void CreateLaserMaterialsParams(Vector4 color, out MaterialParams laser, out MaterialParams laserEntry, out MaterialParams laserExit)
+            void CreateLaserMaterialsParams(Vector3 color, out MaterialParams laser, out MaterialParams laserEntry, out MaterialParams laserExit)
             {
                 laser = new MaterialParams();
-                laser["Color"] = color;
+                laser["LaserColor"] = color;
+                laser["HiliteColor"] = new Vector3(1, 1, 0);
                 laser["MainTexture"] = laserTexture;
                 
                 laserEntry = new MaterialParams();
                 laserEntry["Color"] = color;
+                laser["HiliteColor"] = new Vector3(1, 1, 0);
                 laserEntry["MainTexture"] = laserEntryTexture;
                 
                 laserExit = new MaterialParams();
                 laserExit["Color"] = color;
+                laser["HiliteColor"] = new Vector3(1, 1, 0);
                 laserExit["MainTexture"] = laserExitTexture;
             }
             
-            CreateLaserMaterialsParams(new Vector4(0, 0.5f, 1, 1), out lLaserParams, out lLaserEntryParams, out lLaserExitParams);
-            CreateLaserMaterialsParams(new Vector4(1, 0, 0.5f, 1), out rLaserParams, out rLaserEntryParams, out rLaserExitParams);
+            CreateLaserMaterialsParams(new Vector3(0, 0.5f, 1), out lLaserParams, out lLaserEntryParams, out lLaserExitParams);
+            CreateLaserMaterialsParams(new Vector3(1, 0, 0.5f), out rLaserParams, out rLaserEntryParams, out rLaserExitParams);
 
             btChipMaterial = basicMaterial;
             btHoldMaterial = basicMaterial;
             fxChipMaterial = basicMaterial;
             fxHoldMaterial = basicMaterial;
 
-            laserMaterial = new Material("basic")
+            laserMaterial = new Material("laser")
             {
                 BlendMode = BlendMode.Additive,
             };

@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>7.2</LangVersion>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -33,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
     <LangVersion>7.2</LangVersion>
     <Prefer32Bit>false</Prefer32Bit>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -53,6 +55,11 @@
     <Compile Include="Audio\Effects\SideChain.cs" />
     <Compile Include="Audio\Effects\TapeStop.cs" />
     <Compile Include="Audio\Effects\Wobble.cs" />
+    <Compile Include="IO\BigEndian.cs" />
+    <Compile Include="IO\BinReader.cs" />
+    <Compile Include="IO\BinWriter.cs" />
+    <Compile Include="IO\Error.cs" />
+    <Compile Include="Voltex\VoltexChartSerializer.cs" />
     <Compile Include="SlidingChartPlayback.cs" />
     <Compile Include="Chart.cs" />
     <Compile Include="ChartMetadata.cs" />

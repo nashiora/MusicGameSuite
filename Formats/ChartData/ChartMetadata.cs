@@ -1,15 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace OpenRM
 {
     public sealed class ChartMetadata
     {
+        private string m_title = "??";
+        /// <summary>
+        /// The title of the this chart's song.
+        /// </summary>
+        public string Title { get => m_title; set => m_title = value ?? "??"; }
+        
+        private string m_artist = "??";
+        /// <summary>
+        /// The artist(s) of the this chart's song.
+        /// </summary>
+        public string Artist { get => m_artist; set => m_artist = value ?? "??"; }
+        
+        private string m_charter = "??";
+        /// <summary>
+        /// The charter(s).
+        /// </summary>
+        public string Charter { get => m_charter; set => m_charter = value ?? "??"; }
+
         /// <summary>
         /// Initialize the m_audioFiles with a single placeholder primary.
         /// </summary>
-        private List<string> m_audioFiles = new List<string>() { ".wav" };
+        private string[] m_audioFiles = new string[0];
         /// <summary>
         /// All audio files associated with this chart.
         /// 
@@ -30,24 +49,17 @@ namespace OpenRM
         ///  the guitar track, so having the band be Primary and the guitar be 
         ///  Secondary would be the prefered orientation.
         /// </summary>
-        public IList<string> AudioFiles
+        public IReadOnlyList<string> AudioFiles
         {
             get => m_audioFiles;
-            set
-            {
-                m_audioFiles.Clear();
-                // if the value is null, just don't add anything.
-                if (value != null)
-                    // copy the data in, instead of maintaining a reference to the value
-                    m_audioFiles.AddRange(value);
-            }
+            set => m_audioFiles = value.ToArray();
         }
 
         /// <summary>
         /// Returns true if this chart provides an audio file at index `n` and false otherwise.
         /// </summary>
         /// <param name="n">The index of an audio file, starting at 0.</param>
-        public bool HasNthAudioFile(int n) => m_audioFiles.Count > n;
+        public bool HasNthAudioFile(int n) => m_audioFiles.Length > n;
 
         #region Audio File Access Wrappers
 

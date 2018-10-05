@@ -16,8 +16,6 @@ namespace theori.Input
 
         internal static void Destroy()
         {
-            foreach (var g in openGamepads.Values)
-                SDL_JoystickClose(g.joystick);
             openGamepads.Clear();
         }
 

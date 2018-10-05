@@ -32,6 +32,15 @@ namespace OpenRM.Convert
             public float StartAlpha;
 
             public int HiResTickCount;
+            /// <summary>
+            /// For fast sequences of slams (which are very rare).
+            /// Normally you'd see straight segments in the file connecting slams,
+            ///  but when many are stacked on top of eachother they APPEAR to be simple
+            ///  linear sections instead.
+            /// If two sections which appear to the linear are back to back, this is used
+            ///  to insert the extra spacing.
+            /// </summary>
+            public tick_t PreviousSlamDuration;
             
             public EffectDef EffectDef;
 
@@ -171,8 +180,7 @@ namespace OpenRM.Convert
 
                         case "t":
                         {
-                            tick_t pos = MathL.Ceil((double)chartPos);
-                            ControlPoint cp = voltex.ControlPoints.GetOrCreate(pos, true);
+                            ControlPoint cp = voltex.ControlPoints.GetOrCreate(chartPos, true);
                             cp.BeatsPerMinute = double.Parse(setting.Value.ToString());
                             lastCp = cp;
                         } break;
@@ -335,11 +343,24 @@ namespace OpenRM.Convert
 
                         var duration = endPos - startPos;
                         //if (duration <= tick_t.FromFraction(1, 32 * lastCp.BeatCount / lastCp.BeatKind))
-                        if (laserStates[l].HiResTickCount == 2)
+                        if (laserStates[l].HiResTickCount <= 6 && startAlpha != endAlpha)
+                        {
                             duration = 0;
 
+                            if (laserStates[l].PreviousSlamDuration != 0)
+                            {
+                                var cDuration = laserStates[l].PreviousSlamDuration;
+
+                                var connector = voltex[l + 6].Add<AnalogObject>(startPos, cDuration);
+                                connector.InitialValue = startAlpha;
+                                connector.FinalValue = startAlpha;
+                                connector.RangeExtended = laserIsExtended[l];
+                                
+                                startPos += cDuration;
+                            }
+                        }
+
                         var analog = voltex[l + 6].Add<AnalogObject>(startPos, duration);
-                        //System.Diagnostics.Trace.WriteLine($"{ startPos } -> { endPos } ({ duration }) :: { startAlpha }, { endAlpha }");
                         analog.InitialValue = startAlpha;
                         analog.FinalValue = endAlpha;
                         analog.RangeExtended = laserIsExtended[l];
@@ -360,7 +381,7 @@ namespace OpenRM.Convert
 
                         case KShootMania.LaserState.Lerp:
                         {
-                            laserStates[l].HiResTickCount += (64 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex;
+                            laserStates[l].HiResTickCount += (192 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex;
                         } break;
                         
                         case KShootMania.LaserState.Position:
@@ -368,13 +389,19 @@ namespace OpenRM.Convert
                             var alpha = data.Position;
                             var startPos = chartPos;
 
+                            tick_t prevSlamDuration = 0;
                             if (laserStates[l] != null)
+                            {
                                 startPos = CreateSegment(chartPos, alpha.Alpha);
+                                if (startPos != chartPos)
+                                    prevSlamDuration = chartPos - startPos;
+                            }
 
                             laserStates[l] = new TempLaserState(startPos, lastCp)
                             {
                                 StartAlpha = alpha.Alpha,
-                                HiResTickCount = (64 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex,
+                                HiResTickCount = (192 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex,
+                                PreviousSlamDuration = prevSlamDuration,
                             };
                         } break;
                     }
