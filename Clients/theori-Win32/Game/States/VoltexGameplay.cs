@@ -51,7 +51,7 @@ namespace theori.Game.States
 
         private static readonly int[] quantDivisions = new[] { 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192 };
 
-        private int QuantizeIndex = 3;
+        private int QuantizeIndex = 7;
         private int QuantizeDivision => quantDivisions[QuantizeIndex];
 
         #endregion
@@ -109,11 +109,25 @@ namespace theori.Game.States
             highwayView.ViewDuration = m_playback.ViewDuration;
             #else
             m_playback = new SlidingChartPlayback(m_chart);
-            m_playback.ObjectHeadCrossPrimary += (dir, obj) => highwayView.RenderableObjectAppear(obj);
-            m_playback.ObjectTailCrossSecondary += (dir, obj) => highwayView.RenderableObjectDisappear(obj);
+            m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
+            {
+                if (dir == PlayDirection.Forward)
+                    highwayView.RenderableObjectAppear(obj);
+                else highwayView.RenderableObjectDisappear(obj);
+            };
+            m_playback.ObjectTailCrossSecondary += (dir, obj) =>
+            {
+                if (dir == PlayDirection.Forward)
+                    highwayView.RenderableObjectDisappear(obj);
+                else highwayView.RenderableObjectAppear(obj);
+            };
 
+            // TODO(local): Effects wont work with backwards motion, but eventually the
+            //  editor (with the only backwards motion support) will pre-render audio instead.
             m_playback.ObjectHeadCrossCritical += (dir, obj) =>
             {
+                if (dir != PlayDirection.Forward) return;
+
                 if (obj is Event evt)
                     PlaybackEventTrigger(evt);
                 else PlaybackObjectBegin(obj);
@@ -257,6 +271,8 @@ end
 
         private void KeyboardButtonPress(KeyInfo key)
         {
+            var cp = m_chart.ControlPoints.MostRecent(m_audioController.Position);
+
             switch (key.KeyCode)
             {
                 case KeyCode.SPACE:
@@ -267,7 +283,7 @@ end
                     {
                         // TODO(local): Effects are gonna have to work from any point ono
                         m_audioController.Stop();
-                        //m_audioController.Position = GetQuantizedTime(m_audioController.Position); 
+                        m_audioController.Position = GetQuantizedTime(m_audioController.Position); 
                     }
                 } break;
 
@@ -286,10 +302,11 @@ end
                         m_audioController.Position = minStartTime;
                 } break;
 
-                case KeyCode.PAGEUP:
-                {
-                    m_audioController.Position += 5;
-                } break;
+                case KeyCode.PAGEUP: m_audioController.Position += cp.MeasureDuration; break;
+                case KeyCode.PAGEDOWN: m_audioController.Position -= cp.MeasureDuration; break;
+
+                case KeyCode.UP: m_audioController.Position += cp.MeasureDuration * cp.BeatCount / (cp.BeatDuration * QuantizeDivision); break;
+                case KeyCode.DOWN: m_audioController.Position -= cp.MeasureDuration * cp.BeatCount / (cp.BeatDuration * QuantizeDivision); break;
 
                 case KeyCode.D1: actionKind = 0; break;
                 case KeyCode.D2: actionKind = 1; break;

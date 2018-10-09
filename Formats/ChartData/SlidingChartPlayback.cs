@@ -124,9 +124,42 @@ namespace OpenRM
             }
             else
             {
-                // First, check for objects have passed the back cursor.
-                // Second, check for objects which have passed the critical cursor.
-                // Lastly, check for objects which have passed the front cursor.
+                void CheckEdge(time_t edge, List<Object>[] objsFrom, List<Object>[] objsTo, Action<PlayDirection, Object> headCross, Action<PlayDirection, Object> tailCross)
+                {
+                    for (int stream = 0; stream < Chart.StreamCount; stream++)
+                    {
+                        var from = objsFrom[stream];
+                        for (int i = 0; i < from.Count; )
+                        {
+                            var obj = from[i];
+                            if (obj.AbsoluteEndPosition > edge)
+                            {
+                                var to = objsTo[stream];
+                                if (!to.Contains(obj))
+                                {
+                                    // entered the seconary section, passed the critical-edge.
+                                    to.Add(obj);
+                                    tailCross(PlayDirection.Backward, obj);
+                                }
+
+                                if (obj.AbsolutePosition > edge)
+                                {
+                                    // completely passed the critical-edge, now only in the secondary section.
+                                    from.RemoveAt(i);
+                                    headCross(PlayDirection.Forward, obj);
+                                
+                                    // don't increment `i` if we removed something
+                                    continue;
+                                }
+                            }
+                            i++;
+                        }
+                    }
+                }
+                
+                CheckEdge(nextPos - LookBehind, m_objsBehind, m_objsSecondary, OnHeadCrossSecondary, OnTailCrossSecondary);
+                CheckEdge(nextPos, m_objsSecondary, m_objsPrimary, OnHeadCrossCritical, OnTailCrossCritical);
+                CheckEdge(nextPos + LookAhead, m_objsPrimary, m_objsAhead, OnHeadCrossPrimary, OnTailCrossPrimary);
             }
         }
         

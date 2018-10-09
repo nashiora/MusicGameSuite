@@ -446,7 +446,7 @@ namespace OpenRM
                     if (cp.AbsolutePosition <= position)
                         return cp;
                 }
-                return null;
+                return m_controlPoints[0];
             }
 
             public void ForEach(Action<ControlPoint> action)
