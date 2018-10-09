@@ -66,7 +66,6 @@
     <Compile Include="Convert\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="KShootMania\Chart.cs" />
     <Compile Include="KShootMania\ChartMetadata.cs" />
-    <Compile Include="SimpleChartPlayback.cs" />
     <Compile Include="ControlPoint.cs" />
     <Compile Include="EditStack.cs" />
     <Compile Include="Enums.cs" />
