@@ -1,6 +1,4 @@
-﻿//#define OLD_PLAYBACK
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -45,7 +43,17 @@ namespace theori.Game.States
         private int actionKind = 0;
 
         private bool m_isPlayback = false;
-        private tick_t m_navPos = 0;
+        private tick_t CurrentPositionTicks
+        {
+            get
+            {
+                time_t position = m_audioController.Position;
+                var cp = m_chart.ControlPoints.MostRecent(position);
+
+                position -= cp.AbsolutePosition;
+                return (double)(position / cp.MeasureDuration);
+            }
+        }
 
         #region Edit Settings
 
@@ -96,18 +104,6 @@ namespace theori.Game.States
             highwayView = new HighwayView(m_chart);
             m_control = new HighwayControl();
             
-            #if OLD_PLAYBACK
-            m_playback = new SimpleChartPlayback(m_chart);
-            m_playback.ObjectAppear += highwayView.RenderableObjectAppear;
-            m_playback.ObjectDisappear += highwayView.RenderableObjectDisappear;
-            m_playback.EventTrigger += PlaybackEventTrigger;
-
-            m_playback.ObjectBegin += PlaybackObjectBegin;
-            m_playback.ObjectEnd += PlaybackObjectEnd;
-            
-            m_playback.ViewDuration *= m_audio.PlaybackSpeed;
-            highwayView.ViewDuration = m_playback.ViewDuration;
-            #else
             m_playback = new SlidingChartPlayback(m_chart);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
             {
@@ -136,7 +132,6 @@ namespace theori.Game.States
 
             m_playback.LookAhead *= m_audio.PlaybackSpeed;
             highwayView.ViewDuration = m_playback.LookAhead;
-            #endif
 
             foreUiRoot = new Panel()
             {
@@ -147,8 +142,10 @@ namespace theori.Game.States
             };
             
             m_luaScript.DoString(@"
-function OnSlamHit(magnitude)
-    XShakeCamera(-math.sign(magnitude));
+event = {};
+
+function event.gp_slam_play(slam_magnitude)
+    XShakeCamera(-math.sign(slam_magnitude));
 end
 ");
         }
@@ -165,34 +162,16 @@ end
 
             minStartTime -= 3;
             if (minStartTime < 0)
-            {
                 m_audio.Position = minStartTime;
-                Console.WriteLine($"{ minStartTime }, { m_audio.Position }");
-            }
             else m_audio.Position = 0;
-
-            #if false
-            if (m_playback != null)
-            {
-                m_playback.ObjectAppear -= highwayView.RenderableObjectAppear;
-                m_playback.ObjectDisappear -= highwayView.RenderableObjectDisappear;
-                m_playback.EventTrigger -= PlaybackEventTrigger;
-                m_playback.ObjectBegin -= PlaybackObjectBegin;
-                m_playback.ObjectEnd -= PlaybackObjectEnd;
-            }
-
-            m_playback = new SimpleChartPlayback(m_chart);
-            m_playback.ObjectAppear += highwayView.RenderableObjectAppear;
-            m_playback.ObjectDisappear += highwayView.RenderableObjectDisappear;
-            m_playback.EventTrigger += PlaybackEventTrigger;
-            m_playback.ObjectBegin += PlaybackObjectBegin;
-            m_playback.ObjectEnd += PlaybackObjectEnd;
-
-            m_playback.ViewDuration *= m_audio.PlaybackSpeed;
-            #endif
             
-            //m_audio.PlaybackSpeed = 1.25f;
             m_audioController.Play();
+        }
+
+        private DynValue InvokeLuaEvent(string eventName, params object[] values)
+        {
+            var eventTable = m_luaScript["event"] as Table;
+            return m_luaScript.Call(eventTable[eventName], values);
         }
 
         private void PlaybackObjectBegin(OpenRM.Object obj)
@@ -201,7 +180,7 @@ end
             {
                 if (obj.IsInstant)
                 {
-                    m_luaScript.Call("OnSlamHit", aobj.FinalValue - aobj.InitialValue);
+                    InvokeLuaEvent("gp_slam_play", aobj.FinalValue - aobj.InitialValue);
                     if (aobj.InitialValue == (aobj.Stream == 6 ? 0 : 1) && aobj.NextConnected == null)
                         m_control.ApplyRollImpulse(MathL.Sign(aobj.FinalValue - aobj.InitialValue));
                     m_slamSample.Play();
@@ -216,10 +195,7 @@ end
             else if (obj is ButtonObject bobj)
             {
                 if (bobj.HasEffect)
-                {
-                    Console.WriteLine($"Setting FX{ obj.Stream } to { bobj.Effect.Type }");
                     m_audioController.SetEffect(obj.Stream, bobj.Effect);
-                }
                 else m_audioController.RemoveEffect(obj.Stream);
             }
         }
@@ -264,8 +240,6 @@ end
                 case SpinImpulseEvent spin: m_control.ApplySpin(spin.Params); break;
                 case SwingImpulseEvent swing: m_control.ApplySwing(swing.Params); break;
                 case WobbleImpulseEvent wobble: m_control.ApplyWobble(wobble.Params); break;
-
-                //default: Console.WriteLine($"Skipping Event: { evt }"); break;
             }
         }
 
@@ -305,12 +279,13 @@ end
                 case KeyCode.PAGEUP: m_audioController.Position += cp.MeasureDuration; break;
                 case KeyCode.PAGEDOWN: m_audioController.Position -= cp.MeasureDuration; break;
 
-                case KeyCode.UP: m_audioController.Position += cp.MeasureDuration * cp.BeatCount / (cp.BeatDuration * QuantizeDivision); break;
-                case KeyCode.DOWN: m_audioController.Position -= cp.MeasureDuration * cp.BeatCount / (cp.BeatDuration * QuantizeDivision); break;
-
-                case KeyCode.D1: actionKind = 0; break;
-                case KeyCode.D2: actionKind = 1; break;
-                case KeyCode.D3: actionKind = 2; break;
+                case KeyCode.UP: m_audioController.Position += cp.QuarterNoteDuration * 4 / QuantizeDivision; break;
+                case KeyCode.DOWN: m_audioController.Position -= cp.QuarterNoteDuration * 4 / QuantizeDivision; break;
+                    
+                case KeyCode.D1: InsertButton(0, CurrentPositionTicks); break;
+                case KeyCode.D2: InsertButton(1, CurrentPositionTicks); break;
+                case KeyCode.D3: InsertButton(2, CurrentPositionTicks); break;
+                case KeyCode.D4: InsertButton(3, CurrentPositionTicks); break;
 
                 case KeyCode.LEFT: case KeyCode.RIGHT:
                 {
@@ -348,6 +323,34 @@ end
             }
         }
 
+        private void InsertButton(int sIdx, tick_t pos)
+        {
+            var stream = m_chart[sIdx];
+            var mostRecent = stream.MostRecent<ButtonObject>(pos);
+
+            if (mostRecent != null)
+            {
+                if (mostRecent.Position == pos || mostRecent.IsChip)
+                {
+                    m_playback.RemoveObject(mostRecent);
+                    stream.Remove(mostRecent);
+                    return; // don't place a new one here
+                }
+                else if (mostRecent.EndPosition >= pos)
+                    // TODO(local): disallowing only makes sense for chips, but holds should still be allowed
+                    return; // don't allow the placement, it's at the end of a hold
+            }
+
+            var bObj = stream.Add<ButtonObject>(pos);
+            m_playback.AddObject(bObj);
+        }
+
+        private void RemoveButton(ButtonObject bObj)
+        {
+            m_playback.RemoveObject(bObj);
+            m_chart[bObj.Stream].Remove(bObj);
+        }
+
         private float GetTempRollValue(time_t position, int stream, bool oneMinus = false)
         {
             var s = m_playback.Chart[stream];
@@ -370,7 +373,6 @@ end
 
             int numSteps = (int)(remaining / quantizeDuration);
 
-            Logger.Log($"{ position }, { cp.AbsolutePosition }, { remaining }, { quantizeDuration }, { numSteps }, { cp.AbsolutePosition + quantizeDuration * numSteps }");
             return cp.AbsolutePosition + quantizeDuration * numSteps;
         }
 

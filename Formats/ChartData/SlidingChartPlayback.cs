@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenRM
 {
@@ -85,84 +82,154 @@ namespace OpenRM
 
             if (isForward)
             {
-                void CheckEdge(time_t edge, List<Object>[] objsFrom, List<Object>[] objsTo, Action<PlayDirection, Object> headCross, Action<PlayDirection, Object> tailCross)
-                {
-                    for (int stream = 0; stream < Chart.StreamCount; stream++)
-                    {
-                        var from = objsFrom[stream];
-                        for (int i = 0; i < from.Count; )
-                        {
-                            var obj = from[i];
-                            if (obj.AbsolutePosition < edge)
-                            {
-                                var to = objsTo[stream];
-                                if (!to.Contains(obj))
-                                {
-                                    // entered the seconary section, passed the critical-edge.
-                                    to.Add(obj);
-                                    headCross(PlayDirection.Forward, obj);
-                                }
-
-                                if (obj.AbsoluteEndPosition < edge)
-                                {
-                                    // completely passed the critical-edge, now only in the secondary section.
-                                    from.RemoveAt(i);
-                                    tailCross(PlayDirection.Forward, obj);
-                                
-                                    // don't increment `i` if we removed something
-                                    continue;
-                                }
-                            }
-                            i++;
-                        }
-                    }
-                }
-
-                CheckEdge(nextPos + LookAhead, m_objsAhead, m_objsPrimary, OnHeadCrossPrimary, OnTailCrossPrimary);
-                CheckEdge(nextPos, m_objsPrimary, m_objsSecondary, OnHeadCrossCritical, OnTailCrossCritical);
-                CheckEdge(nextPos - LookBehind, m_objsSecondary, m_objsBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
+                CheckEdgeForward(nextPos + LookAhead, m_objsAhead, m_objsPrimary, OnHeadCrossPrimary, OnTailCrossPrimary);
+                CheckEdgeForward(nextPos, m_objsPrimary, m_objsSecondary, OnHeadCrossCritical, OnTailCrossCritical);
+                CheckEdgeForward(nextPos - LookBehind, m_objsSecondary, m_objsBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
             }
             else
             {
-                void CheckEdge(time_t edge, List<Object>[] objsFrom, List<Object>[] objsTo, Action<PlayDirection, Object> headCross, Action<PlayDirection, Object> tailCross)
-                {
-                    for (int stream = 0; stream < Chart.StreamCount; stream++)
-                    {
-                        var from = objsFrom[stream];
-                        for (int i = 0; i < from.Count; )
-                        {
-                            var obj = from[i];
-                            if (obj.AbsoluteEndPosition > edge)
-                            {
-                                var to = objsTo[stream];
-                                if (!to.Contains(obj))
-                                {
-                                    // entered the seconary section, passed the critical-edge.
-                                    to.Add(obj);
-                                    tailCross(PlayDirection.Backward, obj);
-                                }
+                CheckEdgeBackward(nextPos - LookBehind, m_objsBehind, m_objsSecondary, OnHeadCrossSecondary, OnTailCrossSecondary);
+                CheckEdgeBackward(nextPos, m_objsSecondary, m_objsPrimary, OnHeadCrossCritical, OnTailCrossCritical);
+                CheckEdgeBackward(nextPos + LookAhead, m_objsPrimary, m_objsAhead, OnHeadCrossPrimary, OnTailCrossPrimary);
+            }
+        }
 
-                                if (obj.AbsolutePosition > edge)
-                                {
-                                    // completely passed the critical-edge, now only in the secondary section.
-                                    from.RemoveAt(i);
-                                    headCross(PlayDirection.Forward, obj);
+        private void CheckEdgeForward(time_t edge, List<Object>[] objsFrom, List<Object>[] objsTo, Action<PlayDirection, Object> headCross, Action<PlayDirection, Object> tailCross)
+        {
+            for (int stream = 0; stream < Chart.StreamCount; stream++)
+            {
+                var from = objsFrom[stream];
+                for (int i = 0; i < from.Count; )
+                {
+                    var obj = from[i];
+                    if (obj.AbsolutePosition < edge)
+                    {
+                        var to = objsTo[stream];
+                        if (!to.Contains(obj))
+                        {
+                            // entered the seconary section, passed the critical-edge.
+                            to.Add(obj);
+                            headCross(PlayDirection.Forward, obj);
+                        }
+
+                        if (obj.AbsoluteEndPosition < edge)
+                        {
+                            // completely passed the critical-edge, now only in the secondary section.
+                            from.RemoveAt(i);
+                            tailCross(PlayDirection.Forward, obj);
                                 
-                                    // don't increment `i` if we removed something
-                                    continue;
-                                }
-                            }
-                            i++;
+                            // don't increment `i` if we removed something
+                            continue;
                         }
                     }
+                    i++;
                 }
-                
-                CheckEdge(nextPos - LookBehind, m_objsBehind, m_objsSecondary, OnHeadCrossSecondary, OnTailCrossSecondary);
-                CheckEdge(nextPos, m_objsSecondary, m_objsPrimary, OnHeadCrossCritical, OnTailCrossCritical);
-                CheckEdge(nextPos + LookAhead, m_objsPrimary, m_objsAhead, OnHeadCrossPrimary, OnTailCrossPrimary);
             }
         }
         
+        private void CheckEdgeBackward(time_t edge, List<Object>[] objsFrom, List<Object>[] objsTo, Action<PlayDirection, Object> headCross, Action<PlayDirection, Object> tailCross)
+        {
+            for (int stream = 0; stream < Chart.StreamCount; stream++)
+            {
+                var from = objsFrom[stream];
+                for (int i = 0; i < from.Count; )
+                {
+                    var obj = from[i];
+                    if (obj.AbsoluteEndPosition > edge)
+                    {
+                        var to = objsTo[stream];
+                        if (!to.Contains(obj))
+                        {
+                            // entered the seconary section, passed the critical-edge.
+                            to.Add(obj);
+                            tailCross(PlayDirection.Backward, obj);
+                        }
+
+                        if (obj.AbsolutePosition > edge)
+                        {
+                            // completely passed the critical-edge, now only in the secondary section.
+                            from.RemoveAt(i);
+                            headCross(PlayDirection.Forward, obj);
+                                
+                            // don't increment `i` if we removed something
+                            continue;
+                        }
+                    }
+                    i++;
+                }
+            }
+        }
+        
+        public void AddObject(Object obj)
+        {
+            List<Object>[] CreateFake()
+            {
+                var fake = new List<Object>[Chart.StreamCount];
+                fake.Fill(() => new List<Object>());
+                return fake;
+            }
+
+            void TransferFake(List<Object>[] fake, List<Object>[] real)
+            {
+                for (int i = 0; i < Chart.StreamCount; i++)
+                    real[i].AddRange(fake[i]);
+            }
+            
+            List<Object>[] fakeAhead = CreateFake();
+            List<Object>[] fakePrimary = CreateFake();
+            List<Object>[] fakeSecondary = CreateFake();
+            List<Object>[] fakeBehind = CreateFake();
+
+            fakeAhead[obj.Stream].Add(obj);
+
+            CheckEdgeForward(Position + LookAhead, fakeAhead, fakePrimary, OnHeadCrossPrimary, OnTailCrossPrimary);
+            CheckEdgeForward(Position, fakePrimary, fakeSecondary, OnHeadCrossCritical, OnTailCrossCritical);
+            CheckEdgeForward(Position - LookBehind, fakeSecondary, fakeBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
+            
+            TransferFake(fakeAhead, m_objsAhead);
+            TransferFake(fakePrimary, m_objsPrimary);
+            TransferFake(fakeSecondary, m_objsSecondary);
+            TransferFake(fakeBehind, m_objsBehind);
+        }
+
+        public void RemoveObject(Object obj)
+        {
+            List<Object>[] CreateFake()
+            {
+                var fake = new List<Object>[Chart.StreamCount];
+                fake.Fill(() => new List<Object>());
+                return fake;
+            }
+
+            void TransferReal(List<Object>[] fake, List<Object>[] real)
+            {
+                for (int i = 0; i < Chart.StreamCount; i++)
+                {
+                    if (real[i].Contains(obj))
+                    {
+                        real[i].Remove(obj);
+                        fake[i].Add(obj);
+
+                        return;
+                    }
+                }
+            }
+            
+            List<Object>[] fakeAhead = CreateFake();
+            List<Object>[] fakePrimary = CreateFake();
+            List<Object>[] fakeSecondary = CreateFake();
+            List<Object>[] fakeBehind = CreateFake();
+            
+            TransferReal(fakeAhead, m_objsAhead);
+            TransferReal(fakePrimary, m_objsPrimary);
+            TransferReal(fakeSecondary, m_objsSecondary);
+            TransferReal(fakeBehind, m_objsBehind);
+
+            CheckEdgeForward(Chart.TimeEnd + 1, fakeAhead, fakePrimary, OnHeadCrossPrimary, OnTailCrossPrimary);
+            CheckEdgeForward(Chart.TimeEnd + 1, fakePrimary, fakeSecondary, OnHeadCrossCritical, OnTailCrossCritical);
+            CheckEdgeForward(Chart.TimeEnd + 1, fakeSecondary, fakeBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
+        }
+
         private void OnHeadCrossPrimary(PlayDirection dir, Object obj) => ObjectHeadCrossPrimary?.Invoke(dir, obj);
         private void OnTailCrossPrimary(PlayDirection dir, Object obj) => ObjectTailCrossPrimary?.Invoke(dir, obj);
 

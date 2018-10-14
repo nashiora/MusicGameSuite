@@ -37,5 +37,10 @@ namespace theori
         {
             return m_script.Call(this[name], args);
         }
+
+        public DynValue Call(object val, params object[] args)
+        {
+            return m_script.Call(val, args);
+        }
     }
 }
