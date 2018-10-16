@@ -13,102 +13,11 @@ using theori.Platform;
 
 namespace theori.Game.States
 {
-    class TempUiManager
-    {
-        private Panel root;
-
-        private GuiElement currentHover;
-
-        public TempUiManager(Panel root)
-        {
-            this.root = root;
-        }
-
-        // TODO(local): move to update instead plz
-        private void Mouse_ButtonPress(MouseButton button)
-        {
-            
-        }
-
-        public void Update()
-        {
-            var underCursor = new SortedList<float, GuiElement>();
-            var mousePos = Mouse.Position;
-            
-            ScanChildren(root);
-            void ScanChildren(Panel panel)
-            {
-                foreach (var child in panel.Children)
-                {
-                    if (child.ContainsScreenPoint(mousePos))
-                        underCursor.Add(0, child);
-
-                    if (child is Panel childPanel)
-                        ScanChildren(childPanel);
-                }
-            }
-
-            var targetChild = underCursor.FirstOrDefault().Value;
-            if (currentHover != targetChild)
-            {
-                if (currentHover != null)
-                {
-                    Logger.Log("Just unhovered old thing");
-                }
-                currentHover = targetChild;
-                if (currentHover != null)
-                {
-                    Logger.Log("Just hovered new thing");
-                }
-            }
-
-            if (Mouse.IsPressed(MouseButton.Left))
-            {
-                if (currentHover != null) currentHover.OnMouseButtonPress(MouseButton.Left);
-            }
-        }
-    }
-
-    class TempButtonTest : Panel
-    {
-        private Sprite image;
-
-        public Action Pressed;
-
-        public TempButtonTest()
-        {
-            Children = new GuiElement[]
-            {
-                image = new Sprite(OpenGL.Texture.Empty)
-                {
-                    RelativeSizeAxes = Axes.Both,
-                    Size = Vector2.One,
-                },
-            };
-        }
-
-        public override void Update()
-        {
-            base.Update();
-
-            if (ContainsScreenPoint(Mouse.Position))
-                image.Color = new Vector4(1, 1, 0, 1);
-            else image.Color = Vector4.One;
-        }
-
-        public override bool OnMouseButtonPress(MouseButton button)
-        {
-            Pressed?.Invoke();
-            Logger.Log("TempButtonTest pressed");
-            return true;
-        }
-    }
-
     class VoltexChartSelect_KSH : State
     {
-        private TempUiManager uiManager;
+        private GuiManager uiManager;
         private Panel foreUiRoot;
-        private TempButtonTest openButton;
+        private Button openButton;
 
         public override void Init()
         {
@@ -116,7 +25,7 @@ namespace theori.Game.States
             {
                 Children = new GuiElement[]
                 {
-                    openButton = new TempButtonTest()
+                    openButton = new Button()
                     {
                         Origin = new Vector2(100, 25),
 
@@ -130,7 +39,7 @@ namespace theori.Game.States
                 }
             };
 
-            uiManager = new TempUiManager(foreUiRoot);
+            uiManager = new GuiManager(foreUiRoot);
 
             Keyboard.KeyPress += Keyboard_KeyPress;
         }

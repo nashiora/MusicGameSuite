@@ -147,6 +147,9 @@ namespace theori.Gui
         public virtual void Render(GuiRenderQueue rq)
         {
         }
+        
+        public virtual bool OnMouseEnter() { return false; }
+        public virtual bool OnMouseLeave() { return false; }
 
         public virtual bool OnMouseButtonPress(MouseButton button) { return false; }
     }

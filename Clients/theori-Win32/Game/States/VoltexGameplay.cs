@@ -138,6 +138,21 @@ namespace theori.Game.States
                 Children = new GuiElement[]
                 {
                     critRoot = new CriticalLine(),
+
+                    new Panel() // buttons
+                    {
+                        Size = Vector2.One,
+                        RelativeSizeAxes = Axes.Both,
+
+                        Children = new GuiElement[]
+                        {
+                            new Sprite(null)
+                            {
+                                Size = new Vector2(32, 32),
+                                Position = new Vector2(12, 12),
+                            },
+                        }
+                    },
                 }
             };
             

@@ -90,6 +90,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Anchor.cs" />
+    <Compile Include="Gui\Button.cs" />
+    <Compile Include="Gui\GuiManager.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="Audio\AudioEffectController.cs" />
     <Compile Include="Audio\AudioSample.cs" />
