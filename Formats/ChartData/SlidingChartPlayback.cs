@@ -10,7 +10,7 @@ namespace OpenRM
 
     public class SlidingChartPlayback
     {
-        public Chart Chart { get; }
+        public Chart Chart { get; private set; }
         
         private time_t m_position = -9999;
         private time_t m_lookAhead = 1.25, m_lookBehind = 0.5;
@@ -55,6 +55,15 @@ namespace OpenRM
 
         public SlidingChartPlayback(Chart chart)
         {
+            SetChart(chart);
+        }
+
+        public void SetChart(Chart chart)
+        {
+            if (chart == null) return;
+
+            m_position = -9999;
+
             m_objsAhead = new List<Object>[chart.StreamCount];
             m_objsAhead.Fill(i =>
             {

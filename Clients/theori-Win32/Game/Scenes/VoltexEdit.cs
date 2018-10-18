@@ -17,24 +17,21 @@ using theori.Audio;
 using OpenRM.Audio.Effects;
 using MoonSharp.Interpreter;
 using theori.Configuration;
+using theori.Platform;
 
-namespace theori.Game.States
+namespace theori.Game.Scenes
 {
-    class VoltexGameplay : State
+    class VoltexEdit : Scene
     {
         private LuaScript m_luaScript;
 
         private HighwayControl m_control;
-        private HighwayView highwayView;
+        private HighwayView m_highwayView;
         private Panel foreUiRoot, backUiRoot;
         private CriticalLine critRoot;
         
         private Chart m_chart;
-        #if OLD_PLAYBACK
-        private SimpleChartPlayback m_playback;
-        #else
         private SlidingChartPlayback m_playback;
-        #endif
 
         private AudioEffectController m_audioController;
         private AudioTrack m_audio;
@@ -64,17 +61,13 @@ namespace theori.Game.States
 
         #endregion
 
-        public VoltexGameplay(Chart chart, AudioTrack audio)
+        public VoltexEdit()
         {
-            m_chart = chart;
-            m_audio = audio;
-
-            Logger.Log(audio.Volume);
         }
 
         public override void ClientSizeChanged(int width, int height)
         {
-            highwayView.Camera.AspectRatio = Window.Aspect;
+            m_highwayView.Camera.AspectRatio = Window.Aspect;
         }
 
         public override void Init()
@@ -87,35 +80,22 @@ namespace theori.Game.States
             m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
             m_slamSample.Channel = Host.Mixer.MasterChannel;
             m_slamSample.Volume = 0.5f * 0.7f;
-            
-            //m_audio.PlaybackSpeed = 1.25f;
 
-            m_audioController = new AudioEffectController(8, m_audio, true)
-            {
-                RemoveFromChannelOnFinish = true,
-            };
-            m_audioController.Finish += () =>
-            {
-                Console.WriteLine("track complete");
-            };
-            
-            m_audio.Position = m_chart.Offset;
-
-            highwayView = new HighwayView(m_chart);
+            m_highwayView = new HighwayView();
             m_control = new HighwayControl();
             
-            m_playback = new SlidingChartPlayback(m_chart);
+            m_playback = new SlidingChartPlayback(null);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
             {
                 if (dir == PlayDirection.Forward)
-                    highwayView.RenderableObjectAppear(obj);
-                else highwayView.RenderableObjectDisappear(obj);
+                    m_highwayView.RenderableObjectAppear(obj);
+                else m_highwayView.RenderableObjectDisappear(obj);
             };
             m_playback.ObjectTailCrossSecondary += (dir, obj) =>
             {
                 if (dir == PlayDirection.Forward)
-                    highwayView.RenderableObjectDisappear(obj);
-                else highwayView.RenderableObjectAppear(obj);
+                    m_highwayView.RenderableObjectDisappear(obj);
+                else m_highwayView.RenderableObjectAppear(obj);
             };
 
             // TODO(local): Effects wont work with backwards motion, but eventually the
@@ -129,9 +109,8 @@ namespace theori.Game.States
                 else PlaybackObjectBegin(obj);
             };
             m_playback.ObjectTailCrossCritical += (dir, obj) => PlaybackObjectEnd(obj);
-
-            m_playback.LookAhead *= m_audio.PlaybackSpeed;
-            highwayView.ViewDuration = m_playback.LookAhead;
+            
+            m_highwayView.ViewDuration = m_playback.LookAhead;
 
             foreUiRoot = new Panel()
             {
@@ -187,6 +166,62 @@ end
         {
             var eventTable = m_luaScript["event"] as Table;
             return m_luaScript.Call(eventTable[eventName], values);
+        }
+
+        private void OpenChart()
+        {
+            if (RuntimeInfo.IsWindows)
+            {
+                var dialog = new OpenFileDialogDesc("Open Chart",
+                                    new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
+
+                var result = FileSystem.ShowOpenFileDialog(dialog);
+                if (result.DialogResult == DialogResult.OK)
+                {
+                    string kshChart = result.FilePath;
+
+                    string fileDir = Directory.GetParent(kshChart).FullName;
+                    var ksh = KShootMania.Chart.CreateFromFile(kshChart);
+                    
+                    string audioFileFx = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? "");
+                    string audioFileNoFx = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? "");
+
+                    string audioFile = audioFileNoFx;
+                    if (File.Exists(audioFileFx))
+                        audioFile = audioFileFx;
+
+                    if (!File.Exists(audioFile))
+                    {
+                        Logger.Log("Couldn't find audio file for chart.");
+                        return;
+                    }
+
+                    var audio = AudioTrack.FromFile(audioFile);
+                    audio.Channel = Host.Mixer.MasterChannel;
+                    audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
+
+                    var chart = ksh.ToVoltex();
+                    
+                    m_chart = chart;
+                    m_audio = audio;
+                    
+                    // TODO(local): properly dispose of old stuffs
+                    m_playback.SetChart(chart);
+                    m_control = new HighwayControl();
+                    m_highwayView.Reset();
+                    
+            
+                    m_audio.Position = m_chart.Offset;
+                    m_audioController = new AudioEffectController(8, m_audio, true)
+                    {
+                        RemoveFromChannelOnFinish = true,
+                    };
+                    m_audioController.Finish += () =>
+                    {
+                        Logger.Log("track complete");
+                    };
+                }
+            }
         }
 
         private void PlaybackObjectBegin(OpenRM.Object obj)
@@ -393,57 +428,61 @@ end
 
         public override void Update()
         {
-            time_t position = m_audio.Position;
-            m_luaScript["audioTime"] = position.Seconds;
-
-            m_control.Position = position;
-            m_playback.Position = position;
-
-            float GetPathValueLerped(int stream)
+            if (m_chart != null)
             {
-                var s = m_playback.Chart[stream];
+                time_t position = m_audio?.Position ?? 0;
+                m_luaScript["audioTime"] = position.Seconds;
 
-                var mrPoint = s.MostRecent<PathPointEvent>(position);
-                if (mrPoint == null)
-                    return ((PathPointEvent)s.FirstObject)?.Value ?? 0;
+                m_control.Position = position;
+                m_playback.Position = position;
 
-                if (mrPoint.HasNext)
+                float GetPathValueLerped(int stream)
                 {
-                    float alpha = (float)((position - mrPoint.AbsolutePosition).Seconds / (mrPoint.Next.AbsolutePosition - mrPoint.AbsolutePosition).Seconds);
-                    return MathL.Lerp(mrPoint.Value, ((PathPointEvent)mrPoint.Next).Value, alpha);
+                    var s = m_playback.Chart[stream];
+
+                    var mrPoint = s.MostRecent<PathPointEvent>(position);
+                    if (mrPoint == null)
+                        return ((PathPointEvent)s.FirstObject)?.Value ?? 0;
+
+                    if (mrPoint.HasNext)
+                    {
+                        float alpha = (float)((position - mrPoint.AbsolutePosition).Seconds / (mrPoint.Next.AbsolutePosition - mrPoint.AbsolutePosition).Seconds);
+                        return MathL.Lerp(mrPoint.Value, ((PathPointEvent)mrPoint.Next).Value, alpha);
+                    }
+                    else return mrPoint.Value;
                 }
-                else return mrPoint.Value;
+
+                m_control.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
+
+                m_control.LeftLaserInput = GetTempRollValue(position, 6);
+                m_control.RightLaserInput = GetTempRollValue(position, 7, true);
+            
+                m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
+                m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
+                m_control.Offset = GetPathValueLerped(StreamIndex.Offset) * 5 / 6.0f;
+                m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
+                
+                m_highwayView.PlaybackPosition = position;
+
+                UpdateEffects();
+                m_audioController.EffectsActive = true;
             }
 
-            m_control.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
-
-            m_control.LeftLaserInput = GetTempRollValue(position, 6);
-            m_control.RightLaserInput = GetTempRollValue(position, 7, true);
-            
-            m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
-            m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
-            m_control.Offset = GetPathValueLerped(StreamIndex.Offset) * 5 / 6.0f;
-            m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
-
             m_control.Update();
-            m_control.ApplyToView(highwayView);
+            m_control.ApplyToView(m_highwayView);
             
-            highwayView.PlaybackPosition = position;
-            highwayView.Update();
+            m_highwayView.Update();
             
-            critRoot.LaserRoll = highwayView.LaserRoll;
+            critRoot.LaserRoll = m_highwayView.LaserRoll;
             critRoot.BaseRoll = m_control.Roll * 360;
             critRoot.EffectRoll = m_control.EffectRoll;
             critRoot.EffectOffset = m_control.EffectOffset;
             // TODO(local): Adding this stuff doesn't FIX the problem but it's almost entirely NOT noticeable so uh fix it for real yeah
             // NOTE(local): The problem in question is that the HorizonHeight doesn't match properly for the CritLine and oh well
-            critRoot.HorizonHeight = highwayView.HorizonHeight + (Window.Height - highwayView.CriticalHeight) / 2;
-            critRoot.CriticalHeight = highwayView.CriticalHeight;
+            critRoot.HorizonHeight = m_highwayView.HorizonHeight + (Window.Height - m_highwayView.CriticalHeight) / 2;
+            critRoot.CriticalHeight = m_highwayView.CriticalHeight;
 
             foreUiRoot.Update();
-
-            UpdateEffects();
-            m_audioController.EffectsActive = true;
         }
         
         public override void Render()
@@ -467,7 +506,7 @@ end
             }
 
             DrawUiRoot(backUiRoot);
-            highwayView.Render();
+            m_highwayView.Render();
             DrawUiRoot(foreUiRoot);
         }
 

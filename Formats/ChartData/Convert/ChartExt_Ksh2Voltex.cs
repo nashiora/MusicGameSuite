@@ -104,10 +104,10 @@ namespace OpenRM.Convert
                         
                     default:
                     {
-                        Console.WriteLine($"Unrecognized filter type { str }");
+                        Logger.Log($"KSH2VOLTEX: Unrecognized filter type { str }");
                         if (ksh.FilterDefines.TryGetValue(str, out var def))
                         {
-                            Console.WriteLine("Temporarily ignoring effect defines");
+                            Logger.Log("KSH2VOLTEX: Temporarily ignoring effect defines");
                         }
                         return null;
                     }
@@ -168,7 +168,7 @@ namespace OpenRM.Convert
                             if (!setting.Value.ToString().TrySplit('/', out string n, out string d))
                             {
                                 n = d = "4";
-                                Console.WriteLine($"Chart Error: { setting.Value } is not a valid time signature.");
+                                Logger.Log($"KSH2VOLTEX: Chart Error: { setting.Value } is not a valid time signature.");
                             }
 
                             tick_t pos = MathL.Ceil((double)chartPos);

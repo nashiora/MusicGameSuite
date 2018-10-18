@@ -80,7 +80,7 @@ namespace theori.Game
         const float SLAM_DUR_TICKS = 1 / 32.0f;
         time_t SlamDurationTime(OpenRM.Object obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
 
-        public HighwayView(Chart chart)
+        public HighwayView()
         {
             highwayTexture = new Texture();
             highwayTexture.Load2DFromFile(@".\skins\Default\textures\highway.png");
@@ -159,6 +159,12 @@ namespace theori.Game
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
             
             renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
+        }
+
+        public void Reset()
+        {
+            foreach (var r in renderables)
+                r.Clear();
         }
 
         public void RenderableObjectAppear(OpenRM.Object obj)

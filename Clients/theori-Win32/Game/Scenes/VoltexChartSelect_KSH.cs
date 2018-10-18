@@ -11,9 +11,9 @@ using theori.Graphics;
 using theori.Gui;
 using theori.Platform;
 
-namespace theori.Game.States
+namespace theori.Game.Scenes
 {
-    class VoltexChartSelect_KSH : State
+    class VoltexChartSelect_KSH : Scene
     {
         private GuiManager uiManager;
         private Panel foreUiRoot;
@@ -33,8 +33,6 @@ namespace theori.Game.States
 
                         RelativePositionAxes = Axes.X,
                         Position = new Vector2(0.5f, 50),
-
-                        Pressed = OpenChart,
                     },
                 }
             };
@@ -44,49 +42,10 @@ namespace theori.Game.States
             Keyboard.KeyPress += Keyboard_KeyPress;
         }
 
-        private void OpenChart()
-        {
-            if (RuntimeInfo.IsWindows)
-            {
-                var dialog = new OpenFileDialogDesc("Open Chart",
-                                    new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
-
-                var result = FileSystem.ShowOpenFileDialog(dialog);
-                if (result.DialogResult == DialogResult.OK)
-                {
-                    string kshChart = result.FilePath;
-
-                    string fileDir = Directory.GetParent(kshChart).FullName;
-                    var ksh = KShootMania.Chart.CreateFromFile(kshChart);
-                    
-                    string audioFileFx = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? "");
-                    string audioFileNoFx = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? "");
-
-                    string audioFile = audioFileNoFx;
-                    if (File.Exists(audioFileFx))
-                        audioFile = audioFileFx;
-
-                    if (!File.Exists(audioFile))
-                    {
-                        Logger.Log("Couldn't find audio file for chart.");
-                        return;
-                    }
-
-                    var audio = AudioTrack.FromFile(audioFile);
-                    audio.Channel = Host.Mixer.MasterChannel;
-                    audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
-
-                    var voltex = new VoltexGameplay(ksh.ToVoltex(), audio);
-                    Host.PushState(voltex);
-                }
-            }
-        }
-
         private void Keyboard_KeyPress(KeyInfo key)
         {
             if (key.KeyCode == KeyCode.O)
             {
-                OpenChart();
             }
         }
 

@@ -89,8 +89,9 @@
     <Compile Include="Game\LaserRollSampler.cs" />
     <Compile Include="Game\ObjectRenderable3D.cs" />
     <Compile Include="Game\PositionFunc.cs" />
-    <Compile Include="Game\States\VoltexChartSelect_KSH.cs" />
-    <Compile Include="Game\States\VoltexGameplay.cs" />
+    <Compile Include="Game\Scenes\EditorCore.cs" />
+    <Compile Include="Game\Scenes\VoltexChartSelect_KSH.cs" />
+    <Compile Include="Game\Scenes\VoltexEdit.cs" />
     <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Platform\PlatformWin32.cs" />
     <Compile Include="Program.cs" />

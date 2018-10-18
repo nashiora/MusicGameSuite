@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace theori.Game
 {
-    public abstract class State
+    public abstract class Scene
     {
         public virtual void ClientSizeChanged(int width, int height) { }
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using theori.Game.States;
+using theori.Game.Scenes;
 using theori.Win32.Platform;
 
 namespace theori.Win32
@@ -9,8 +9,12 @@ namespace theori.Win32
         [STAThread]
         static void Main(string[] args)
         {
+            string chartToLoad = null;
+            if (args.Length > 0)
+                chartToLoad = args[0];
+
             Host.Init(new PlatformWin32());
-            Host.Start(new VoltexChartSelect_KSH());
+            Host.Start(new EditorCore(chartToLoad));
         }
     }
 }

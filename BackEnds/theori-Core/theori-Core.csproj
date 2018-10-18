@@ -109,7 +109,7 @@
     <Compile Include="Extensions\NumericExt.cs" />
     <Compile Include="Extensions\ShaderProgramExt.cs" />
     <Compile Include="Extensions\StringExt.cs" />
-    <Compile Include="Game\State.cs" />
+    <Compile Include="Game\Scene.cs" />
     <Compile Include="Graphics\BasicCamera.cs" />
     <Compile Include="Graphics\Material.cs" />
     <Compile Include="Graphics\MaterialParam.cs" />
@@ -124,7 +124,6 @@
     <Compile Include="Gui\GuiElement.cs" />
     <Compile Include="Gui\GuiRenderQueue.cs" />
     <Compile Include="Gui\Sprite.cs" />
-    <Compile Include="Input\GameInput.cs" />
     <Compile Include="Input\Gamepad.cs" />
     <Compile Include="Input\InputManager.cs" />
     <Compile Include="Keyboard.cs" />

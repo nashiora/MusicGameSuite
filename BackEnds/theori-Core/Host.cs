@@ -21,22 +21,21 @@ namespace theori
 
         public static Mixer Mixer { get; private set; }
         
-        public static GameInput GameInput { get; private set; }
         public static GameConfig GameConfig { get; private set; }
 
         internal static ProgramPipeline Pipeline { get; private set; }
 
-        private static readonly Stack<State> states = new Stack<State>();
-        private static State State => states.Count == 0 ? null : states.Peek();
+        private static readonly Stack<Scene> states = new Stack<Scene>();
+        private static Scene State => states.Count == 0 ? null : states.Peek();
 
-        public static void PushState(State state)
+        public static void PushState(Scene state)
         {
             states.Push(state);
             // TODO(local): queue up inits better
             state.Init();
         }
 
-        public static State PopState()
+        public static Scene PopState()
         {
             return states.Pop();
         }
@@ -47,7 +46,6 @@ namespace theori
 
             GameConfig = new GameConfig();
             // TODO(local): load config
-            GameInput = new GameInput(GameConfig.GetInt(GameConfigKey.Controller_DeviceID));
 
             Window.Create();
             Window.VSync = VSyncMode.Off;
@@ -66,16 +64,17 @@ namespace theori
             
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
             Mixer = new Mixer(2);
+            Mixer.MasterChannel.Volume = 0.7f;
 
             #if DEBUG
-            string cd = Environment.CurrentDirectory;
+            string cd = System.Reflection.Assembly.GetEntryAssembly().Location;
             while (!Directory.Exists(Path.Combine(cd, "InstallDir")))
                 cd = Directory.GetParent(cd).FullName;
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
             #endif
         }
 
-        public static void Start(State initialState)
+        public static void Start(Scene initialState)
         {
             PushState(initialState);
 
@@ -126,7 +125,7 @@ namespace theori
 
         public static void Quit(int code = 0)
         {
-            Gamepad.Destroy();
+            //Gamepad.Destroy();
             Window.Destroy();
 
             Environment.Exit(code);

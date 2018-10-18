@@ -309,7 +309,7 @@ namespace KShootMania
                         
                     default:
                     {
-                        Console.WriteLine($"Unrecognized fx type { effectName }");
+                        Logger.Log($"Unrecognized fx type { effectName }");
                     } break;
                 }
 
@@ -345,7 +345,7 @@ namespace KShootMania
                         
                     default:
                     {
-                        Console.WriteLine($"Unrecognized filter type { effectName }");
+                        Logger.Log($"Unrecognized filter type { effectName }");
                     } break;
                 }
 
@@ -379,7 +379,7 @@ namespace KShootMania
 
                         if (k == "type")
                         {
-                            Console.WriteLine($"ksh fx type: { v }");
+                            Logger.Log($"ksh fx type: { v }");
                             def.EffectName = v;
                         }
                         else
@@ -409,7 +409,7 @@ namespace KShootMania
                                 pv = new ParamValue(result);
                             else pv = new ParamValue(v);
 
-                            Console.WriteLine($"  ksh fx param: { k } = { pv }");
+                            Logger.Log($"  ksh fx param: { k } = { pv }");
                             def.Parameters[k] = pv;
                         }
                     }
