@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{88EF7AE1-46FF-4B85-9C24-89066405774E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ImGui.NET</RootNamespace>
+    <AssemblyName>ImGui.NET</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Buffers.4.5.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Runtime.CompilerServices.Unsafe.4.5.2\lib\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bool8.cs" />
+    <Compile Include="Generated\CustomRect.gen.cs" />
+    <Compile Include="Generated\GlyphRangesBuilder.gen.cs" />
+    <Compile Include="Generated\ImColor.gen.cs" />
+    <Compile Include="Generated\ImDrawChannel.gen.cs" />
+    <Compile Include="Generated\ImDrawCmd.gen.cs" />
+    <Compile Include="Generated\ImDrawCornerFlags.gen.cs" />
+    <Compile Include="Generated\ImDrawData.gen.cs" />
+    <Compile Include="Generated\ImDrawList.gen.cs" />
+    <Compile Include="Generated\ImDrawListFlags.gen.cs" />
+    <Compile Include="Generated\ImDrawVert.gen.cs" />
+    <Compile Include="Generated\ImFont.gen.cs" />
+    <Compile Include="Generated\ImFontAtlas.gen.cs" />
+    <Compile Include="Generated\ImFontAtlasFlags.gen.cs" />
+    <Compile Include="Generated\ImFontConfig.gen.cs" />
+    <Compile Include="Generated\ImFontGlyph.gen.cs" />
+    <Compile Include="Generated\ImGui.gen.cs" />
+    <Compile Include="Generated\ImGuiBackendFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiCol.gen.cs" />
+    <Compile Include="Generated\ImGuiColorEditFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiComboFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiCond.gen.cs" />
+    <Compile Include="Generated\ImGuiConfigFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiDataType.gen.cs" />
+    <Compile Include="Generated\ImGuiDir.gen.cs" />
+    <Compile Include="Generated\ImGuiDragDropFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiFocusedFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiHoveredFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiInputTextCallbackData.gen.cs" />
+    <Compile Include="Generated\ImGuiInputTextFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiIO.gen.cs" />
+    <Compile Include="Generated\ImGuiKey.gen.cs" />
+    <Compile Include="Generated\ImGuiListClipper.gen.cs" />
+    <Compile Include="Generated\ImGuiMouseCursor.gen.cs" />
+    <Compile Include="Generated\ImGuiNative.gen.cs" />
+    <Compile Include="Generated\ImGuiNavInput.gen.cs" />
+    <Compile Include="Generated\ImGuiOnceUponAFrame.gen.cs" />
+    <Compile Include="Generated\ImGuiPayload.gen.cs" />
+    <Compile Include="Generated\ImGuiSelectableFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiSizeCallbackData.gen.cs" />
+    <Compile Include="Generated\ImGuiStorage.gen.cs" />
+    <Compile Include="Generated\ImGuiStyle.gen.cs" />
+    <Compile Include="Generated\ImGuiStyleVar.gen.cs" />
+    <Compile Include="Generated\ImGuiTextBuffer.gen.cs" />
+    <Compile Include="Generated\ImGuiTextFilter.gen.cs" />
+    <Compile Include="Generated\ImGuiTreeNodeFlags.gen.cs" />
+    <Compile Include="Generated\ImGuiWindowFlags.gen.cs" />
+    <Compile Include="Generated\TextRange.gen.cs" />
+    <Compile Include="ImDrawData.Manual.cs" />
+    <Compile Include="ImDrawList.Manual.cs" />
+    <Compile Include="ImGui.Manual.cs" />
+    <Compile Include="ImGuiSizeCallback.cs" />
+    <Compile Include="ImGuiTextEditCallback.cs" />
+    <Compile Include="ImVector.cs" />
+    <Compile Include="NullTerminatedString.cs" />
+    <Compile Include="Pair.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RangeAccessor.cs" />
+    <Compile Include="Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="cimgui.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

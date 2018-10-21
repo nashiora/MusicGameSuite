@@ -46,19 +46,18 @@ namespace theori.Game.Scenes
         #region Actual Chart Data
 
         private Chart m_chart;
-        private PreRenderedAudioTrack m_audio;
+        private AudioTrack m_audio;
 
         #endregion
 
         #region Gui
 
-        private Panel m_uiRoot;
-        private GuiManager m_guiManager;
+        private InlineGui m_gui;
 
         #endregion
 
         #region Playback
-        
+
         private tick_t m_cursorPos;
 
         // TODO(local): I'm not sure if the 2d view will need the same kind of "playback"
@@ -131,9 +130,7 @@ namespace theori.Game.Scenes
                     return;
                 }
 
-                var rawAudio = AudioTrack.FromFile(audioFile);
-                m_audio = new PreRenderedAudioTrack(rawAudio);
-                rawAudio.Dispose();
+                m_audio = AudioTrack.FromFile(audioFile);
 
                 // TODO(local): stick audio in a separate channel probably
                 m_audio.Channel = Host.Mixer.MasterChannel;
@@ -155,8 +152,7 @@ namespace theori.Game.Scenes
         {
             Logger.Log($">> Loading Editor for the first time:");
 
-            m_uiRoot = new Panel();
-            m_guiManager = new GuiManager(m_uiRoot);
+            m_gui = new InlineGui();
 
             // after init, load a chart if specified.
             if (m_initialChartToLoad != null)
@@ -170,25 +166,62 @@ namespace theori.Game.Scenes
 
         public override void Update()
         {
-            #region Resize the root panel after everything else is done I guess
+            m_gui.BeforeLayout();
 
-            m_uiRoot.Position = Vector2.Zero;
-            m_uiRoot.RelativeSizeAxes = Axes.None;
-            m_uiRoot.Size = new Vector2(Window.Width, Window.Height);
-            m_uiRoot.Rotation = 0;
-            m_uiRoot.Scale = Vector2.One;
-            m_uiRoot.Origin = Vector2.Zero;
+            if (m_gui.BeginMenuBar())
+            {
+                if (m_gui.BeginMenu("File"))
+                {
+                    m_gui.MenuItem("New", Action_NewChart);
+                    m_gui.MenuItem("Open", Action_OpenChart);
+                    m_gui.MenuItem("Save", Action_SaveChart);
+                }
 
-            #endregion
+                m_gui.EndMenuBar();
+            }
+
+            if (m_gui.BeginToolBar())
+            {
+                if (m_gui.ToolButton("New Chart")) Action_NewChart();
+                if (m_gui.ToolButton("Open Chart")) Action_OpenChart();
+                if (m_gui.ToolButton("Save Chart")) Action_SaveChart();
+
+                m_gui.ToolSeparator();
+                m_gui.EndToolBar();
+            }
+
+            m_gui.BeginWindow("Debug Controls", 32, 32, 500, 500);
+            if (!Keyboard.IsDown(KeyCode.F))
+            {
+                if (m_gui.Button("Print Test Message", 0, 0, 100, 100))
+                {
+                    Logger.Log("Test Message");
+                }
+            }
+            m_gui.EndWindow();
+
+            m_gui.AfterLayout();
         }
 
         public override void Render()
         {
-            if (m_uiRoot != null)
-            {
-                using (var grq = new GuiRenderQueue(m_uiRoot.Size))
-                    m_uiRoot.Render(grq);
-            }
+            m_gui.Render();
         }
+
+        #region Actions
+
+        private void Action_NewChart()
+        {
+        }
+
+        private void Action_OpenChart()
+        {
+        }
+
+        private void Action_SaveChart()
+        {
+        }
+
+        #endregion
     }
 }

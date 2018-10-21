@@ -90,8 +90,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Anchor.cs" />
+    <Compile Include="Audio\PreRenderedAudioTrack.cs" />
+    <Compile Include="Game\CriticalLine.cs" />
+    <Compile Include="Game\HighwayControl.cs" />
+    <Compile Include="Game\HighwayView.cs" />
+    <Compile Include="Game\LaserRollSampler.cs" />
+    <Compile Include="Game\ObjectRenderable3D.cs" />
+    <Compile Include="Game\PositionFunc.cs" />
+    <Compile Include="Game\Scenes\EditorCore.cs" />
+    <Compile Include="Game\Scenes\VoltexChartSelect_KSH.cs" />
+    <Compile Include="Game\Scenes\VoltexEdit.cs" />
+    <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Gui\Button.cs" />
     <Compile Include="Gui\GuiManager.cs" />
+    <Compile Include="Gui\InlineGui.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="Audio\AudioEffectController.cs" />
     <Compile Include="Audio\AudioSample.cs" />

@@ -1,5 +1,4 @@
-﻿
-namespace theori.Util
+﻿namespace theori.Util
 {
     public static class HashCode
     {

@@ -10,8 +10,7 @@ namespace theori.Win32
         static void Main(string[] args)
         {
             string chartToLoad = null;
-            if (args.Length > 0)
-                chartToLoad = args[0];
+            //if (args.Length > 0) chartToLoad = args[0];
 
             Host.Init(new PlatformWin32());
             Host.Start(new EditorCore(chartToLoad));

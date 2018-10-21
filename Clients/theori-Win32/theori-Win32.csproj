@@ -83,17 +83,6 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Audio\PreRenderedAudioTrack.cs" />
-    <Compile Include="Game\CriticalLine.cs" />
-    <Compile Include="Game\HighwayControl.cs" />
-    <Compile Include="Game\HighwayView.cs" />
-    <Compile Include="Game\LaserRollSampler.cs" />
-    <Compile Include="Game\ObjectRenderable3D.cs" />
-    <Compile Include="Game\PositionFunc.cs" />
-    <Compile Include="Game\Scenes\EditorCore.cs" />
-    <Compile Include="Game\Scenes\VoltexChartSelect_KSH.cs" />
-    <Compile Include="Game\Scenes\VoltexEdit.cs" />
-    <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Platform\PlatformWin32.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -103,7 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="SDL2.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -114,6 +103,10 @@
     <ProjectReference Include="..\..\Formats\ChartData\ChartData.csproj">
       <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
       <Name>ChartData</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\NativeWrappers\ImGui.NET\ImGui.NET.csproj">
+      <Project>{88ef7ae1-46ff-4b85-9c24-89066405774e}</Project>
+      <Name>ImGui.NET</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\NativeWrappers\NaGL\NaGL.csproj">
       <Project>{dbd0f498-06d6-4d51-89a4-0210e4c098e1}</Project>
