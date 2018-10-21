@@ -46,7 +46,7 @@ namespace theori.Game.Scenes
         #region Actual Chart Data
 
         private Chart m_chart;
-        private AudioTrack m_rawAudio;
+        private PreRenderedAudioTrack m_audio;
 
         #endregion
 
@@ -131,12 +131,17 @@ namespace theori.Game.Scenes
                     return;
                 }
 
-                m_rawAudio = AudioTrack.FromFile(audioFile);
+                var rawAudio = AudioTrack.FromFile(audioFile);
+                m_audio = new PreRenderedAudioTrack(rawAudio);
+                rawAudio.Dispose();
+
                 // TODO(local): stick audio in a separate channel probably
-                m_rawAudio.Channel = Host.Mixer.MasterChannel;
-                m_rawAudio.Volume = ksh.Metadata.MusicVolume / 100.0f;
+                m_audio.Channel = Host.Mixer.MasterChannel;
+                m_audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
 
                 m_chart = ksh.ToVoltex();
+
+                m_audio.Play();
             }
             else
             {

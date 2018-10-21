@@ -7,23 +7,23 @@ namespace OpenRM
 {
     public sealed class ChartMetadata
     {
-        private string m_title = "??";
+        private string m_title;
         /// <summary>
         /// The title of the this chart's song.
         /// </summary>
-        public string Title { get => m_title; set => m_title = value ?? "??"; }
+        public string Title { get => m_title; set => m_title = value; }
         
-        private string m_artist = "??";
+        private string m_artist;
         /// <summary>
         /// The artist(s) of the this chart's song.
         /// </summary>
-        public string Artist { get => m_artist; set => m_artist = value ?? "??"; }
+        public string Artist { get => m_artist; set => m_artist = value; }
         
-        private string m_charter = "??";
+        private string m_charter;
         /// <summary>
         /// The charter(s).
         /// </summary>
-        public string Charter { get => m_charter; set => m_charter = value ?? "??"; }
+        public string Charter { get => m_charter; set => m_charter = value; }
 
         /// <summary>
         /// Initialize the m_audioFiles with a single placeholder primary.

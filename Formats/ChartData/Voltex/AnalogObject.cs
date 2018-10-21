@@ -2,7 +2,7 @@
 
 namespace OpenRM.Voltex
 {
-    public enum CurveShape
+    public enum CurveShape : byte
     {
         Linear,
         Cosine,

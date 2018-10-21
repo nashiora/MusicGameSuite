@@ -28,5 +28,32 @@ namespace theori.Audio
 
         public abstract int Read(float[] buffer, int offset, int count);
         public abstract void Seek(time_t position);
+
+        private MixerChannel channel;
+        public MixerChannel Channel
+        {
+            get => channel;
+            set
+            {
+                if (channel == value) return;
+                if (channel != null)
+                {
+                    channel.RemoveSource(this);
+                    channel.OnSampleSourceEnded -= OnRemoveFromMixerChannelEvent;
+                }
+
+                channel = value;
+                if (channel != null)
+                {
+                    channel.AddSource(this);
+                    channel.OnSampleSourceEnded += OnRemoveFromMixerChannelEvent;
+                }
+            }
+        }
+
+        private void OnRemoveFromMixerChannelEvent(AudioSource track) => OnRemoveFromMixerChannel();
+        protected virtual void OnRemoveFromMixerChannel()
+        {
+        }
     }
 }

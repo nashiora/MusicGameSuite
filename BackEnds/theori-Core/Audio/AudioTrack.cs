@@ -68,29 +68,6 @@ namespace theori.Audio
         }
 
         public override time_t Length => GetLength().TotalSeconds;
-        
-        private MixerChannel channel;
-        public MixerChannel Channel
-        {
-            get => channel;
-            set
-            {
-                if (channel == value) return;
-                if (channel != null)
-                {
-                    channel.RemoveSource(this);
-                    channel.OnSampleSourceEnded -= OnRemoveFromMixerChannelEvent;
-                }
-
-                channel = value;
-                if (channel != null)
-                {
-                    channel.AddSource(this);
-                    channel.OnSampleSourceEnded += OnRemoveFromMixerChannelEvent;
-                }
-                else Stop();
-            }
-        }
 
         public PlaybackState PlaybackState { get; private set; } = PlaybackState.Stopped;
 
@@ -106,11 +83,6 @@ namespace theori.Audio
             Source = source;
         }
 
-        private void OnRemoveFromMixerChannelEvent(AudioSource track) => OnRemoveFromMixerChannel();
-        protected virtual void OnRemoveFromMixerChannel()
-        {
-        }
-
         public TimeSpan GetPosition() => lastSourcePosition;
         public TimeSpan GetLength() => ((IAudioSource)Source).GetLength();
 
@@ -123,7 +95,7 @@ namespace theori.Audio
             PlaybackState = PlaybackState.Playing;
         }
 
-        public void Stop()
+        public virtual void Stop()
         {
             if (PlaybackState == PlaybackState.Stopped)
                 return;

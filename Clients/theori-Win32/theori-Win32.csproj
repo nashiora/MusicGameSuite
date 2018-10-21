@@ -83,6 +83,7 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Audio\PreRenderedAudioTrack.cs" />
     <Compile Include="Game\CriticalLine.cs" />
     <Compile Include="Game\HighwayControl.cs" />
     <Compile Include="Game\HighwayView.cs" />
@@ -127,5 +128,6 @@
       <Name>SystemPlus</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

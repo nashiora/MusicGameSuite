@@ -120,6 +120,8 @@ namespace OpenRM
             public Object FirstObject => m_objects.Count == 0 ? null : m_objects[0];
             public Object LastObject => m_objects.Count == 0 ? null : m_objects[m_objects.Count - 1];
             
+            public int Count => m_objects.Count;
+
             internal ObjectStream(Chart chart, int stream)
             {
                 m_chart = chart;
