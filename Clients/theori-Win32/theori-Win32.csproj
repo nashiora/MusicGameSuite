@@ -104,10 +104,6 @@
       <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
       <Name>ChartData</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\NativeWrappers\ImGui.NET\ImGui.NET.csproj">
-      <Project>{88ef7ae1-46ff-4b85-9c24-89066405774e}</Project>
-      <Name>ImGui.NET</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\NativeWrappers\NaGL\NaGL.csproj">
       <Project>{dbd0f498-06d6-4d51-89a4-0210e4c098e1}</Project>
       <Name>NaGL</Name>
