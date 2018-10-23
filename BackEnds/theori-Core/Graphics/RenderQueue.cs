@@ -25,6 +25,9 @@ namespace theori.Graphics
 		    var initializedShaders = new HashSet<Material>();
 		    Material currentMaterial = null;
 		    Mesh currentMesh = null;
+            
+            GL.Enable(GL.GL_DEPTH_TEST);
+            GL.DepthFunc(DepthFunction.LessThanOrEqual);
 
             foreach (var item in orderedCommands)
             {
@@ -119,6 +122,7 @@ namespace theori.Graphics
             
             GL.Disable(GL.GL_BLEND);
             GL.Disable(GL.GL_SCISSOR_TEST);
+            GL.Disable(GL.GL_DEPTH_TEST);
 
             if (clear) orderedCommands.Clear();
         }

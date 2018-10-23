@@ -175,6 +175,23 @@ namespace theori.Game.Scenes
                     m_gui.MenuItem("New", Action_NewChart);
                     m_gui.MenuItem("Open", Action_OpenChart);
                     m_gui.MenuItem("Save", Action_SaveChart);
+
+                    m_gui.EndMenu();
+                }
+                
+                if (m_gui.BeginMenu("Edit"))
+                {
+                    m_gui.EndMenu();
+                }
+                
+                if (m_gui.BeginMenu("View"))
+                {
+                    m_gui.EndMenu();
+                }
+                
+                if (m_gui.BeginMenu("Tools"))
+                {
+                    m_gui.EndMenu();
                 }
 
                 m_gui.EndMenuBar();
@@ -190,10 +207,10 @@ namespace theori.Game.Scenes
                 m_gui.EndToolBar();
             }
 
-            m_gui.BeginWindow("Debug Controls", 32, 32, 500, 500);
+            m_gui.BeginWindow("Debug Controls", 32, 32, 250, 300);
             if (!Keyboard.IsDown(KeyCode.F))
             {
-                if (m_gui.Button("Print Test Message", 0, 0, 100, 100))
+                if (m_gui.Button("Print Test Message", 0, 0, 36, 36))
                 {
                     Logger.Log("Test Message");
                 }
@@ -212,14 +229,17 @@ namespace theori.Game.Scenes
 
         private void Action_NewChart()
         {
+            Logger.Log("New Chart");
         }
 
         private void Action_OpenChart()
         {
+            Logger.Log("Open Chart");
         }
 
         private void Action_SaveChart()
         {
+            Logger.Log("Save Chart");
         }
 
         #endregion

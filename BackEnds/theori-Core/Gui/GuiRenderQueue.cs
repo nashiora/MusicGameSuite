@@ -29,8 +29,9 @@ namespace theori.Gui
         public GuiRenderQueue(Vector2 viewportSize)
             : base(new RenderState
             {
-                ProjectionMatrix = (Transform)Matrix4x4.CreateOrthographicOffCenter(0, viewportSize.X, viewportSize.Y, 0, -1, 1),
+                ProjectionMatrix = (Transform)Matrix4x4.CreateOrthographicOffCenter(0, viewportSize.X, viewportSize.Y, 0, -10, 10),
                 CameraMatrix = Transform.Identity,
+                ViewportSize = ((int)viewportSize.X, (int)viewportSize.Y),
             })
         {
         }
