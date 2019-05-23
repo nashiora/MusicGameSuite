@@ -349,7 +349,7 @@ namespace theori.Game
                             queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
                         }
 
-                        if (objr.Object.NextConnected == null)
+                        if (objr.Object.NextConnected == null && objr.Object.IsInstant)
                         {
                             float laneSpace = 5 / 6.0f;
                             if (analog.RangeExtended) laneSpace *= 2;
