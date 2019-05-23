@@ -101,5 +101,21 @@ namespace OpenGL
                 GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, Width, Height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixels);
             }
         }
+
+        public void SetData2D(int width, int height, byte[] pixelData)
+        {
+            if (Locked) throw new Exception("Cannot direcly modify a locked texture.");
+
+            Target = TextureTarget.Texture2D;
+
+            Bind(0);
+            SetParams();
+
+            Width = width;
+            Height = height;
+            Depth = 0;
+
+            GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, Width, Height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixelData);
+        }
     }
 }

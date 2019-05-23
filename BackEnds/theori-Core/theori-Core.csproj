@@ -109,6 +109,8 @@
     <Compile Include="Game\Scenes\VoltexChartSelect_KSH.cs" />
     <Compile Include="Game\Scenes\VoltexEdit.cs" />
     <Compile Include="Game\Ui\CriticalLine.cs" />
+    <Compile Include="Graphics\Font.cs" />
+    <Compile Include="Graphics\TextRasterizer.cs" />
     <Compile Include="Gui\Button.cs" />
     <Compile Include="Gui\GuiManager.cs" />
     <Compile Include="Gui\InlineGui.cs" />
@@ -187,6 +189,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="NotoSansCJKjp-Regular.otf" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
@@ -200,4 +203,8 @@
   </Target>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\packages\System.Data.SQLite.Core.1.0.110.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core.1.0.110.0\build\net46\System.Data.SQLite.Core.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

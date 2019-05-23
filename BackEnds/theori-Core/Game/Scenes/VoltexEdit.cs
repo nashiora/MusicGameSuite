@@ -37,6 +37,9 @@ namespace theori.Game.Scenes
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
+        private Font m_font;
+        private TextRasterizer m_textRasterTest;
+
         private int actionKind = 0;
 
         private bool m_isPlayback = false;
@@ -142,6 +145,9 @@ function event.gp_slam_play(slam_magnitude)
     XShakeCamera(-math.sign(slam_magnitude));
 end
 ");
+
+            //m_font = Font.Default24;
+            //m_textRasterTest = new TextRasterizer(m_font, "Hello, 世界！");
         }
 
         private void ResetPlayback()
