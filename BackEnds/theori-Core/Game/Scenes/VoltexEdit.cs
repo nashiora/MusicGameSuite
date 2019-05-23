@@ -210,7 +210,6 @@ end
                     m_control = new HighwayControl();
                     m_highwayView.Reset();
                     
-            
                     m_audio.Position = m_chart.Offset;
                     m_audioController = new AudioEffectController(8, m_audio, true)
                     {
