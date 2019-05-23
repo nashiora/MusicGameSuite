@@ -34,7 +34,7 @@ namespace theori
         internal static void InvokePress(KeyInfo info)
         {
             //System.Diagnostics.Debug.Assert(heldKeys.Add(info.KeyCode), "added a key which was pressed");
-            if (heldKeys.Add(info.KeyCode)) return;
+            if (!heldKeys.Add(info.KeyCode)) return;
             KeyPress?.Invoke(info);
         }
 

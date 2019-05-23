@@ -13,7 +13,8 @@ namespace theori.Win32
             //if (args.Length > 0) chartToLoad = args[0];
 
             Host.Init(new PlatformWin32());
-            Host.Start(new EditorCore(chartToLoad));
+            //Host.Start(new EditorCore(chartToLoad));
+            Host.Start(new VoltexEdit());
         }
     }
 }

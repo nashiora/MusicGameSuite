@@ -21,7 +21,7 @@ using theori.Platform;
 
 namespace theori.Game.Scenes
 {
-    class VoltexEdit : Scene
+    public class VoltexEdit : Scene
     {
         private LuaScript m_luaScript;
 
@@ -295,10 +295,15 @@ end
 
         private void KeyboardButtonPress(KeyInfo key)
         {
-            var cp = m_chart.ControlPoints.MostRecent(m_audioController.Position);
+            var cp = m_chart?.ControlPoints.MostRecent(m_audioController.Position);
 
             switch (key.KeyCode)
             {
+                case KeyCode.O:
+                {
+                    OpenChart();
+                } break;
+
                 case KeyCode.SPACE:
                 {
                     if (m_audioController.PlaybackState == PlaybackState.Stopped)
