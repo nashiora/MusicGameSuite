@@ -26,8 +26,11 @@ namespace theori.Graphics
 		    Material currentMaterial = null;
 		    Mesh currentMesh = null;
             
-            GL.Enable(GL.GL_DEPTH_TEST);
-            GL.DepthFunc(DepthFunction.LessThanOrEqual);
+            // TODO(local): For the time being, the only things using this
+            //  are rendered in a pre-determined order and REQUIRE there to be no depth testing.
+            // In future, this should be configurable!
+            //GL.Enable(GL.GL_DEPTH_TEST);
+            //GL.DepthFunc(DepthFunction.LessThanOrEqual);
 
             foreach (var item in orderedCommands)
             {
@@ -122,7 +125,7 @@ namespace theori.Graphics
             
             GL.Disable(GL.GL_BLEND);
             GL.Disable(GL.GL_SCISSOR_TEST);
-            GL.Disable(GL.GL_DEPTH_TEST);
+            //GL.Disable(GL.GL_DEPTH_TEST);
 
             if (clear) orderedCommands.Clear();
         }
