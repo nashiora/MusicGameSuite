@@ -261,8 +261,12 @@ namespace theori.Game
             zoomDir = Vector3.Normalize(zoomDir);
             
             float zoomAmt;
-            if (zoom <= 0) zoomAmt = MathL.Pow(ZOOM_POW, -zoom) - 1;
-            else zoomAmt = highwayDist * (MathL.Pow(ZOOM_POW, -MathL.Pow(zoom, 1.35f)) - 1);
+
+            if (zoom <= 0) zoomAmt = MathL.Pow(-zoom, 2) * 1.25f;
+            else zoomAmt = -MathL.Pow(zoom, 0.5f) / 2.0f;
+
+            //if (zoom <= 0) zoomAmt = MathL.Pow(ZOOM_POW, -zoom) - 1;
+            //else zoomAmt = highwayDist * (MathL.Pow(ZOOM_POW, -MathL.Pow(zoom, 1.35f)) - 1);
 
             WorldTransform = worldNormal * Transform.Translation(zoomDir * zoomAmt);
 
@@ -322,7 +326,7 @@ namespace theori.Game
 
                 void RenderAnalogStream(int i)
                 {
-                    const float HISPEED = 0.05f;
+                    const float FLOAT = 0.05f;
 
                     foreach (var objr in renderables[i + 6].Values)
                     {
@@ -334,8 +338,7 @@ namespace theori.Game
 
                         float z = LENGTH_BASE * (float)((position - PlaybackPosition) / ViewDuration);
 
-                        Transform hiSpeedScale = Transform.Scale(1, 1, 1 + HISPEED);
-                        Transform t = objr.Transform * Transform.Translation(0, 0, -z) * hiSpeedScale * WorldTransform;
+                        Transform t = objr.Transform * Transform.Translation(0, FLOAT, -z) * WorldTransform;
                         queue.Draw(t, objr.Mesh, laserMaterial, i == 0 ? lLaserParams : rLaserParams);
 
                         if (objr.Object.PreviousConnected == null)
@@ -346,11 +349,11 @@ namespace theori.Game
                             time_t entryPosition = objr.Object.AbsolutePosition;
                             float zEntry = LENGTH_BASE * (float)((entryPosition - PlaybackPosition) / ViewDuration);
 
-                            Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * hiSpeedScale * WorldTransform;
+                            Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, FLOAT, -zEntry) * WorldTransform;
                             queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
                         }
 
-                        if (objr.Object.NextConnected == null && objr.Object.IsInstant)
+                        if (objr.Object.NextConnected == null)
                         {
                             float laneSpace = 5 / 6.0f;
                             if (analog.RangeExtended) laneSpace *= 2;
@@ -361,7 +364,7 @@ namespace theori.Game
 
                             float zExit = LENGTH_BASE * (float)((exitPosition - PlaybackPosition) / ViewDuration);
 
-                            Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, 0, -zExit) * hiSpeedScale * WorldTransform;
+                            Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, FLOAT, -zExit) * WorldTransform;
                             queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
                         }
                     }
