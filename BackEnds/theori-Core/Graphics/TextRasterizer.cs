@@ -156,7 +156,7 @@ namespace theori.Graphics
             texture = new Texture();
             int textureWidth = (int)Math.Ceiling(stringWidth + 2), textureHeight = (int)Math.Ceiling(stringHeight);
 
-            var pixelData = new byte[4 * texture.Width * texture.Height];
+            var pixelData = new byte[4 * textureWidth * textureHeight];
             pixelData.Fill((byte)0);
 
             void SetPixelSubData(Rect bounds, byte[] bufferData)

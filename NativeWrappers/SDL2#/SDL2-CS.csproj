@@ -97,8 +97,4 @@
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="x64\SDL2.dll" />
-    <None Include="x86\SDL2.dll" />
-  </ItemGroup>
 </Project>

@@ -115,6 +115,9 @@ namespace theori.Game.Scenes
             
             m_highwayView.ViewDuration = m_playback.LookAhead;
 
+            m_font = Font.Default24;
+            m_textRasterTest = new TextRasterizer(m_font, "Hello, 世界！");
+
             foreUiRoot = new Panel()
             {
                 Children = new GuiElement[]
@@ -135,6 +138,12 @@ namespace theori.Game.Scenes
                             },
                         }
                     },
+
+                    new Sprite(m_textRasterTest.Texture)
+                    {
+                        Size = new Vector2(m_textRasterTest.Texture.Width, m_textRasterTest.Texture.Height),
+                        Position = new Vector2(10, 100),
+                    },
                 }
             };
             
@@ -145,9 +154,6 @@ function event.gp_slam_play(slam_magnitude)
     XShakeCamera(-math.sign(slam_magnitude));
 end
 ");
-
-            //m_font = Font.Default24;
-            //m_textRasterTest = new TextRasterizer(m_font, "Hello, 世界！");
         }
 
         private void ResetPlayback()
