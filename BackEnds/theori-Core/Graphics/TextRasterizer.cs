@@ -6,59 +6,65 @@ using OpenGL;
 
 namespace theori.Graphics
 {
-    public class TextRasterizer
+    public class TextRasterizer : IDisposable
     {
         public bool IsDirty { get; private set; } = true;
 
-        private string text;
-        private Font font;
+        private string m_text;
+        private Font m_font;
 
-        private Texture texture;
+        private Texture m_texture;
         public Texture Texture
         {
             get
             {
                 if (IsDirty)
                     Rasterize();
-                return texture;
+                return m_texture;
             }
         }
 
         public string Text
         {
-            get => text;
+            get => m_text;
             set
             {
-                if (value == text)
+                if (value == m_text)
                     return;
 
-                text = value;
+                m_text = value;
                 IsDirty = true;
             }
         }
 
         public Font Font
         {
-            get => font;
+            get => m_font;
             set
             {
-                if (value == font)
+                if (value == m_font)
                     return;
 
-                font = value;
+                m_font = value;
                 IsDirty = true;
             }
         }
 
         public float BaseLine { get; private set; }
 
-        public int Width => texture?.Width ?? 0;
-        public int Height => texture?.Height ?? 0;
+        public int Width => m_texture?.Width ?? 0;
+        public int Height => m_texture?.Height ?? 0;
 
         public TextRasterizer(Font font, string text)
         {
-            this.font = font;
-            this.text = text;
+            m_font = font;
+            m_text = text;
+        }
+
+        public void Dispose()
+        {
+            if (m_texture != null) m_texture.Delete();
+            m_texture = null;
         }
 
         public void Rasterize()
@@ -153,7 +159,7 @@ namespace theori.Graphics
                 return;
             }
 
-            texture = new Texture();
+            m_texture = new Texture();
             int textureWidth = (int)Math.Ceiling(stringWidth + 2), textureHeight = (int)Math.Ceiling(stringHeight);
 
             var pixelData = new byte[4 * textureWidth * textureHeight];
@@ -232,12 +238,12 @@ namespace theori.Graphics
                     rc.Overrun = info.BitmapLeft + bitmap.Width - gAdvanceX;
 
                     rightEdge = Math.Max(rightEdge, x + bitmap.Width);
-                    spacingError = texture.Width - rightEdge;
+                    spacingError = m_texture.Width - rightEdge;
                 }
                 else
                 {
                     rightEdge = (int)(penX + gAdvanceX);
-                    spacingError = texture.Width - rightEdge;
+                    spacingError = m_texture.Width - rightEdge;
                 }
 
                 if (gBearingX + gWidth > 0 || gAdvanceX > 0)
@@ -266,7 +272,7 @@ namespace theori.Graphics
                 }
             }
 
-            texture.SetData2D(textureWidth, textureHeight, pixelData);
+            m_texture.SetData2D(textureWidth, textureHeight, pixelData);
             IsDirty = false;
         }
 

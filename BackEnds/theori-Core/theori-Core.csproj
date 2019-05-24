@@ -114,6 +114,7 @@
     <Compile Include="Gui\Button.cs" />
     <Compile Include="Gui\GuiManager.cs" />
     <Compile Include="Gui\InlineGui.cs" />
+    <Compile Include="Gui\TextLabel.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="Audio\AudioEffectController.cs" />
     <Compile Include="Audio\AudioSample.cs" />

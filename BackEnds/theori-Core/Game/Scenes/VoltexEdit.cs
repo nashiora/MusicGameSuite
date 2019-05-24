@@ -37,9 +37,6 @@ namespace theori.Game.Scenes
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
-        private Font m_font;
-        private TextRasterizer m_textRasterTest;
-
         private int actionKind = 0;
 
         private bool m_isPlayback = false;
@@ -115,9 +112,6 @@ namespace theori.Game.Scenes
             
             m_highwayView.ViewDuration = m_playback.LookAhead;
 
-            m_font = Font.Default24;
-            m_textRasterTest = new TextRasterizer(m_font, "Hello, 世界！");
-
             foreUiRoot = new Panel()
             {
                 Children = new GuiElement[]
@@ -139,9 +133,8 @@ namespace theori.Game.Scenes
                         }
                     },
 
-                    new Sprite(m_textRasterTest.Texture)
+                    new TextLabel(Font.Default24, "Hello, 世界！")
                     {
-                        Size = new Vector2(m_textRasterTest.Texture.Width, m_textRasterTest.Texture.Height),
                         Position = new Vector2(10, 100),
                     },
                 }
