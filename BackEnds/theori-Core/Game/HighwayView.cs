@@ -262,11 +262,8 @@ namespace theori.Game
             
             float zoomAmt;
 
-            if (zoom <= 0) zoomAmt = MathL.Pow(-zoom, 2) * 1.25f;
+            if (zoom <= 0) zoomAmt = -zoom * 1.25f;
             else zoomAmt = -MathL.Pow(zoom, 0.5f) / 2.0f;
-
-            //if (zoom <= 0) zoomAmt = MathL.Pow(ZOOM_POW, -zoom) - 1;
-            //else zoomAmt = highwayDist * (MathL.Pow(ZOOM_POW, -MathL.Pow(zoom, 1.35f)) - 1);
 
             WorldTransform = worldNormal * Transform.Translation(zoomDir * zoomAmt);
 
