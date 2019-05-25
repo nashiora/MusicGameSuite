@@ -11,6 +11,8 @@ namespace theori
         public static explicit operator Matrix4x4(Transform t) => t.Matrix;
 
         public static Transform operator *(Transform a, Transform b) => new Transform(a.Matrix * b.Matrix);
+
+        public static Vector4 operator *(Transform a, Vector4 b) => Vector4.Transform(b, a.Matrix);
         
         public static Transform Translation(float x, float y, float z) => new Transform(Matrix4x4.CreateTranslation(x, y, z));
         public static Transform Translation(Vector3 translation) => new Transform(Matrix4x4.CreateTranslation(translation));

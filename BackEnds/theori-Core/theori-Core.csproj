@@ -108,7 +108,6 @@
     <Compile Include="Game\Scenes\EditorCore.cs" />
     <Compile Include="Game\Scenes\VoltexChartSelect_KSH.cs" />
     <Compile Include="Game\Scenes\VoltexEdit.cs" />
-    <Compile Include="Game\Ui\CriticalLine.cs" />
     <Compile Include="Graphics\Font.cs" />
     <Compile Include="Graphics\TextRasterizer.cs" />
     <Compile Include="Gui\Button.cs" />

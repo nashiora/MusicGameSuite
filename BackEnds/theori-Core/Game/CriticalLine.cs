@@ -83,13 +83,13 @@ namespace theori.Game
 
         private void UpdateOrientation()
         {
-            Position = new Vector2(Window.Width / 2, HorizonHeight);
-            Rotation = -(LaserRoll + BaseRoll) - MathL.Sin(EffectRoll * MathL.Pi * 2) * 30;
+            //Position = new Vector2(Window.Width / 2, HorizonHeight);
+            //Rotation = -(LaserRoll + BaseRoll) - MathL.Sin(EffectRoll * MathL.Pi * 2) * 30;
 
-            float critDist = CriticalHeight - HorizonHeight;
+            //float critDist = CriticalHeight - HorizonHeight;
             float desiredCritWidth = Window.Width * 0.75f;
 
-            m_container.Position = new Vector2(-LaserRoll * 10 + EffectOffset * 100, critDist);
+            //m_container.Position = new Vector2(-LaserRoll * 10 + EffectOffset * 100, 0);
             m_container.Scale = new Vector2(desiredCritWidth / m_image.Size.X);
         }
     }
