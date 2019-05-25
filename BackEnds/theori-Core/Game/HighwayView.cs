@@ -161,20 +161,6 @@ namespace theori.Game
             renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
         }
 
-
-        public Vector2 Project(Vector3 worldPosition)
-        {
-            var w4 = new Vector4(worldPosition, 1.0f);
-
-            var clipSpace = Camera.ProjectionMatrix * (Camera.ViewMatrix * (WorldTransform * w4));
-            var w = new Vector3(clipSpace.X, clipSpace.Y, clipSpace.Z) / clipSpace.W;
-
-            int x = (int)MathL.Round((1 + w.X) * Window.Width / 2.0f);
-            int y = (int)MathL.Round((1 - w.Y) * Window.Height / 2.0f);
-
-            return new Vector2(x, y);
-        }
-
         public void Reset()
         {
             foreach (var r in renderables)
