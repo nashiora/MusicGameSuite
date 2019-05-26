@@ -82,7 +82,7 @@ namespace theori.Game.Scenes
             m_slamSample.Volume = 0.5f * 0.7f;
 
             m_highwayView = new HighwayView();
-            m_control = new HighwayControl();
+            m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
             
             m_playback = new SlidingChartPlayback(null);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
@@ -217,7 +217,7 @@ end
                     
                     // TODO(local): properly dispose of old stuffs
                     m_playback.SetChart(chart);
-                    m_control = new HighwayControl();
+                    m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
                     m_highwayView.Reset();
                     
                     m_audio.Position = m_chart.Offset;

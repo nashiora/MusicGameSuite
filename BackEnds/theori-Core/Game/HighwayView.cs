@@ -15,7 +15,7 @@ namespace theori.Game
 {
     public class HighwayView
     {
-        private const float PITCH_AMT = 15;
+        //private const float PITCH_AMT = 15;
         private const float LENGTH_BASE = 12;
 
         private float roll;
@@ -231,8 +231,10 @@ namespace theori.Game
             //LerpTo(ref roll, TargetLaserRoll * rollScale, 10 * LaserRollSpeed);
             //LerpTo(ref roll, TargetLaserRoll * 10);
             roll = TargetLaserRoll;
-            LerpTo(ref pitch, TargetPitch);
-            LerpTo(ref zoom, TargetZoom);
+            //LerpTo(ref pitch, TargetPitch);
+            pitch = TargetPitch;
+            //LerpTo(ref zoom, TargetZoom);
+            zoom = TargetZoom;
             //LerpTo(ref rollBase, TargetBaseRoll);
             
             Transform GetAtRoll(float roll, float xOffset)
@@ -248,7 +250,7 @@ namespace theori.Game
                 var anchor = Transform.RotationX(ANCHOR_ROT)
                            * Transform.Translation(xOffset, ANCHOR_Y, 0);
                 var contnr = Transform.Translation(0, 0, 0)
-                           * Transform.RotationX(pitch * PITCH_AMT)
+                           * Transform.RotationX(pitch)
                            * Transform.Translation(0, 0, CONTNR_Z);
 
                 return contnr * anchor * origin;
@@ -262,7 +264,8 @@ namespace theori.Game
             var zoomDir = ((Matrix4x4)worldNormal).Translation;
             float highwayDist = zoomDir.Length();
             zoomDir = Vector3.Normalize(zoomDir);
-            
+
+#if false
             float zoomAmt;
 
             if (zoom > 3) zoomAmt = 0.2f;
@@ -270,6 +273,8 @@ namespace theori.Game
             else zoomAmt = -1.067f * (zoom + 3) + 3.4f;
 
             var zoomTransform = Transform.Translation(zoomDir * (zoomAmt - 1) * highwayDist);
+#endif
+            var zoomTransform = Transform.Translation(zoomDir * zoom * highwayDist);
 
             WorldTransform = worldNormal * zoomTransform;
             CritLineTransform = worldCritLine;
@@ -288,9 +293,6 @@ namespace theori.Game
             Vector3 headPosition = Vector3.Transform(new Vector3(0, 0, 1), WorldTransform.Matrix);
             Vector3 tailPosition = Vector3.Transform(new Vector3(0, 0, -LENGTH_BASE), WorldTransform.Matrix);
             Vector3 cameraForward = Vector3.Transform(new Vector3(0, 0, -1), Camera.Rotation);
-
-            //float distToTail = Vector3.Transform(new Vector3(0, 0, -LENGTH_BASE), WorldTransform.Matrix).Length();
-            //float distToHead = Vector3.Transform(new Vector3(0, 0, 1), WorldTransform.Matrix).Length();
 
             Vector3 V3Project(Vector3 a, Vector3 b) => b * (Vector3.Dot(a, b) / Vector3.Dot(b, b));
 

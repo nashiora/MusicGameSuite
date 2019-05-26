@@ -24,12 +24,10 @@ namespace theori.Game
 
                 LaserTiltToBackgroundRotationMult = 0.45f,
 
-                ZoomMinBound = -3.0f,
-                ZoomMaxBound = 16.0f, // Not going to let it be unbound but will totally stop short
+                ZoomMinBound = -16.0f, // Not going to let it be unbound but will totally stop short
+                ZoomMaxBound = 3.0f, 
                 ZoomFunction = (input) =>
                 {
-                    input = -input;
-
                     float result;
                     if (input > 3) result = 0.2f; // disallows super zooms
                     else if (input > -3)
@@ -110,7 +108,7 @@ namespace theori.Game
 
     public sealed class HighwayControl
     {
-        private const float LASER_BASE_STRENGTH = 14;
+        //private const float LASER_BASE_STRENGTH = 14;
 
         public static LaserParams DefaultLaserParams { get; } = new LaserParams()
         {
@@ -181,6 +179,8 @@ namespace theori.Game
         private Timed<WobbleParams> m_wobble;
 
         #endregion
+
+        public HighwayControlConfig Config { get; }
 
         #region Programmable Control Interface
         
@@ -253,15 +253,18 @@ namespace theori.Game
 
         #endregion
 
-        public HighwayControl()
+        public HighwayControl(HighwayControlConfig config)
         {
+            Config = config;
         }
 
         public void ApplyToView(HighwayView view)
         {
             view.TargetLaserRoll = m_combinedLaserOutput;
-            view.TargetZoom = m_zoom;
-            view.TargetPitch = m_pitch;
+            view.TargetZoom = Config.ZoomFunction(MathL.Clamp(m_zoom, Config.ZoomMinBound, Config.ZoomMaxBound));
+            if (Config.PitchFunction != null)
+                view.TargetPitch = Config.PitchFunction(m_pitch);
+            else view.TargetPitch = m_pitch * Config.PitchUnitDegrees;
             view.TargetOffset = m_offset;
             view.TargetEffectOffset = m_effectOffset;
             view.TargetBaseRoll = m_roll;
@@ -465,12 +468,12 @@ namespace theori.Game
                 switch (p.Scale)
                 {
                     case LaserScale.Normal: break;
-                    case LaserScale.Smaller: output *= 0.5f; break;
-                    case LaserScale.Bigger: output *= 1.5f; break;
-                    case LaserScale.Biggest: output *= 2.0f; break;
+                    case LaserScale.Smaller: output *= Config.LaserTiltSmallerMult; break;
+                    case LaserScale.Bigger: output *= Config.LaserTiltBiggerMult; break;
+                    case LaserScale.Biggest: output *= Config.LaserTiltBiggestMult; break;
                 }
 
-                return output * LASER_BASE_STRENGTH;
+                return output * Config.LaserTiltUnitDegrees;
             }
 
             void LerpTo(ref float value, float target, float max, float speed)
