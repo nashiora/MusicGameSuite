@@ -15,7 +15,7 @@ namespace theori.Game
 {
     public class HighwayView
     {
-        private const float PITCH_AMT = 10;
+        private const float PITCH_AMT = 15;
         private const float LENGTH_BASE = 12;
 
         private float roll;
@@ -264,11 +264,12 @@ namespace theori.Game
             zoomDir = Vector3.Normalize(zoomDir);
             
             float zoomAmt;
-            // TODO(local): use highwayDist again, and make this a smooth function
-            if (zoom <= 0) zoomAmt = -zoom * 1.25f;
-            else zoomAmt = -MathL.Pow(zoom, 0.5f) / 2.0f;
 
-            var zoomTransform = Transform.Translation(zoomDir * zoomAmt);
+            if (zoom > 3) zoomAmt = 0.2f;
+            else if (zoom > -3) zoomAmt = MathL.Square((zoom - 3) / 3.0f) * 0.8f + 0.2f;
+            else zoomAmt = -1.067f * (zoom + 3) + 3.4f;
+
+            var zoomTransform = Transform.Translation(zoomDir * (zoomAmt - 1) * highwayDist);
 
             WorldTransform = worldNormal * zoomTransform;
             CritLineTransform = worldCritLine;
@@ -279,13 +280,31 @@ namespace theori.Game
             float cameraRot = Camera.FieldOfView / 2 - Camera.FieldOfView * CritScreenY;
             float cameraPitch = rotToCrit + MathL.ToRadians(cameraRot);
 
+            Camera.Position = CameraOffset;
             Camera.Rotation = Quaternion.CreateFromYawPitchRoll(0, cameraPitch, 0);
 
-            float pitchDeg = MathL.ToDegrees(cameraPitch);
-            HorizonHeight = (0.5f + (pitchDeg / Camera.FieldOfView)) * Camera.ViewportHeight;
+            HorizonHeight = Camera.Project(WorldTransform, Camera.Position + new Vector3(0, 0, -1)).Y;
 
-            Camera.Position = CameraOffset;
-            Camera.FarDistance = Vector3.Transform(new Vector3(0, 0, -LENGTH_BASE), WorldTransform.Matrix).Length();
+            Vector3 headPosition = Vector3.Transform(new Vector3(0, 0, 1), WorldTransform.Matrix);
+            Vector3 tailPosition = Vector3.Transform(new Vector3(0, 0, -LENGTH_BASE), WorldTransform.Matrix);
+            Vector3 cameraForward = Vector3.Transform(new Vector3(0, 0, -1), Camera.Rotation);
+
+            //float distToTail = Vector3.Transform(new Vector3(0, 0, -LENGTH_BASE), WorldTransform.Matrix).Length();
+            //float distToHead = Vector3.Transform(new Vector3(0, 0, 1), WorldTransform.Matrix).Length();
+
+            Vector3 V3Project(Vector3 a, Vector3 b) => b * (Vector3.Dot(a, b) / Vector3.Dot(b, b));
+
+            float SignedDistance(Vector3 point, Vector3 ray)
+            {
+                Vector3 projected = V3Project(point, ray);
+                return MathL.Sign(Vector3.Dot(ray, projected)) * projected.Length();
+            }
+
+            float distToHead = SignedDistance(headPosition - Camera.Position, cameraForward);
+            float distToTail = SignedDistance(tailPosition - Camera.Position, cameraForward);
+
+            Camera.FarDistance = MathL.Max(distToTail, distToHead);
+            Camera.NearDistance = Math.Max(0.01f, MathL.Min(distToTail, distToHead));
         }
 
         public void Render()

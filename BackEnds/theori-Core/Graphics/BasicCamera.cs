@@ -173,7 +173,7 @@ namespace theori.Graphics
             switch (Kind)
             {
                 case CameraKind.PerspectiveFoV:
-                    return (Transform)Matrix4x4.CreatePerspectiveFieldOfView(MathL.ToRadians(fieldOfView), aspectRatio, near, far);
+                    return Transform.CreatePerspectiveFieldOfView(MathL.ToRadians(fieldOfView), aspectRatio, near, far);
 
                 case CameraKind.Orthographic:
                     return (Transform)Matrix4x4.CreateOrthographic(viewWidth, viewHeight, near, far);

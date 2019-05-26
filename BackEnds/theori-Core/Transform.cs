@@ -24,6 +24,43 @@ namespace theori
         public static Transform Scale(float x, float y, float z) => new Transform(Matrix4x4.CreateScale(x, y, z));
         public static Transform Scale(Vector3 scale) => new Transform(Matrix4x4.CreateScale(scale));
 
+        // Re-implementation of System.Numeric.Matrix4x4.CreatePerspectiveFieldOfView
+        // literally fuck you Microsoft why doesn't this behave as expected fuck off
+        public static Transform CreatePerspectiveFieldOfView(float fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance)
+        {
+            if (fieldOfView <= 0.0f || fieldOfView >= Math.PI)
+                throw new ArgumentOutOfRangeException("fieldOfView");
+
+            if (nearPlaneDistance <= 0.0f)
+                throw new ArgumentOutOfRangeException("nearPlaneDistance");
+
+            if (farPlaneDistance <= 0.0f)
+                throw new ArgumentOutOfRangeException("farPlaneDistance");
+
+            if (nearPlaneDistance >= farPlaneDistance)
+                throw new ArgumentOutOfRangeException("nearPlaneDistance");
+
+            Matrix4x4 result;
+
+            float yScale = 1.0f / (float)Math.Tan(fieldOfView * 0.5f);
+            float xScale = yScale / aspectRatio;
+
+            result.M11 = xScale;
+            result.M12 = result.M13 = result.M14 = 0.0f;
+
+            result.M22 = yScale;
+            result.M21 = result.M23 = result.M24 = 0.0f;
+
+            result.M31 = result.M32 = 0.0f;
+            result.M33 = -(nearPlaneDistance + farPlaneDistance) / (farPlaneDistance - nearPlaneDistance);
+            result.M34 = -1.0f;
+
+            result.M41 = result.M42 = result.M44 = 0.0f;
+            result.M43 = -(2 * nearPlaneDistance * farPlaneDistance) / (farPlaneDistance - nearPlaneDistance);
+
+            return (Transform)result;
+        }
+
         public readonly Matrix4x4 Matrix;
 
         public Transform(Matrix4x4 matrix)

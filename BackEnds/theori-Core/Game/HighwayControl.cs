@@ -7,10 +7,41 @@ using OpenRM.Voltex;
 
 namespace theori.Game
 {
-    public delegate float ZoomFunction(float input);
+    public delegate float FloatFunction(float input);
 
     public struct HighwayControlConfig
     {
+        public static HighwayControlConfig CreateDefaultKsh168()
+        {
+            return new HighwayControlConfig()
+            {
+                LaserTiltUnitDegrees = 14,
+
+                // smaller doesn't exist in KSH, but give it a default value anyway.
+                LaserTiltSmallerMult = 0.5f,
+                LaserTiltBiggerMult = 1.5f,
+                LaserTiltBiggestMult = 2.0f,
+
+                LaserTiltToBackgroundRotationMult = 0.45f,
+
+                ZoomMinBound = -3.0f,
+                ZoomMaxBound = 16.0f, // Not going to let it be unbound but will totally stop short
+                ZoomFunction = (input) =>
+                {
+                    input = -input;
+
+                    float result;
+                    if (input > 3) result = 0.2f; // disallows super zooms
+                    else if (input > -3)
+                        result = MathL.Square((input - 3) / 3.0f) * 0.8f + 0.2f;
+                    else result = -1.067f * (input + 3) + 3.4f;
+                    return result - 1;
+                },
+
+                PitchUnitDegrees = 15,
+            };
+        }
+
         /// <summary>
         /// How many degrees a laser at max output will tilt the highway
         ///  at normal tilt amount.
@@ -21,6 +52,12 @@ namespace theori.Game
         public float LaserTiltBiggerMult;
         public float LaserTiltBiggestMult;
 
+        /// <summary>
+        /// How much the laser tilt (NOT manual tilt control) affects the background rotation.
+        /// In KSH this seems to be slightly less than 0.5 times.
+        /// </summary>
+        public float LaserTiltToBackgroundRotationMult;
+
         // TODO(local): It might be nice to support options for controlling the default
         //  orientation of the highway; either KSM or SDVX based (named something else, of course)
         //  or otherwise controlling, within reason, the default look before applying zooms etc.
@@ -30,6 +67,9 @@ namespace theori.Game
         //  or default viewing angle (so more of the highway is on the screen by default, similar to KSM)
         // This is PROBABLY not a great idea, but given that everything necessary will likely be
         //  in this configuration struct, it's not a TERRIBLE idea..?
+
+        public float ZoomMinBound;
+        public float ZoomMaxBound;
 
         // TODO(local): figure out how best to work with zooms!
         // My first thought is that this should return in the scale of
@@ -42,7 +82,7 @@ namespace theori.Game
         //  makes sense to me otherwise, so we'll try it.
         // Document it properly if that becomes the case.
         // (Note that this replaces any ZoomUnitDistance or ZoomAmount config parameters)
-        public ZoomFunction ZoomFunction;
+        public FloatFunction ZoomFunction;
 
         /// <summary>
         /// For every unit of input pitch, the unit of output pitch.
@@ -52,6 +92,11 @@ namespace theori.Game
         /// Other input formats will need to set this to something else.
         /// </summary>
         public float PitchUnitDegrees;
+
+        /// <summary>
+        /// If provided, 
+        /// </summary>
+        public FloatFunction PitchFunction;
 
         /// <summary>
         /// For ever unit of offset, the world-space unit of translation.
@@ -420,9 +465,9 @@ namespace theori.Game
                 switch (p.Scale)
                 {
                     case LaserScale.Normal: break;
-                    case LaserScale.Smaller: output *= 0.65f; break;
-                    case LaserScale.Bigger: output *= 1.35f; break;
-                    case LaserScale.Biggest: output *= 1.85f; break;
+                    case LaserScale.Smaller: output *= 0.5f; break;
+                    case LaserScale.Bigger: output *= 1.5f; break;
+                    case LaserScale.Biggest: output *= 2.0f; break;
                 }
 
                 return output * LASER_BASE_STRENGTH;

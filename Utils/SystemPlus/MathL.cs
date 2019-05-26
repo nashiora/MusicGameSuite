@@ -313,7 +313,13 @@ namespace System
 
             return r;
         }
-        
+
+        public static Vector2 Square(Vector2 value) => value * value;
+        public static Vector3 Square(Vector3 value) => value * value;
+        public static Vector4 Square(Vector4 value) => value * value;
+        public static double Square(double value) => value * value;
+        public static float Square(float value) => value * value;
+
         public static Vector2 Sqrt(Vector2 value) => Vector2.SquareRoot(value);
         public static Vector3 Sqrt(Vector3 value) => Vector3.SquareRoot(value);
         public static Vector4 Sqrt(Vector4 value) => Vector4.SquareRoot(value);
