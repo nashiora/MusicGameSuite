@@ -4,7 +4,7 @@ namespace OpenRM.Audio.Effects
 {
     public sealed class Gate : Dsp, IMixable
     {
-	    private float m_lowVolume = 0.3f;
+	    private float m_lowVolume = 0.1f;
 	    private float m_gating = 0.75f;
 	    private uint m_gateDuration = 0;
 	    private uint m_fadeIn = 0; // Fade In mark
