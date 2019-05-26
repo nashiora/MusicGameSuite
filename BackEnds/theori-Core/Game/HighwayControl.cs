@@ -7,9 +7,65 @@ using OpenRM.Voltex;
 
 namespace theori.Game
 {
+    public delegate float ZoomFunction(float input);
+
+    public struct HighwayControlConfig
+    {
+        /// <summary>
+        /// How many degrees a laser at max output will tilt the highway
+        ///  at normal tilt amount.
+        /// </summary>
+        public float LaserTiltUnitDegrees;
+
+        public float LaserTiltSmallerMult;
+        public float LaserTiltBiggerMult;
+        public float LaserTiltBiggestMult;
+
+        // TODO(local): It might be nice to support options for controlling the default
+        //  orientation of the highway; either KSM or SDVX based (named something else, of course)
+        //  or otherwise controlling, within reason, the default look before applying zooms etc.
+        // If that becomes a feature, a limited range of things should likely be put
+        //  here for giving to the highway view as well.
+        // Things like default zoom amount (which would ofc change how hard zooming is applied,)
+        //  or default viewing angle (so more of the highway is on the screen by default, similar to KSM)
+        // This is PROBABLY not a great idea, but given that everything necessary will likely be
+        //  in this configuration struct, it's not a TERRIBLE idea..?
+
+        // TODO(local): figure out how best to work with zooms!
+        // My first thought is that this should return in the scale of
+        //  the base distance from the camera, so 1 is twice as far
+        //  from the camera as 0.
+        // This is kinda nonsensical for zooming OUT if you think too hard
+        //  about it, but zooming IN should really have a well defined lower-bound.
+        // -1 puts the camera right on the crit line, which is bad, so anything
+        //  > 0 is desired as an output; keeping the scale linear from there
+        //  makes sense to me otherwise, so we'll try it.
+        // Document it properly if that becomes the case.
+        // (Note that this replaces any ZoomUnitDistance or ZoomAmount config parameters)
+        public ZoomFunction ZoomFunction;
+
+        /// <summary>
+        /// For every unit of input pitch, the unit of output pitch.
+        /// For example, KSH 1.68 uses 2400 (24 units with the way we parse it)
+        ///  as a full rotation, 360 degrees.
+        /// That makes every output unit 15 degrees (360 / 24).
+        /// Other input formats will need to set this to something else.
+        /// </summary>
+        public float PitchUnitDegrees;
+
+        /// <summary>
+        /// For ever unit of offset, the world-space unit of translation.
+        /// What I'd consider sensible is either 5/12 or 1/2; moving the origin to
+        ///  align with the center of a laser lane or to the edge of the highway respectively.
+        /// KSH uses 1.16 units = 5/12 world-space unit translation, for example, so
+        ///  the configuration value here would be (5 / (12 * 1.16f)) output units.
+        /// </summary>
+        public float OffsetUnitWorld;
+    }
+
     public sealed class HighwayControl
     {
-        private const float LASER_BASE_STRENGTH = 10;
+        private const float LASER_BASE_STRENGTH = 14;
 
         public static LaserParams DefaultLaserParams { get; } = new LaserParams()
         {
