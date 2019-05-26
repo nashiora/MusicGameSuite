@@ -106,11 +106,10 @@ namespace theori.Game.Scenes
 
                 if (obj is Event evt)
                     PlaybackEventTrigger(evt, dir);
+                else PlaybackObjectBegin(obj);
             };
             m_playback.ObjectTailCrossCritical += (dir, obj) =>
             {
-                if (dir != PlayDirection.Backward) return;
-
                 if (dir == PlayDirection.Backward && obj is Event evt)
                     PlaybackEventTrigger(evt, dir);
                 else PlaybackObjectEnd(obj);
