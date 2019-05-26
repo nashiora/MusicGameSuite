@@ -486,11 +486,12 @@ end
                 var camera = m_highwayView.Camera;
 
                 var totalWorldTransform = m_highwayView.WorldTransform;
+                var critLineTransform = m_highwayView.CritLineTransform;
 
-                Vector2 critRootPosition = camera.Project(totalWorldTransform, Vector3.Zero);
-                Vector2 critRootPositionWest = camera.Project(totalWorldTransform, new Vector3(-1, 0, 0));
-                Vector2 critRootPositionEast = camera.Project(totalWorldTransform, new Vector3(1, 0, 0));
-                Vector2 critRootPositionForward = camera.Project(totalWorldTransform, new Vector3(0, 0, -1));
+                Vector2 critRootPosition = camera.Project(critLineTransform, Vector3.Zero);
+                Vector2 critRootPositionWest = camera.Project(critLineTransform, new Vector3(-1, 0, 0));
+                Vector2 critRootPositionEast = camera.Project(critLineTransform, new Vector3(1, 0, 0));
+                Vector2 critRootPositionForward = camera.Project(critLineTransform, new Vector3(0, 0, -1));
 
                 Vector2 critRotationVector = critRootPositionEast - critRootPositionWest;
                 float critRootRotation = MathL.Atan(critRotationVector.Y, critRotationVector.X);
@@ -499,12 +500,8 @@ end
                 critRoot.BaseRoll = m_control.Roll * 360;
                 critRoot.EffectRoll = m_control.EffectRoll;
                 critRoot.EffectOffset = m_control.EffectOffset;
-                // TODO(local): Adding this stuff doesn't FIX the problem but it's almost entirely NOT noticeable so uh fix it for real yeah
-                // NOTE(local): The problem in question is that the HorizonHeight doesn't match properly for the CritLine and oh well
-                //critRoot.HorizonHeight = m_highwayView.HorizonHeight + (Window.Height - m_highwayView.CriticalHeight) / 2;
-                //critRoot.CriticalHeight = m_highwayView.CriticalHeight;
                 critRoot.Position = critRootPosition;
-                critRoot.Rotation = MathL.ToDegrees(critRootRotation);
+                critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_control.CritLineEffectRoll * 25;
             }
 
             foreUiRoot.Update();

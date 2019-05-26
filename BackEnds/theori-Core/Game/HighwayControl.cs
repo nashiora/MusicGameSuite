@@ -65,7 +65,7 @@ namespace theori.Game
         private float m_combinedLaserOutput, m_targetCombinedLaserOutput;
         
         private float m_zoom, m_pitch, m_offset, m_roll;
-        private float m_effectRoll, m_effectOffset;
+        private float m_effectRoll, m_critLineEffectRoll, m_effectOffset;
 
         private CameraShake m_shake;
 
@@ -101,6 +101,7 @@ namespace theori.Game
 
         public float EffectOffset { get { return m_effectOffset; } }
         public float EffectRoll { get { return m_effectRoll; } }
+        public float CritLineEffectRoll { get { return m_critLineEffectRoll; } }
 
         public LaserApplication LaserApplication { set => m_laserApplication = value; }
         public Damping LaserDamping { set => m_laserDamping = value; }
@@ -160,8 +161,10 @@ namespace theori.Game
             view.TargetLaserRoll = m_combinedLaserOutput;
             view.TargetZoom = m_zoom;
             view.TargetPitch = m_pitch;
-            view.TargetOffset = m_offset + m_effectOffset;
-            view.TargetBaseRoll = m_roll + m_effectRoll;
+            view.TargetOffset = m_offset;
+            view.TargetEffectOffset = m_effectOffset;
+            view.TargetBaseRoll = m_roll;
+            view.TargetEffectRoll = m_effectRoll;
             if (m_shake != null)
                 view.CameraOffset = m_shake.Sample(m_position - m_shake.StartTime);
             else view.CameraOffset = Vector3.Zero;
@@ -261,6 +264,7 @@ namespace theori.Game
             float spinRoll = 0;
             float swingRoll = 0;
             float wobbleOffset = 0;
+            float critLineRotation = 0;
 
             if (m_spin != null)
             {
@@ -268,6 +272,7 @@ namespace theori.Game
                     m_spin = null;
                 else
                 {
+
                     float time = (float)((m_position - m_spin.StartTime) / m_spin.Params.Duration);
                     //Trace.WriteLine($"SPIN CONTROL: from { m_spin.StartTime } for { m_spin.Params.Duration }, { time }");
                     float dir = (int)m_spin.Params.Direction;
@@ -275,15 +280,18 @@ namespace theori.Game
 	                const float TSPIN = 0.75f / 2.0f;
 	                const float TRECOV = 0.75f / 2.0f;
 
+                    if (time < TSPIN + TRECOV)
+                        critLineRotation += -DampedSin(time / (TSPIN + TRECOV), 1, 1, 0) * dir;
+
 	                //float bgAngle = MathL.Clamp(time * 4.0f, 0.0f, 2.0f) * dir;
 	                if (time <= TSPIN)
-		                spinRoll = -dir * (TSPIN - time) / TSPIN;
+                        spinRoll = -dir * (TSPIN - time) / TSPIN;
 	                else
 	                {
 		                if (time < TSPIN + TRECOV)
-			                spinRoll = DampedSin((time - TSPIN) / TRECOV, 30f / 360, 0.5f, 0) * dir;
-		                else spinRoll = 0.0f;
-	                }
+                            spinRoll = DampedSin((time - TSPIN) / TRECOV, 30f / 360, 0.5f, 0) * dir;
+                        else spinRoll = 0.0f;
+                    }
                 }
             }
 
@@ -295,6 +303,8 @@ namespace theori.Game
                 {
                     float time = (float)((m_position - m_swing.StartTime) / m_swing.Params.Duration);
                     float dir = (int)m_swing.Params.Direction;
+
+                    critLineRotation += -DampedSin(time, 1, 1, 0) * dir;
 
                     #if false
                     // dividing the amplitude by 0.5625 makes the first crest of the sin
@@ -336,6 +346,7 @@ namespace theori.Game
             }
 
             m_effectRoll = spinRoll + swingRoll;
+            m_critLineEffectRoll = critLineRotation;
             m_effectOffset = wobbleOffset;
 
             float ProcessLaserInput(ref float value, LaserParams p)

@@ -16,16 +16,16 @@ namespace theori.Game
     public class HighwayView
     {
         private const float PITCH_AMT = 10;
-        private const float ZOOM_POW = 1.75f;
         private const float LENGTH_BASE = 12;
 
-        private float roll, rollBase;
+        private float roll;
         private float pitch, zoom; // "top", "bottom"
-        private float critScreenY = 0.05f;
+        public float CritScreenY = 0.1f;
 
         public readonly BasicCamera Camera;
         public Transform WorldTransform { get; private set; }
-        
+        public Transform CritLineTransform { get; private set; }
+
         private Texture highwayTexture;
         private Texture btChipTexture, btHoldTexture;
         private Texture fxChipTexture, fxHoldTexture;
@@ -62,7 +62,7 @@ namespace theori.Game
         }
 
         public float LaserRoll => roll;
-        public float CriticalHeight => (1 - critScreenY) * Camera.ViewportHeight;
+        public float CriticalHeight => (1 - CritScreenY) * Camera.ViewportHeight;
 
         public float HorizonHeight { get; private set; }
         
@@ -70,10 +70,12 @@ namespace theori.Game
 
         public float TargetLaserRoll { get; set; }
         public float TargetBaseRoll { get; set; }
-        
+        public float TargetEffectRoll { get; set; }
+
         public float TargetPitch { get; set; }
         public float TargetZoom { get; set; }
         public float TargetOffset { get; set; }
+        public float TargetEffectOffset { get; set; }
 
         public Vector3 CameraOffset { get; set; }
         
@@ -232,9 +234,8 @@ namespace theori.Game
             LerpTo(ref pitch, TargetPitch);
             LerpTo(ref zoom, TargetZoom);
             //LerpTo(ref rollBase, TargetBaseRoll);
-            rollBase = TargetBaseRoll;
             
-            Transform GetAtRoll(float roll, float xOffset, float highwayOffs = 0.5f)
+            Transform GetAtRoll(float roll, float xOffset)
             {
                 //const float ANCHOR_Y = -0.825f;
                 //const float CONTNR_Z = -1.1f;
@@ -253,24 +254,29 @@ namespace theori.Game
                 return contnr * anchor * origin;
             }
 
-            var worldNormal = GetAtRoll(rollBase * 360 + roll, TargetOffset);
-            var worldNoRoll = GetAtRoll(0, 0, 0);
+            var worldNormal = GetAtRoll((TargetBaseRoll + TargetEffectRoll) * 360 + roll, TargetOffset + TargetEffectOffset);
+            var worldNoRoll = GetAtRoll(0, 0);
+            // TODO(local): does this need to use offset?
+            var worldCritLine = GetAtRoll(TargetBaseRoll * 360 + roll, TargetOffset + TargetEffectOffset);
 
             var zoomDir = ((Matrix4x4)worldNormal).Translation;
             float highwayDist = zoomDir.Length();
             zoomDir = Vector3.Normalize(zoomDir);
             
             float zoomAmt;
-
+            // TODO(local): use highwayDist again, and make this a smooth function
             if (zoom <= 0) zoomAmt = -zoom * 1.25f;
             else zoomAmt = -MathL.Pow(zoom, 0.5f) / 2.0f;
 
-            WorldTransform = worldNormal * Transform.Translation(zoomDir * zoomAmt);
+            var zoomTransform = Transform.Translation(zoomDir * zoomAmt);
+
+            WorldTransform = worldNormal * zoomTransform;
+            CritLineTransform = worldCritLine;
 
             var critDir = Vector3.Normalize(((Matrix4x4)worldNoRoll).Translation);
             float rotToCrit = MathL.Atan(critDir.Y, -critDir.Z);
             
-            float cameraRot = Camera.FieldOfView / 2 - Camera.FieldOfView * critScreenY;
+            float cameraRot = Camera.FieldOfView / 2 - Camera.FieldOfView * CritScreenY;
             float cameraPitch = rotToCrit + MathL.ToRadians(cameraRot);
 
             Camera.Rotation = Quaternion.CreateFromYawPitchRoll(0, cameraPitch, 0);
