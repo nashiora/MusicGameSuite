@@ -127,27 +127,27 @@ namespace theori.Game
         /// Applies a full spin (360 rotation with recovery animation)
         ///  to this highway using the given associated parameters.
         /// </summary>
-        public void ApplySpin(SpinParams p)
+        public void ApplySpin(SpinParams p, time_t? time = null)
         {
-            m_spin = new Timed<SpinParams>(m_position, p);
+            m_spin = new Timed<SpinParams>(time ?? m_position, p);
         }
 
         /// <summary>
         /// Applies a back-and-forth swing to this highway
         ///  using the given associated parameters.
         /// </summary>
-        public void ApplySwing(SwingParams p)
+        public void ApplySwing(SwingParams p, time_t? time = null)
         {
-            m_swing = new Timed<SwingParams>(m_position, p);
+            m_swing = new Timed<SwingParams>(time ?? m_position, p);
         }
         
         /// <summary>
         /// Applies a horizontal "wobble" to this highway
         ///  using the given associated parameters.
         /// </summary>
-        public void ApplyWobble(WobbleParams p)
+        public void ApplyWobble(WobbleParams p, time_t? time = null)
         {
-            m_wobble = new Timed<WobbleParams>(m_position, p);
+            m_wobble = new Timed<WobbleParams>(time ?? m_position, p);
         }
 
         #endregion
@@ -268,7 +268,7 @@ namespace theori.Game
 
             if (m_spin != null)
             {
-                if (m_spin.StartTime + m_spin.Params.Duration < m_position)
+                if (m_spin.StartTime > m_position || m_spin.StartTime + m_spin.Params.Duration < m_position)
                     m_spin = null;
                 else
                 {
@@ -297,7 +297,7 @@ namespace theori.Game
 
             if (m_swing != null)
             {
-                if (m_swing.StartTime + m_swing.Params.Duration < m_position)
+                if (m_swing.StartTime > m_position || m_swing.StartTime + m_swing.Params.Duration < m_position)
                     m_swing = null;
                 else
                 {
@@ -325,7 +325,7 @@ namespace theori.Game
 
             if (m_wobble != null)
             {
-                if (m_wobble.StartTime + m_wobble.Params.Duration < m_position)
+                if (m_wobble.StartTime > m_position || m_wobble.StartTime + m_wobble.Params.Duration < m_position)
                     m_wobble = null;
                 else
                 {

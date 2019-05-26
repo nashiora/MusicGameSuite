@@ -105,10 +105,16 @@ namespace theori.Game.Scenes
                 if (dir != PlayDirection.Forward) return;
 
                 if (obj is Event evt)
-                    PlaybackEventTrigger(evt);
-                else PlaybackObjectBegin(obj);
+                    PlaybackEventTrigger(evt, dir);
             };
-            m_playback.ObjectTailCrossCritical += (dir, obj) => PlaybackObjectEnd(obj);
+            m_playback.ObjectTailCrossCritical += (dir, obj) =>
+            {
+                if (dir != PlayDirection.Backward) return;
+
+                if (dir == PlayDirection.Backward && obj is Event evt)
+                    PlaybackEventTrigger(evt, dir);
+                else PlaybackObjectEnd(obj);
+            };
             
             m_highwayView.ViewDuration = m_playback.LookAhead;
 
@@ -270,30 +276,38 @@ end
             }
         }
 
-        private void PlaybackEventTrigger(Event evt)
+        private void PlaybackEventTrigger(Event evt, PlayDirection direction)
         {
+            if (direction == PlayDirection.Forward)
+            {
+                switch (evt)
+                {
+                    case LaserApplicationEvent app: m_control.LaserApplication = app.Application; break;
+
+                    // TODO(local): left/right lasers separate + allow both independent if needed
+                    case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
+                    case LaserFilterKindEvent filterKind:
+                    {
+                        m_audioController.SetEffect(6, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6));
+                    }
+                    break;
+
+                    case LaserParamsEvent pars:
+                    {
+                        if (pars.LaserIndex.HasFlag(LaserIndex.Left)) m_control.LeftLaserParams = pars.Params;
+                        if (pars.LaserIndex.HasFlag(LaserIndex.Right)) m_control.RightLaserParams = pars.Params;
+                    }
+                    break;
+
+                    case SlamVolumeEvent pars: m_slamSample.Volume = pars.Volume * 0.7f; break;
+                }
+            }
+
             switch (evt)
             {
-                case LaserApplicationEvent app: m_control.LaserApplication = app.Application; break;
-                
-                // TODO(local): left/right lasers separate + allow both independent if needed
-                case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
-                case LaserFilterKindEvent filterKind:
-                {
-                    m_audioController.SetEffect(6, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6));
-                } break;
-
-                case LaserParamsEvent pars:
-                {
-                    if (pars.LaserIndex.HasFlag(LaserIndex.Left))  m_control.LeftLaserParams = pars.Params;
-                    if (pars.LaserIndex.HasFlag(LaserIndex.Right)) m_control.RightLaserParams = pars.Params;
-                } break;
-                
-                case SlamVolumeEvent pars: m_slamSample.Volume = pars.Volume * 0.7f; break;
-
-                case SpinImpulseEvent spin: m_control.ApplySpin(spin.Params); break;
-                case SwingImpulseEvent swing: m_control.ApplySwing(swing.Params); break;
-                case WobbleImpulseEvent wobble: m_control.ApplyWobble(wobble.Params); break;
+                case SpinImpulseEvent spin: m_control.ApplySpin(spin.Params, spin.AbsolutePosition); break;
+                case SwingImpulseEvent swing: m_control.ApplySwing(swing.Params, swing.AbsolutePosition); break;
+                case WobbleImpulseEvent wobble: m_control.ApplyWobble(wobble.Params, wobble.AbsolutePosition); break;
             }
         }
 
