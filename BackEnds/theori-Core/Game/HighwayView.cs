@@ -243,8 +243,8 @@ namespace theori.Game
                 //const float CONTNR_Z = -1.1f;
                 
                 const float ANCHOR_ROT = 2.5f;
-                const float ANCHOR_Y = -0.85f;
-                const float CONTNR_Z = -0.875f;
+                const float ANCHOR_Y = -0.7925f;
+                const float CONTNR_Z = -0.975f;
 
                 var origin = Transform.RotationZ(roll);
                 var anchor = Transform.RotationX(ANCHOR_ROT)

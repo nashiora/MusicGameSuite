@@ -30,9 +30,11 @@ namespace theori.Game
                 {
                     float result;
                     if (input > 3) result = 0.2f; // disallows super zooms
-                    else if (input > -3)
+                    else if (input > 0) // 0 - 3
                         result = MathL.Square((input - 3) / 3.0f) * 0.8f + 0.2f;
-                    else result = -1.067f * (input + 3) + 3.4f;
+                    else if (input > -3) // -3 - 0
+                        result = -0.8f * input + 1;
+                    else result = -input + 0.4f;
                     return result - 1;
                 },
 
