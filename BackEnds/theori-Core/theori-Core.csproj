@@ -102,7 +102,6 @@
     <Compile Include="Game\CriticalLine.cs" />
     <Compile Include="Game\HighwayControl.cs" />
     <Compile Include="Game\HighwayView.cs" />
-    <Compile Include="Game\Judgement\StreamJudge.cs" />
     <Compile Include="Game\LaserRollSampler.cs" />
     <Compile Include="Game\ObjectRenderable3D.cs" />
     <Compile Include="Game\PositionFunc.cs" />
@@ -193,7 +192,9 @@
     <EmbeddedResource Include="NotoSansCJKjp-Regular.otf" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Game\Judgement\" />
+  </ItemGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
