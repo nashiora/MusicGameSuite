@@ -389,7 +389,7 @@ namespace KShootMania
                                 pv = new ParamValue(1);
                             else if (v.Contains("off"))
                                 pv = new ParamValue(0);
-                            if (v.Contains('/'))
+                            else if (v.Contains('/'))
                                 pv = new ParamValue(1.0f / int.Parse(v.Substring(v.IndexOf('/') + 1)));
                             else if (v.Contains('%'))
                                 pv = new ParamValue(1.0f / int.Parse(v.Substring(0, v.IndexOf('%'))));

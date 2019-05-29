@@ -25,7 +25,7 @@ namespace theori.Game
                 LaserTiltToBackgroundRotationMult = 0.45f,
 
                 ZoomMinBound = -16.0f, // Not going to let it be unbound but will totally stop short
-                ZoomMaxBound = 3.0f, 
+                ZoomMaxBound = 3.0f,
                 ZoomFunction = (input) =>
                 {
                     float result;
@@ -38,7 +38,26 @@ namespace theori.Game
                     return result - 1;
                 },
 
-                PitchUnitDegrees = 15,
+                PitchUnitDegrees = 15, // for reference, won't actually be used since PitchFunction is defined
+                PitchFunction = (input) =>
+                {
+                    // TODO(local): It's pretty necessary to have the top zoom line up with
+                    //  key points from KSM's view.
+                    // The two I've found most important are -400 in KSM is flat with the camera zoom,
+                    //  and +559 is flat with the screen like a 2D view.
+                    // It MIGHT be worth also checking for the opposite of -400 for pointing straight at
+                    //  the camera, and +1200 for being a 180 degree rotation as that won't be accurate
+                    //  if this is implemented as I normally would.
+                    // The biggest problem, though, is that, currently, figuring out what angles will
+                    //  actually line up based on the view angle is going to be difficult and manual.
+                    // The highway view will need to be more "configurable" as well, so that the viewing
+                    //  angle the distance from the camera, etc. can all be pre-determined and also
+                    //  imported and used for these calculations without giving access to the 
+                    //  highway view to this part of the program.
+                    return input * 15;
+                },
+
+                OffsetUnitWorld = 5.0f / (12 * 1.16f),
             };
         }
 

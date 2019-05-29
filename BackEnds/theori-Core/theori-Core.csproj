@@ -102,6 +102,7 @@
     <Compile Include="Game\CriticalLine.cs" />
     <Compile Include="Game\HighwayControl.cs" />
     <Compile Include="Game\HighwayView.cs" />
+    <Compile Include="Game\Judgement\StreamJudge.cs" />
     <Compile Include="Game\LaserRollSampler.cs" />
     <Compile Include="Game\ObjectRenderable3D.cs" />
     <Compile Include="Game\PositionFunc.cs" />
