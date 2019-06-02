@@ -125,13 +125,14 @@
     <Compile Include="Extensions\NumericExt.cs" />
     <Compile Include="Extensions\ShaderProgramExt.cs" />
     <Compile Include="Extensions\StringExt.cs" />
+    <Compile Include="GameModes\GameModeDescription.cs" />
     <Compile Include="Game\CriticalLine.cs" />
     <Compile Include="Game\HighwayControl.cs" />
     <Compile Include="Game\HighwayView.cs" />
     <Compile Include="Game\LaserRollSampler.cs" />
     <Compile Include="Game\ObjectRenderable3D.cs" />
     <Compile Include="Game\PositionFunc.cs" />
-    <Compile Include="Game\Scene.cs" />
+    <Compile Include="Layer.cs" />
     <Compile Include="Game\Scenes\EditorCore.cs" />
     <Compile Include="Game\Scenes\VoltexEdit.cs" />
     <Compile Include="Graphics\BasicCamera.cs" />

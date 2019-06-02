@@ -8,7 +8,6 @@ using OpenGL;
 using theori.Audio;
 using theori.Audio.NVorbis;
 using theori.Configuration;
-using theori.Game;
 using theori.Graphics;
 using theori.IO;
 using theori.Platform;
@@ -25,19 +24,74 @@ namespace theori
 
         internal static ProgramPipeline Pipeline { get; private set; }
 
-        private static readonly Stack<Scene> states = new Stack<Scene>();
-        private static Scene State => states.Count == 0 ? null : states.Peek();
+        private static readonly List<Layer> layers = new List<Layer>();
+        private static readonly List<Overlay> overlays = new List<Overlay>();
 
-        public static void PushState(Scene state)
+        private static int LayerCount => layers.Count;
+        private static int OverlayCount => overlays.Count;
+
+        /// <summary>
+        /// Adds a new, uninitialized layer to the top of the layer stack.
+        /// The layer must never have been in the layer stack before.
+        /// 
+        /// This is to make sure that the initialization and destruction process
+        ///  is well defined, no initialized or destroyed layers are allowed back in.
+        /// </summary>
+        public static void PushLayer(Layer layer)
         {
-            states.Push(state);
-            // TODO(local): queue up inits better
-            state.Init();
+            if (layer.lifetimeState != Layer.LayerLifetimeState.Uninitialized)
+            {
+                throw new Exception("Layer has already been in the layer stack. Cannot re-initialize.");
+            }
+
+            layers.Add(layer);
+
+            if (layer.BlocksParentLayer)
+            {
+                for (int i = LayerCount - 2; i > 0; i--)
+                {
+                    var nextLayer = layers[i];
+                    nextLayer.Suspend();
+
+                    if (nextLayer.BlocksParentLayer)
+                    {
+                        // if it blocks the previous layers then this has happened already for higher layers.
+                        break;
+                    }
+                }
+            }
+
+            layer.Init();
+            layer.lifetimeState = Layer.LayerLifetimeState.Alive;
         }
 
-        public static Scene PopState()
+        /// <summary>
+        /// Removes the topmost layer from the layer stack and destroys it.
+        /// </summary>
+        public static void PopLayer()
         {
-            return states.Pop();
+            var layer = layers[LayerCount - 1];
+            layers.RemoveAt(LayerCount - 1);
+
+            layer.Destroy();
+            layer.lifetimeState = Layer.LayerLifetimeState.Destroyed;
+
+            if (layer.BlocksParentLayer)
+            {
+                int startIndex = LayerCount - 1;
+                for (; startIndex > 0; startIndex--)
+                {
+                    if (layers[startIndex].BlocksParentLayer)
+                    {
+                        // if it blocks the previous layers then this will happen later for higher layers.
+                        break;
+                    }
+                }
+
+                // resume layers bottom to top
+                for (int i = startIndex; i < LayerCount; i++)
+                    layers[i].Resume();
+            }
         }
 
         public static void Init(IPlatform platformImpl)
@@ -51,10 +105,7 @@ namespace theori
             Window.VSync = VSyncMode.Off;
             Logger.Log($"Window VSync: { Window.VSync }");
 
-            Window.ClientSizeChanged += (w, h) =>
-            {
-                State.ClientSizeChanged(w, h);
-            };
+            Window.ClientSizeChanged += OnClientSizeChanged;
             
             Window.Update();
             InputManager.Initialize();
@@ -74,16 +125,33 @@ namespace theori
             #endif
         }
 
-        public static void Start(Scene initialState)
+        private static void OnClientSizeChanged(int w, int h)
         {
-            PushState(initialState);
+            layers.ForEach(l => l.ClientSizeChanged(w, h));
+            overlays.ForEach(l => l.ClientSizeChanged(w, h));
+        }
+
+        public static void Start(Layer initialState)
+        {
+            PushLayer(initialState);
 
             var timer = Stopwatch.StartNew();
 
             long lastFrameStart = timer.ElapsedMilliseconds;
             while (!Window.ShouldExitApplication)
             {
-                int targetFrameRate = State.TargetFrameRate;
+                int targetFrameRate = 0;
+
+                int layerStartIndex = LayerCount - 1;
+                for (; layerStartIndex >= 0; layerStartIndex--)
+                {
+                    var layer = layers[layerStartIndex];
+                    targetFrameRate = MathL.Max(targetFrameRate, layer.TargetFrameRate);
+
+                    if (layer.BlocksParentLayer)
+                        break;
+                }
+
                 if (targetFrameRate == 0)
                     targetFrameRate = 60; // TODO(local): configurable target frame rate plz
 
@@ -96,14 +164,11 @@ namespace theori
                 while (elapsedTime > targetFrameTimeMillis)
                 {
                     updated = true;
-
-                    currentTime = timer.ElapsedMilliseconds;
-			        long actualDeltaTime = currentTime - lastFrameStart;
-
                     lastFrameStart = currentTime;
+
                     elapsedTime -= targetFrameTimeMillis;
 
-                    Time.Delta = actualDeltaTime / 1_000.0f;
+                    Time.Delta = targetFrameTimeMillis / 1_000.0f;
                     Time.Total = lastFrameStart / 1_000.0f;
                     
                     Keyboard.Update();
@@ -116,7 +181,9 @@ namespace theori
                         return;
                     }
 
-                    State.Update(Time.Delta, Time.Total);
+                    // update top down
+                    for (int i = LayerCount - 1; i >= layerStartIndex; i--)
+                        layers[i].Update(Time.Delta, Time.Total);
                 }
 
                 if (updated && Window.Width > 0 && Window.Height > 0)
@@ -124,7 +191,9 @@ namespace theori
                     GL.ClearColor(0, 0, 0, 1);
                     GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                    State.Render();
+                    // render bottom up
+                    for (int i = layerStartIndex; i < LayerCount; i++)
+                        layers[i].Render();
 
                     Window.SwapBuffer();
                 }

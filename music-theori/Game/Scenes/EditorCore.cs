@@ -25,7 +25,7 @@ namespace theori.Game.Scenes
     /// User input data should come mostly from those sub-areas as well, so the 2D
     ///  and 3D views propogate input events upwards.
     /// </summary>
-    public sealed class EditorCore : Scene
+    public sealed class EditorCore : Layer
     {
         enum State
         {

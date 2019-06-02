@@ -13,7 +13,7 @@ using MoonSharp.Interpreter;
 
 namespace theori.Game.Scenes
 {
-    public class VoltexEdit : Scene
+    public class VoltexEdit : Layer
     {
         private LuaScript m_luaScript;
 
