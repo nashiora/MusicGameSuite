@@ -290,9 +290,6 @@ namespace theori.Game
 
             HorizonHeight = Camera.Project(WorldTransform, Camera.Position + new Vector3(0, 0, -1)).Y;
 
-            Vector3 headPosition = Vector3.Transform(new Vector3(0, 0, 1), WorldTransform.Matrix);
-            Vector3 tailPosition = Vector3.Transform(new Vector3(0, 0, -LENGTH_BASE), WorldTransform.Matrix);
-            Vector3 cameraForward = Vector3.Transform(new Vector3(0, 0, -1), Camera.Rotation);
 
             Vector3 V3Project(Vector3 a, Vector3 b) => b * (Vector3.Dot(a, b) / Vector3.Dot(b, b));
 
@@ -302,12 +299,30 @@ namespace theori.Game
                 return MathL.Sign(Vector3.Dot(ray, projected)) * projected.Length();
             }
 
-            float distToHead = SignedDistance(headPosition - Camera.Position, cameraForward);
-            float distToTail = SignedDistance(tailPosition - Camera.Position, cameraForward);
+            float minClipDist = float.MaxValue;
+            float maxClipDist = float.MinValue;
 
-            Camera.FarDistance = MathL.Max(distToTail, distToHead);
-            Camera.NearDistance = Math.Max(0.01f, MathL.Min(distToTail, distToHead));
+            Vector3 cameraForward = Vector3.Transform(new Vector3(0, 0, -1), Camera.Rotation);
+            for (int i = 0; i < 4; i++)
+            {
+                float clipDist = SignedDistance(Vector3.Transform(m_clipPoints[i], WorldTransform.Matrix) - Camera.Position, cameraForward);
+
+                minClipDist = Math.Min(minClipDist, clipDist);
+                maxClipDist = Math.Max(maxClipDist, clipDist);
+            }
+
+            float clipNear = Math.Max(0.01f, minClipDist);
+            float clipFar = maxClipDist;
+
+            // TODO(local): see if the default epsilon is enough? There's no easy way to check clip planes manually right now
+            if (clipNear.ApproxEq(clipFar))
+                clipFar = clipNear + 0.001f;
+
+            Camera.NearDistance = clipNear;
+            Camera.FarDistance = clipFar;
         }
+
+        private Vector3[] m_clipPoints = new Vector3[4] { new Vector3(-1, 0, 1), new Vector3(1, 0, 1), new Vector3(-1, 0, -LENGTH_BASE), new Vector3(1, 0, -LENGTH_BASE) };
 
         public void Render()
         {

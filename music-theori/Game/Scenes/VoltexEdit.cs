@@ -44,7 +44,8 @@ namespace theori.Game.Scenes
             }
         }
 
-        public override int TargetFrameRate => 144*2;
+        private int m_targetFrameRateTemp = 144 * 2;
+        public override int TargetFrameRate => m_targetFrameRateTemp;
 
         #region Edit Settings
 
@@ -328,6 +329,12 @@ end
                     m_highwayView.ViewDuration = m_playback.LookAhead;
                 } break;
 
+                case KeyCode.F:
+                {
+                    m_targetFrameRateTemp = (144 * 2 + 60) - m_targetFrameRateTemp;
+                }
+                break;
+
                 case KeyCode.O:
                 {
                     OpenChart();
@@ -502,7 +509,7 @@ end
                 m_audioController.EffectsActive = true;
             }
 
-            m_control.Update();
+            m_control.Update(Time.Delta);
             m_control.ApplyToView(m_highwayView);
             
             m_highwayView.Update();

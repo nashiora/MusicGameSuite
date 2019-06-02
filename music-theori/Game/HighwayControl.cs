@@ -302,7 +302,7 @@ namespace theori.Game
             return amplitude * decay * MathL.Sin(frequency * 2 * t * MathL.Pi);
         }
 
-        public void Update()
+        public void Update(float delta)
         {
             if (MathL.Abs(m_combinedLaserOutput) < 0.001f) m_combinedLaserOutput = 0;
 
@@ -365,23 +365,26 @@ namespace theori.Game
                 } break;
             }
 
+            const float SPEED_FAST = 90;
+            const float SPEED_SLOW = 60;
+
             m_targetCombinedLaserOutput = laserOutput;
             if (m_targetCombinedLaserOutput == 0)
             {
-                LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 2.0f, (float)m_measureDuration.Seconds * 2);
+                LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 0, (float)m_measureDuration.Seconds * 4);
             }
             else
             {
                 switch (m_laserDamping)
                 {
-                    case Damping.Fast: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 2.00f, 10); break;
-                    case Damping.Slow: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, 0.25f, 10); break;
+                    case Damping.Fast: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, SPEED_FAST, 10); break;
+                    case Damping.Slow: LerpTo(ref m_combinedLaserOutput, m_targetCombinedLaserOutput, SPEED_SLOW, 10); break;
                     case Damping.Off:
                     {
                         const int SPEED = 60;
                         if (m_targetCombinedLaserOutput < m_combinedLaserOutput)
-                            m_combinedLaserOutput = Math.Max(m_targetCombinedLaserOutput, m_combinedLaserOutput - Time.Delta * SPEED);
-                        else m_combinedLaserOutput = Math.Min(m_targetCombinedLaserOutput, m_combinedLaserOutput + Time.Delta * SPEED);
+                            m_combinedLaserOutput = Math.Max(m_targetCombinedLaserOutput, m_combinedLaserOutput - delta * SPEED);
+                        else m_combinedLaserOutput = Math.Min(m_targetCombinedLaserOutput, m_combinedLaserOutput + delta * SPEED);
                     } break;
                 }
             }
@@ -500,8 +503,9 @@ namespace theori.Game
             void LerpTo(ref float value, float target, float max, float speed)
             {
                 float diff = MathL.Abs(target - value);
-                float change = diff * Time.Delta * speed;
-                change = MathL.Min(max, change);
+                float change = diff * delta * speed;
+
+                if (max != 0) change = MathL.Min(max * delta, change);
 
                 if (target < value)
                     value = MathL.Max(value - change, target);
