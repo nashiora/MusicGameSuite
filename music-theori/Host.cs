@@ -8,6 +8,7 @@ using OpenGL;
 using theori.Audio;
 using theori.Audio.NVorbis;
 using theori.Configuration;
+using theori.GameModes;
 using theori.Graphics;
 using theori.IO;
 using theori.Platform;
@@ -24,8 +25,13 @@ namespace theori
 
         internal static ProgramPipeline Pipeline { get; private set; }
 
+        private static bool runProgramLoop = false;
+
         private static readonly List<Layer> layers = new List<Layer>();
         private static readonly List<Overlay> overlays = new List<Overlay>();
+
+        // TODO(local): Probably make this a dictionary for lookups
+        private static readonly List<GameModeDescription> sharedGameModes = new List<GameModeDescription>();
 
         private static int LayerCount => layers.Count;
         private static int OverlayCount => overlays.Count;
@@ -94,6 +100,12 @@ namespace theori
             }
         }
 
+        private static void OnClientSizeChanged(int w, int h)
+        {
+            layers.ForEach(l => l.ClientSizeChanged(w, h));
+            overlays.ForEach(l => l.ClientSizeChanged(w, h));
+        }
+
         public static void Init(IPlatform platformImpl)
         {
             Platform = platformImpl;
@@ -125,20 +137,35 @@ namespace theori
             #endif
         }
 
-        private static void OnClientSizeChanged(int w, int h)
+        public static void RegisterSharedGameMode(GameModeDescription desc)
         {
-            layers.ForEach(l => l.ClientSizeChanged(w, h));
-            overlays.ForEach(l => l.ClientSizeChanged(w, h));
+            if (!desc.SupportsSharedUsage)
+            {
+                Logger.Log($"{ nameof(RegisterSharedGameMode) } called with a game mode that does not support shared usage.");
+                return;
+            }
+
+            foreach (var mode in sharedGameModes)
+            {
+                // simply don't add exact duplicates
+                if (mode == desc) return;
+                if (mode.Name == desc.Name)
+                {
+                    Logger.Log("Attempt to add a game mode with the same name as a previously added game mode. Until unique identification is added, this is illegal.");
+                    return;
+                }
+            }
+
+            sharedGameModes.Add(desc);
         }
 
-        public static void Start(Layer initialState)
+        private static void ProgramLoop()
         {
-            PushLayer(initialState);
-
             var timer = Stopwatch.StartNew();
-
             long lastFrameStart = timer.ElapsedMilliseconds;
-            while (!Window.ShouldExitApplication)
+
+            runProgramLoop = true;
+            while (runProgramLoop && !Window.ShouldExitApplication)
             {
                 int targetFrameRate = 0;
 
@@ -170,7 +197,7 @@ namespace theori
 
                     Time.Delta = targetFrameTimeMillis / 1_000.0f;
                     Time.Total = lastFrameStart / 1_000.0f;
-                    
+
                     Keyboard.Update();
                     Mouse.Update();
                     Window.Update();
@@ -182,14 +209,15 @@ namespace theori
                     }
 
                     // update top down
-                    for (int i = LayerCount - 1; i >= layerStartIndex; i--)
+                    for (int i = LayerCount - 1; i >= layerStartIndex && runProgramLoop; i--)
                         layers[i].Update(Time.Delta, Time.Total);
                 }
 
+                if (!runProgramLoop) break;
                 if (updated && Window.Width > 0 && Window.Height > 0)
                 {
                     GL.ClearColor(0, 0, 0, 1);
-                    GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                    GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit);
 
                     // render bottom up
                     for (int i = layerStartIndex; i < LayerCount; i++)
@@ -198,6 +226,34 @@ namespace theori
                     Window.SwapBuffer();
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns the host to a post-initialized state so Start* functions can be called again cleanly.
+        /// </summary>
+        public static void Restart()
+        {
+            runProgramLoop = false;
+        }
+
+        public static void StartStandalone(GameModeDescription desc, string[] args)
+        {
+            if (desc != null)
+                desc.InvokeStandalone(args);
+            else PushLayer(new StandaloneBootLoader(args));
+            ProgramLoop();
+        }
+
+        public static void StartShared(string[] args)
+        {
+        }
+
+        // TODO(local): remove this start feature in favor of starting in either standalone or shared only, no default layer
+        [Conditional("DEBUG")]
+        public static void LoadDirectly(Layer initialState)
+        {
+            PushLayer(initialState);
+            ProgramLoop();
         }
 
         public static void Quit(int code = 0)

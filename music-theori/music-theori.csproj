@@ -126,6 +126,7 @@
     <Compile Include="Extensions\ShaderProgramExt.cs" />
     <Compile Include="Extensions\StringExt.cs" />
     <Compile Include="GameModes\GameModeDescription.cs" />
+    <Compile Include="GameModes\StandaloneBootLoader.cs" />
     <Compile Include="Game\CriticalLine.cs" />
     <Compile Include="Game\HighwayControl.cs" />
     <Compile Include="Game\HighwayView.cs" />

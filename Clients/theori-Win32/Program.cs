@@ -1,6 +1,8 @@
 ﻿using System;
-using theori.Game.Scenes;
+
 using theori.Win32.Platform;
+
+using NeuroSonic;
 
 namespace theori.Win32
 {
@@ -9,12 +11,11 @@ namespace theori.Win32
         [STAThread]
         static void Main(string[] args)
         {
-            string chartToLoad = null;
-            //if (args.Length > 0) chartToLoad = args[0];
-
             Host.Init(new PlatformWin32());
-            //Host.Start(new EditorCore(chartToLoad));
-            Host.Start(new VoltexEdit());
+            // so we can boot into shared mode with it
+            Host.RegisterSharedGameMode(NeuroSonicDescription.Instance);
+            // but currently, just launch it in standalone
+            Host.StartStandalone(NeuroSonicDescription.Instance, args);
         }
     }
 }

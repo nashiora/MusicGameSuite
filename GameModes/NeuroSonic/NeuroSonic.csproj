@@ -41,7 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GamePlay\GameDebugOverlay.cs" />
+    <Compile Include="GamePlay\GameLayer.cs" />
     <Compile Include="NeuroSonicDescription.cs" />
+    <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -57,6 +60,10 @@
       <Project>{e9035138-c9c8-4aba-861e-98c7e65e739d}</Project>
       <Name>music-theori</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="GamePlay\Shared\" />
+    <Folder Include="GamePlay\Standalone\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
