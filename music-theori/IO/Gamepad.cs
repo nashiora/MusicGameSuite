@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using static SDL2.SDL;
 
-namespace theori.Input
+namespace theori.IO
 {
     public class Gamepad : Disposable
     {

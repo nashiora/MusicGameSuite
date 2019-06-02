@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using theori.IO;
 using theori.Platform;
 
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;

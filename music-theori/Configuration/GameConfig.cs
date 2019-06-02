@@ -1,4 +1,4 @@
-﻿using theori.Input;
+﻿using theori.IO;
 
 namespace theori.Configuration
 {

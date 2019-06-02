@@ -10,7 +10,7 @@ using theori.Audio.NVorbis;
 using theori.Configuration;
 using theori.Game;
 using theori.Graphics;
-using theori.Input;
+using theori.IO;
 using theori.Platform;
 
 namespace theori
@@ -81,19 +81,27 @@ namespace theori
             var timer = Stopwatch.StartNew();
 
             long lastFrameStart = timer.ElapsedMilliseconds;
-            long targetFrameTimeMillis = 1_000 / 240;
-
             while (!Window.ShouldExitApplication)
             {
+                int targetFrameRate = State.TargetFrameRate;
+                if (targetFrameRate == 0)
+                    targetFrameRate = 60; // TODO(local): configurable target frame rate plz
+
+                long targetFrameTimeMillis = 1_000 / targetFrameRate;
+
                 long currentTime = timer.ElapsedMilliseconds;
                 long elapsedTime = currentTime - lastFrameStart;
 
-                if (elapsedTime > targetFrameTimeMillis)
+                bool updated = false;
+                while (elapsedTime > targetFrameTimeMillis)
                 {
+                    updated = true;
+
                     currentTime = timer.ElapsedMilliseconds;
 			        long actualDeltaTime = currentTime - lastFrameStart;
 
                     lastFrameStart = currentTime;
+                    elapsedTime -= targetFrameTimeMillis;
 
                     Time.Delta = actualDeltaTime / 1_000.0f;
                     Time.Total = lastFrameStart / 1_000.0f;
@@ -108,17 +116,17 @@ namespace theori
                         return;
                     }
 
-                    State.Update();
+                    State.Update(Time.Delta, Time.Total);
+                }
 
-                    if (Window.Width > 0 && Window.Height > 0)
-                    {
-                        GL.ClearColor(0, 0, 0, 1);
-                        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+                if (updated && Window.Width > 0 && Window.Height > 0)
+                {
+                    GL.ClearColor(0, 0, 0, 1);
+                    GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                        State.Render();
+                    State.Render();
 
-                        Window.SwapBuffer();
-                    }
+                    Window.SwapBuffer();
                 }
             }
         }

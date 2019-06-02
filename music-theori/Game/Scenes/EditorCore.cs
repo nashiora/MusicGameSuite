@@ -164,6 +164,18 @@ namespace theori.Game.Scenes
             }
         }
 
+        public override void Destroy()
+        {
+        }
+
+        public override void Suspended()
+        {
+        }
+
+        public override void Resumed()
+        {
+        }
+
         public override void Update()
         {
             m_gui.BeforeLayout();

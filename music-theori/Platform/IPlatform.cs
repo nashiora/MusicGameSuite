@@ -1,4 +1,6 @@
-﻿namespace theori.Platform
+﻿using theori.IO;
+
+namespace theori.Platform
 {
     public interface IPlatform
     {

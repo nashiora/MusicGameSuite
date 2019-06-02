@@ -1,23 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using theori.Graphics;
 using theori.Gui;
-using theori.Input;
-using OpenGL;
+using theori.IO;
 using OpenRM;
 using OpenRM.Convert;
 using OpenRM.Voltex;
-using System.Diagnostics;
 using theori.Audio;
 using OpenRM.Audio.Effects;
 using MoonSharp.Interpreter;
-using theori.Configuration;
-using theori.Platform;
 
 namespace theori.Game.Scenes
 {
@@ -51,6 +43,8 @@ namespace theori.Game.Scenes
                 return (double)(position / cp.MeasureDuration);
             }
         }
+
+        public override int TargetFrameRate => 144*2;
 
         #region Edit Settings
 
@@ -152,6 +146,18 @@ function event.gp_slam_play(slam_magnitude)
     XShakeCamera(-math.sign(slam_magnitude));
 end
 ");
+        }
+
+        public override void Destroy()
+        {
+        }
+
+        public override void Suspended()
+        {
+        }
+
+        public override void Resumed()
+        {
         }
 
         private void ResetPlayback()
@@ -316,6 +322,12 @@ end
 
             switch (key.KeyCode)
             {
+                case KeyCode.V:
+                {
+                    m_playback.LookAhead = 1.75 - m_playback.LookAhead;
+                    m_highwayView.ViewDuration = m_playback.LookAhead;
+                } break;
+
                 case KeyCode.O:
                 {
                     OpenChart();

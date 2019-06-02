@@ -1,6 +1,6 @@
 ﻿using theori.Configuration;
 
-namespace theori.Input
+namespace theori.IO
 {
     public enum InputDevice
     {

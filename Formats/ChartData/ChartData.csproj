@@ -83,9 +83,9 @@
     <Compile Include="Voltex\ParamTypes.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Utils\SystemPlus\SystemPlus.csproj">
-      <Project>{fcd58f40-266a-485e-a2c2-6108398da395}</Project>
-      <Name>SystemPlus</Name>
+    <ProjectReference Include="..\..\Libraries\System-Additions\System-Additions.csproj">
+      <Project>{cfbacb82-087e-4ed3-a496-55f420880d82}</Project>
+      <Name>System-Additions</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

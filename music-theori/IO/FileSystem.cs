@@ -1,4 +1,4 @@
-﻿namespace theori.Platform
+﻿namespace theori.IO
 {
     public enum DialogResult
     {

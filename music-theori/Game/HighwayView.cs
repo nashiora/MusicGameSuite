@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenGL;
 using theori.Graphics;
-using theori.Input;
+using theori.IO;
 using OpenRM;
 using OpenRM.Voltex;
 using System.Diagnostics;
