@@ -129,7 +129,6 @@
     <Compile Include="BootLoaders\StandaloneBootLoader.cs" />
     <Compile Include="Game\PositionFunc.cs" />
     <Compile Include="Layer.cs" />
-    <Compile Include="Game\Scenes\EditorCore.cs" />
     <Compile Include="Graphics\BasicCamera.cs" />
     <Compile Include="Graphics\Font.cs" />
     <Compile Include="Graphics\Material.cs" />
