@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Numerics;
-using OpenRM;
+
+using theori;
 using theori.Graphics;
 
-namespace theori.Game
+using OpenRM;
+
+namespace NeuroSonic.GamePlay
 {
     internal abstract class ObjectRenderable3D : Disposable
     {

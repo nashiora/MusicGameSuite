@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
+
 using OpenRM;
 using OpenRM.Voltex;
 
-namespace theori.Game
+namespace NeuroSonic.GamePlay
 {
     public delegate float FloatFunction(float input);
 

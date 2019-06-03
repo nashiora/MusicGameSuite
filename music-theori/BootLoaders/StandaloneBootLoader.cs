@@ -1,4 +1,4 @@
-﻿namespace theori.GameModes
+﻿namespace theori.BootLoaders
 {
     public sealed class StandaloneBootLoader : Layer
     {

@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using OpenGL;
+
+using theori;
 using theori.Graphics;
-using theori.IO;
+
+using OpenGL;
+
 using OpenRM;
 using OpenRM.Voltex;
-using System.Diagnostics;
 
-namespace theori.Game
+namespace NeuroSonic.GamePlay
 {
     public class HighwayView
     {

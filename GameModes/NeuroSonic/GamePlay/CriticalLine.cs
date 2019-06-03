@@ -6,7 +6,7 @@ using theori.Gui;
 using theori.Graphics;
 using System;
 
-namespace theori.Game
+namespace NeuroSonic.GamePlay
 {
     public sealed class CriticalLine : Panel
     {

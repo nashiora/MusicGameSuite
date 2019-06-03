@@ -33,6 +33,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,8 +45,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GamePlay\CriticalLine.cs" />
     <Compile Include="GamePlay\GameDebugOverlay.cs" />
     <Compile Include="GamePlay\GameLayer.cs" />
+    <Compile Include="GamePlay\HighwayControl.cs" />
+    <Compile Include="GamePlay\HighwayView.cs" />
+    <Compile Include="GamePlay\LaserRollSampler.cs" />
+    <Compile Include="GamePlay\ObjectRenderable3D.cs" />
     <Compile Include="NeuroSonicDescription.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,10 +69,17 @@
       <Project>{e9035138-c9c8-4aba-861e-98c7e65e739d}</Project>
       <Name>music-theori</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\NativeWrappers\NaGL\NaGL.csproj">
+      <Project>{dbd0f498-06d6-4d51-89a4-0210e4c098e1}</Project>
+      <Name>NaGL</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="GamePlay\Shared\" />
     <Folder Include="GamePlay\Standalone\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

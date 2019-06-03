@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 using OpenRM;
 using OpenRM.Voltex;
 
-namespace theori.Game
+namespace NeuroSonic.GamePlay
 {
     sealed class LaserRollSampler
     {

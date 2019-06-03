@@ -2,16 +2,20 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using CSCore;
-using CSCore.Codecs;
-using OpenGL;
+
 using theori.Audio;
 using theori.Audio.NVorbis;
+using theori.BootLoaders;
 using theori.Configuration;
 using theori.GameModes;
 using theori.Graphics;
 using theori.IO;
 using theori.Platform;
+
+using CSCore;
+using CSCore.Codecs;
+
+using OpenGL;
 
 namespace theori
 {
@@ -246,13 +250,7 @@ namespace theori
 
         public static void StartShared(string[] args)
         {
-        }
-
-        // TODO(local): remove this start feature in favor of starting in either standalone or shared only, no default layer
-        [Conditional("DEBUG")]
-        public static void LoadDirectly(Layer initialState)
-        {
-            PushLayer(initialState);
+            PushLayer(new SharedBootLoader(args));
             ProgramLoop();
         }
 
