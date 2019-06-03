@@ -227,15 +227,9 @@ namespace theori.Game
                 else value = MathL.Min(value + change, target);
             }
             
-            //float rollScale = 1;
-            //LerpTo(ref roll, TargetLaserRoll * rollScale, 10 * LaserRollSpeed);
-            //LerpTo(ref roll, TargetLaserRoll * 10);
             roll = TargetLaserRoll;
-            //LerpTo(ref pitch, TargetPitch);
             pitch = TargetPitch;
-            //LerpTo(ref zoom, TargetZoom);
             zoom = TargetZoom;
-            //LerpTo(ref rollBase, TargetBaseRoll);
             
             Transform GetAtRoll(float roll, float xOffset)
             {
@@ -265,15 +259,6 @@ namespace theori.Game
             float highwayDist = zoomDir.Length();
             zoomDir = Vector3.Normalize(zoomDir);
 
-#if false
-            float zoomAmt;
-
-            if (zoom > 3) zoomAmt = 0.2f;
-            else if (zoom > -3) zoomAmt = MathL.Square((zoom - 3) / 3.0f) * 0.8f + 0.2f;
-            else zoomAmt = -1.067f * (zoom + 3) + 3.4f;
-
-            var zoomTransform = Transform.Translation(zoomDir * (zoomAmt - 1) * highwayDist);
-#endif
             var zoomTransform = Transform.Translation(zoomDir * zoom * highwayDist);
 
             WorldTransform = worldNormal * zoomTransform;
@@ -289,7 +274,6 @@ namespace theori.Game
             Camera.Rotation = Quaternion.CreateFromYawPitchRoll(0, cameraPitch, 0);
 
             HorizonHeight = Camera.Project(WorldTransform, Camera.Position + new Vector3(0, 0, -1)).Y;
-
 
             Vector3 V3Project(Vector3 a, Vector3 b) => b * (Vector3.Dot(a, b) / Vector3.Dot(b, b));
 
@@ -334,8 +318,6 @@ namespace theori.Game
 
             using (var queue = new RenderQueue(renderState))
             {
-                //queue.Draw(Transform.Scale(100, 100, 100) * Transform.RotationX(90) * Transform.Translation(0, 0, -LENGTH_BASE), btChipMesh, btChipMaterial, btChipParams);
-
                 var highwayParams = new MaterialParams();
                 highwayParams["LeftColor"] = new Vector3(0.0f, 0.5f, 1);
                 highwayParams["RightColor"] = new Vector3(1, 0.0f, 0.5f);
