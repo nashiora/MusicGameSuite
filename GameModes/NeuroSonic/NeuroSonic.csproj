@@ -55,6 +55,7 @@
     <Compile Include="NeuroSonicDescription.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Startup\NeuroSonicStandaloneStartup.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Formats\ChartData\ChartData.csproj">
