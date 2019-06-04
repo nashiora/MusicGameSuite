@@ -47,7 +47,7 @@ namespace theori
         /// This is to make sure that the initialization and destruction process
         ///  is well defined, no initialized or destroyed layers are allowed back in.
         /// </summary>
-        public static void PushLayer(Layer layer)
+        public static void PushLayer(Layer layer, Action<Layer> postInit = null)
         {
             if (layer.lifetimeState != Layer.LayerLifetimeState.Uninitialized)
             {
@@ -73,6 +73,8 @@ namespace theori
 
             layer.Init();
             layer.lifetimeState = Layer.LayerLifetimeState.Alive;
+
+            postInit?.Invoke(layer);
         }
 
         /// <summary>
@@ -102,6 +104,17 @@ namespace theori
                 for (int i = startIndex; i < LayerCount; i++)
                     layers[i].Resume();
             }
+        }
+
+        public static void PopToParent(Layer firstChild)
+        {
+            int childIndex = layers.IndexOf(firstChild);
+            if (childIndex < 0) return;
+
+            int numLayersToPop = LayerCount - childIndex;
+
+            for (int i = 0; i < numLayersToPop; i++)
+                PopLayer();
         }
 
         private static void OnClientSizeChanged(int w, int h)

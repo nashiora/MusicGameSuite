@@ -15,11 +15,27 @@ using OpenRM.Voltex;
 
 namespace NeuroSonic.GamePlay
 {
+    [Flags]
+    public enum AutoPlay
+    {
+        None = 0,
+
+        Buttons = 0x01,
+        Lasers = 0x02,
+
+        ButtonsAndLasers = Buttons | Lasers,
+    }
+
     public sealed class GameLayer : Layer
     {
         public override int TargetFrameRate => 288;
 
         public override bool BlocksParentLayer => true;
+
+        private readonly AutoPlay m_autoPlay;
+
+        private bool AutoButtons => (m_autoPlay & AutoPlay.Buttons) != 0;
+        private bool AutoLasers => (m_autoPlay & AutoPlay.Lasers) != 0;
 
         private HighwayControl m_control;
         private HighwayView m_highwayView;
@@ -34,8 +50,9 @@ namespace NeuroSonic.GamePlay
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
-        internal GameLayer(bool invokedFromStandalone)
+        internal GameLayer(AutoPlay autoPlay = AutoPlay.None)
         {
+            m_autoPlay = autoPlay;
         }
 
         public override void ClientSizeChanged(int width, int height)
@@ -96,7 +113,7 @@ namespace NeuroSonic.GamePlay
             };
         }
 
-        private void OpenChart()
+        internal void OpenChart()
         {
             if (RuntimeInfo.IsWindows)
             {
@@ -124,6 +141,12 @@ namespace NeuroSonic.GamePlay
                         return;
                     }
 
+                    if (m_audio != null)
+                    {
+                        m_audioController.Stop();
+                        m_audioController.Dispose();
+                    }
+
                     var audio = AudioTrack.FromFile(audioFile);
                     audio.Channel = Host.Mixer.MasterChannel;
                     audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
@@ -146,44 +169,35 @@ namespace NeuroSonic.GamePlay
                     m_audioController.Finish += () =>
                     {
                         Logger.Log("track complete");
+                        Host.PopToParent(this);
                     };
+
+                    time_t firstObjectTime = double.MaxValue;
+                    for (int s = 0; s < m_chart.StreamCount; s++)
+                        firstObjectTime = MathL.Min((double)firstObjectTime, m_chart.ObjectStreams[s].FirstObject?.AbsolutePosition.Seconds ?? double.MaxValue);
+
+                    m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 3);
+                    m_audioController.Play();
                 }
             }
         }
 
-        private void ResetPlayback()
-        {
-            if (m_chart == null) return;
-
-            time_t minStartTime = m_chart.TimeEnd;
-            for (int i = 0; i < 8; i++)
-            {
-                time_t startTime = m_chart[i].FirstObject?.AbsolutePosition ?? 0;
-                if (startTime < minStartTime)
-                    minStartTime = startTime;
-            }
-
-            minStartTime -= 3;
-            if (minStartTime < 0)
-                m_audio.Position = minStartTime;
-            else m_audio.Position = 0;
-
-            m_audioController.Play();
-        }
-
         public override void Destroy()
         {
-            m_audio?.Dispose();
+            m_audioController.Stop();
+
             m_audioController?.Dispose();
             //m_highwayView?.Dispose();
         }
 
         public override void Suspended()
         {
+            m_audioController.Stop();
         }
 
         public override void Resumed()
         {
+            m_audioController.Play();
         }
 
         private void PlaybackObjectBegin(OpenRM.Object obj)
@@ -271,21 +285,10 @@ namespace NeuroSonic.GamePlay
 
             switch (key.KeyCode)
             {
-                case KeyCode.SPACE:
+                case KeyCode.ESCAPE:
                 {
-                    if (m_audioController == null) break;
-
-                    if (m_audioController.PlaybackState == PlaybackState.Stopped)
-                        m_audioController.Play();
-                    else m_audioController.Stop();
-                }
-                break;
-
-                case KeyCode.O:
-                {
-                    OpenChart();
-                }
-                break;
+                    Host.PopToParent(this);
+                } break;
 
                 case KeyCode.RETURN:
                 {
@@ -306,13 +309,6 @@ namespace NeuroSonic.GamePlay
                 break;
 
                 case KeyCode.PAGEUP: m_audioController.Position += cp.MeasureDuration; break;
-                case KeyCode.PAGEDOWN: m_audioController.Position -= cp.MeasureDuration; break;
-
-                case KeyCode.F5:
-                {
-                    ResetPlayback();
-                }
-                break;
             }
         }
 

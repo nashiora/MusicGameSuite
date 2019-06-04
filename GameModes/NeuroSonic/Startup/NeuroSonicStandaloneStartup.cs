@@ -26,10 +26,10 @@ namespace NeuroSonic.Startup
             }
 
             public MenuItem(int i, string text, Action action)
-                : base(Font.Default16, text)
+                : base(Font.Default24, text)
             {
                 Action = action;
-                Position = new Vector2(0, 25 * i);
+                Position = new Vector2(0, 35 * i);
             }
         }
 
@@ -51,14 +51,14 @@ namespace NeuroSonic.Startup
             {
                 Children = new GuiElement[]
                 {
-                    new TextLabel(Font.Default24, "NeuroSonic Standalone Application")
+                    new TextLabel(Font.Default32, "NeuroSonic Standalone Application")
                     {
                         Position = new Vector2(20, 20),
                     },
 
                     new Panel()
                     {
-                        Position = new Vector2(40, 70),
+                        Position = new Vector2(40, 100),
 
                         Children = m_items = new MenuItem[]
                         {
@@ -112,11 +112,19 @@ namespace NeuroSonic.Startup
 
         private void EnterEventMode()
         {
-            Host.PushLayer(new GameLayer(true));
+            var gameLayer = new GameLayer(AutoPlay.None);
+            Host.PushLayer(gameLayer, _ => gameLayer.OpenChart());
         }
 
         private void EnterDemoMode()
         {
+            var gameLayer = new GameLayer(AutoPlay.ButtonsAndLasers);
+            // TODO(local): add demo controller as new layer on top!
+            // Demo controller could also subclas or something, but I want to make sure
+            //  this kind of use-case works. An otherwise invisible layer controls the parent
+            //  layer silently, and is still handled properly as if it wasn't there c:
+            // NOT an overlay, though, overlays are special and will ofc work if considered.
+            Host.PushLayer(gameLayer);
         }
 
         public override void Update(float delta, float total)
