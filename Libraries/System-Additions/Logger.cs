@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
 
 namespace System
 {
@@ -30,9 +31,19 @@ namespace System
 
     public abstract class Logger
     {
+        private static readonly List<Action<LogEntry>> logFunctions = new List<Action<LogEntry>>();
+
+        public static void AddLogFunction(Action<LogEntry> f)
+        {
+            if (f == null) return;
+            logFunctions.Add(f);
+        }
+
         private static void OnLog(LogEntry entry)
         {
-            Diagnostics.Trace.WriteLine($"{ entry.When.ToString(CultureInfo.InvariantCulture) } [{ entry.Priority }]: { entry.Message }");
+            //Diagnostics.Trace.WriteLine($"{ entry.When.ToString(CultureInfo.InvariantCulture) } [{ entry.Priority }]: { entry.Message }");
+            foreach (var f in logFunctions)
+                f(entry);
         }
 
         public static void Log(object obj, LogPriority priority = LogPriority.Verbose)

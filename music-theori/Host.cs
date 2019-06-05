@@ -145,13 +145,6 @@ namespace theori
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
             Mixer = new Mixer(2);
             Mixer.MasterChannel.Volume = 0.7f;
-
-            #if DEBUG
-            string cd = System.Reflection.Assembly.GetEntryAssembly().Location;
-            while (!Directory.Exists(Path.Combine(cd, "InstallDir")))
-                cd = Directory.GetParent(cd).FullName;
-            Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
-            #endif
         }
 
         public static void RegisterSharedGameMode(GameModeDescription desc)

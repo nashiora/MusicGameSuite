@@ -1,12 +1,12 @@
 ﻿using System;
 
-using theori.Win32.Platform;
+using theori;
 
-using NeuroSonic;
+using NeuroSonic.Win32.Platform;
 using System.IO;
 using System.Globalization;
 
-namespace theori.Win32
+namespace NeuroSonic.Win32
 {
     static class Program
     {
@@ -20,7 +20,7 @@ namespace theori.Win32
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
 #endif
 
-            Logger.AddLogFunction(entry => System.Diagnostics.Trace.WriteLine($"{ entry.When.ToString(CultureInfo.InvariantCulture) } [{ entry.Priority }]: { entry.Message }"));
+            Logger.AddLogFunction(entry => Console.WriteLine($"{ entry.When.ToString(CultureInfo.InvariantCulture) } [{ entry.Priority }]: { entry.Message }"));
 
             Host.Init(new PlatformWin32());
             // so we can boot into shared mode with it

@@ -184,7 +184,7 @@ namespace NeuroSonic.GamePlay
 
         public override void Destroy()
         {
-            m_audioController.Stop();
+            m_audioController?.Stop();
 
             m_audioController?.Dispose();
             //m_highwayView?.Dispose();
