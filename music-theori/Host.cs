@@ -21,10 +21,21 @@ namespace theori
 {
     public static class Host
     {
-        public static IPlatform Platform { get; private set; }
+        private static IPlatform platform;
+        public static IPlatform Platform
+        {
+            get => platform;
+            set
+            {
+                if (platform != null)
+                    throw new Exception("Platform already set.");
+                platform = value;
+            }
+        }
 
         public static Mixer Mixer { get; private set; }
-        
+
+        public const string GAME_CONFIG_FILE = "theori-config.ini";
         public static GameConfig GameConfig { get; private set; }
 
         internal static ProgramPipeline Pipeline { get; private set; }
@@ -58,7 +69,7 @@ namespace theori
 
             if (layer.BlocksParentLayer)
             {
-                for (int i = LayerCount - 2; i > 0; i--)
+                for (int i = LayerCount - 2; i >= 0; i--)
                 {
                     var nextLayer = layers[i];
                     nextLayer.Suspend();
@@ -88,10 +99,12 @@ namespace theori
             layer.Destroy();
             layer.lifetimeState = Layer.LayerLifetimeState.Destroyed;
 
+            if (LayerCount == 0) return;
+
             if (layer.BlocksParentLayer)
             {
                 int startIndex = LayerCount - 1;
-                for (; startIndex > 0; startIndex--)
+                for (; startIndex >= 0; startIndex--)
                 {
                     if (layers[startIndex].BlocksParentLayer)
                     {
@@ -104,6 +117,9 @@ namespace theori
                 for (int i = startIndex; i < LayerCount; i++)
                     layers[i].Resume();
             }
+
+            if (LayerCount == 0)
+                runProgramLoop = false;
         }
 
         public static void PopToParent(Layer firstChild)
@@ -123,29 +139,81 @@ namespace theori
             overlays.ForEach(l => l.ClientSizeChanged(w, h));
         }
 
-        public static void Init(IPlatform platformImpl)
+        #region Initialization
+
+        public static void DefaultInitialize()
         {
-            Platform = platformImpl;
+            if (platform == null)
+                throw new Exception("Cannot initialize :theori without a platform implementation.");
 
+            InitGameConfig();
+            InitWindowSystem();
+            Logger.Log($"Window VSync: { Window.VSync }");
+            InitInputSystem();
+            InitGraphicsPipeline();
+            InitAudioSystem();
+        }
+
+        public static bool InitGameConfig()
+        {
             GameConfig = new GameConfig();
-            // TODO(local): load config
+            if (File.Exists(GAME_CONFIG_FILE))
+                LoadConfig();
+            // save the defaults on init
+            else SaveConfig();
+            return File.Exists(GAME_CONFIG_FILE);
+        }
 
+        public static bool InitWindowSystem()
+        {
             Window.Create();
             Window.VSync = VSyncMode.Off;
-            Logger.Log($"Window VSync: { Window.VSync }");
 
             Window.ClientSizeChanged += OnClientSizeChanged;
-            
-            Window.Update();
-            InputManager.Initialize();
 
+            return true;
+        }
+
+        public static bool InitInputSystem()
+        {
+            InputManager.Initialize();
+            return true;
+        }
+
+        public static bool InitGraphicsPipeline()
+        {
             Pipeline = new ProgramPipeline();
             Pipeline.Bind();
-            
+            return true;
+        }
+
+        public static bool InitAudioSystem()
+        {
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
+
             Mixer = new Mixer(2);
             Mixer.MasterChannel.Volume = 0.7f;
+
+            return true;
         }
+
+        #endregion
+
+        #region Config
+
+        public static void LoadConfig()
+        {
+            using (var reader = new StreamReader(File.OpenRead(GAME_CONFIG_FILE)))
+                GameConfig.Load(reader);
+        }
+
+        public static void SaveConfig()
+        {
+            using (var writer = new StreamWriter(File.OpenWrite(GAME_CONFIG_FILE)))
+                GameConfig.Save(writer);
+        }
+
+        #endregion
 
         public static void RegisterSharedGameMode(GameModeDescription desc)
         {
@@ -175,7 +243,7 @@ namespace theori
             long lastFrameStart = timer.ElapsedMilliseconds;
 
             runProgramLoop = true;
-            while (runProgramLoop && !Window.ShouldExitApplication)
+            while (runProgramLoop && LayerCount > 0 && !Window.ShouldExitApplication)
             {
                 int targetFrameRate = 0;
 
@@ -188,6 +256,8 @@ namespace theori
                     if (layer.BlocksParentLayer)
                         break;
                 }
+
+                layerStartIndex = Math.Max(0, layerStartIndex);
 
                 if (targetFrameRate == 0)
                     targetFrameRate = 60; // TODO(local): configurable target frame rate plz
@@ -219,6 +289,9 @@ namespace theori
                     }
 
                     // update top down
+                    for (int i = OverlayCount - 1; i >= 0 && runProgramLoop; i--)
+                        overlays[i].Update(Time.Delta, Time.Total);
+
                     for (int i = LayerCount - 1; i >= layerStartIndex && runProgramLoop; i--)
                         layers[i].Update(Time.Delta, Time.Total);
                 }
@@ -233,9 +306,14 @@ namespace theori
                     for (int i = layerStartIndex; i < LayerCount; i++)
                         layers[i].Render();
 
+                    for (int i = 0; i < OverlayCount; i++)
+                        overlays[i].Render();
+
                     Window.SwapBuffer();
                 }
             }
+
+            Quit();
         }
 
         /// <summary>

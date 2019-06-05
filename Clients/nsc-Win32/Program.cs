@@ -1,10 +1,11 @@
 ﻿using System;
-
-using theori;
-
-using NeuroSonic.Win32.Platform;
 using System.IO;
 using System.Globalization;
+
+using theori;
+using theori.Configuration;
+
+using NeuroSonic.Win32.Platform;
 
 namespace NeuroSonic.Win32
 {
@@ -20,12 +21,25 @@ namespace NeuroSonic.Win32
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
 #endif
 
+            Host.Platform = new PlatformWin32();
+
             Logger.AddLogFunction(entry => Console.WriteLine($"{ entry.When.ToString(CultureInfo.InvariantCulture) } [{ entry.Priority }]: { entry.Message }"));
 
-            Host.Init(new PlatformWin32());
-            // so we can boot into shared mode with it
-            Host.RegisterSharedGameMode(NeuroSonicDescription.Instance);
-            // but currently, just launch it in standalone
+            if (!Host.InitGameConfig())
+                ;
+
+            if (!Host.InitWindowSystem())
+                ;
+
+            if (!Host.InitInputSystem())
+                ;
+
+            if (!Host.InitGraphicsPipeline())
+                ;
+
+            if (!Host.InitAudioSystem())
+                ;
+
             Host.StartStandalone(NeuroSonicDescription.Instance, args);
         }
     }

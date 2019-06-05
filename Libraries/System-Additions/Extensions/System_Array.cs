@@ -200,5 +200,27 @@ namespace System
         }
 
         #endregion
+
+        #region CopyTo
+
+        public static void CopyTo<T>(this T[] source, int sourceIndex, T[] dest, int destIndex)
+        {
+            for (int i = 0; i < source.Length - sourceIndex; i++)
+                dest[destIndex + i] = source[sourceIndex + i];
+        }
+
+        #endregion
+
+        #region Concat
+
+        public static T[] Concat<T>(this T[] left, T[] right)
+        {
+            var result = new T[left.Length + right.Length];
+            left.CopyTo(0, result, 0);
+            right.CopyTo(0, result, left.Length);
+            return result;
+        }
+
+        #endregion
     }
 }

@@ -13,6 +13,14 @@ namespace theori.IO
     {
         public static Gamepad Gamepad { get; private set; }
 
+        public static void ReopenGamepad()
+        {
+            Gamepad?.Dispose();
+
+            int deviceIndex = Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID);
+            Gamepad = Gamepad.Open(deviceIndex);
+        }
+
         /// <summary>
         /// Also counts for re-initialize
         /// </summary>

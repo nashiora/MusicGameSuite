@@ -1,9 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace theori.Configuration
 {
+    public enum ConfigFormat
+    {
+        Ini,
+    }
+
+    public static class ConfigFormatExt
+    {
+        public static string GetFileExtension(this ConfigFormat format)
+        {
+            switch (format)
+            {
+                case ConfigFormat.Ini: return ".ini";
+                default: Debug.Assert(false); return null;
+            }
+        }
+    }
+
     public abstract class Config<TKey>
     {
         private readonly Dictionary<string, TKey> namedKeys = new Dictionary<string, TKey>();

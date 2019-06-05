@@ -19,10 +19,7 @@ namespace theori.IO
             openGamepads.Clear();
         }
 
-        public static int NumConnected()
-        {
-            return SDL_NumJoysticks();
-        }
+        public static int NumConnected => SDL_NumJoysticks();
 
         public static string NameOf(int deviceIndex)
         {

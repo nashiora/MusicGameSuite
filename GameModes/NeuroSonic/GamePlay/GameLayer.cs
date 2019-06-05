@@ -176,7 +176,7 @@ namespace NeuroSonic.GamePlay
                     for (int s = 0; s < m_chart.StreamCount; s++)
                         firstObjectTime = MathL.Min((double)firstObjectTime, m_chart.ObjectStreams[s].FirstObject?.AbsolutePosition.Seconds ?? double.MaxValue);
 
-                    m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 3);
+                    m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 2);
                     m_audioController.Play();
                 }
             }
@@ -192,12 +192,12 @@ namespace NeuroSonic.GamePlay
 
         public override void Suspended()
         {
-            m_audioController.Stop();
+            m_audioController?.Stop();
         }
 
         public override void Resumed()
         {
-            m_audioController.Play();
+            m_audioController?.Play();
         }
 
         private void PlaybackObjectBegin(OpenRM.Object obj)

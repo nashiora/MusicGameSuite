@@ -20,13 +20,13 @@ namespace theori.Win32
             Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");
 #endif
 
+            Host.Platform = new PlatformWin32();
+
             Logger.AddLogFunction(entry => System.Diagnostics.Trace.WriteLine($"{ entry.When.ToString(CultureInfo.InvariantCulture) } [{ entry.Priority }]: { entry.Message }"));
 
-            Host.Init(new PlatformWin32());
-            // so we can boot into shared mode with it
+            Host.DefaultInitialize();
             Host.RegisterSharedGameMode(NeuroSonicDescription.Instance);
-            // but currently, just launch it in standalone
-            Host.StartStandalone(NeuroSonicDescription.Instance, args);
+            Host.StartShared(args);
         }
     }
 }
