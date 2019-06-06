@@ -338,7 +338,7 @@ namespace NeuroSonic.GamePlay
                             if (objr.Object.Stream < 4)
                             {
                                 int fxLaneCheck = 4 + objr.Object.Stream / 2;
-                                if (objr.Object.Chart[fxLaneCheck].TryGetAt(objr.Object.Position, out var overlap))
+                                if (objr.Object.Chart[fxLaneCheck].TryGetAt(objr.Object.Position, out var overlap) && overlap.IsInstant)
                                     widthMult = 0.8f;
                             }
 
