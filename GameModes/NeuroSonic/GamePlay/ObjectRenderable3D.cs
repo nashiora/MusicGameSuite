@@ -26,6 +26,7 @@ namespace NeuroSonic.GamePlay
         }
 
         public Mesh Mesh { get; protected set; }
+        public Drawable3D Drawable { get; protected set; }
 
         protected ObjectRenderable3D(OpenRM.Object obj, float lenPerc)
         {
@@ -54,11 +55,11 @@ namespace NeuroSonic.GamePlay
         private Transform m_transform = Transform.Identity;
         public override Transform Transform => m_transform;
 
-        public ButtonRenderState3D(OpenRM.Voltex.ButtonObject obj, Mesh mesh, float len)
+        public ButtonRenderState3D(OpenRM.Voltex.ButtonObject obj, Drawable3D drawable, float len)
             : base(obj, len)
         {
             if (!Object.IsInstant) m_transform = Transform.Scale(1, 1, len);
-            Mesh = mesh;
+            Drawable = drawable;
         }
 
         public override void UpdateRenderState(OpenRM.Object.PropertyChangedEventArgs args)
@@ -118,7 +119,6 @@ namespace NeuroSonic.GamePlay
             }
             else
             {
-            {
                 ushort[] indices = new ushort[] { 0, 1, 2, 4, 1, 0, 4, 0, 5, 3, 4, 5 };
                 Mesh.SetIndices(indices);
             
@@ -133,7 +133,6 @@ namespace NeuroSonic.GamePlay
                     new VertexP3T2(new Vector3(fl, 0, 0), new Vector2(0, 1)),
                 };
                 Mesh.SetVertices(vertices);
-            }
             }
         }
 

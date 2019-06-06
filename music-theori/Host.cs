@@ -345,5 +345,55 @@ namespace theori
 
             Environment.Exit(code);
         }
+
+        internal static void KeyPressed(KeyInfo info)
+        {
+            for (int i = LayerCount - 1; i >= 0; i--)
+            {
+                var layer = layers[i];
+                if (layer.KeyPressed(info) || layer.BlocksParentLayer)
+                    break;
+            }
+        }
+
+        internal static void KeyReleased(KeyInfo info)
+        {
+            for (int i = LayerCount - 1; i >= 0; i--)
+            {
+                var layer = layers[i];
+                if (layer.KeyReleased(info) || layer.BlocksParentLayer)
+                    break;
+            }
+        }
+
+        internal static void ButtonPressed(ButtonInfo info)
+        {
+            for (int i = LayerCount - 1; i >= 0; i--)
+            {
+                var layer = layers[i];
+                if (layer.ButtonPressed(info) || layer.BlocksParentLayer)
+                    break;
+            }
+        }
+
+        internal static void ButtonReleased(ButtonInfo info)
+        {
+            for (int i = LayerCount - 1; i >= 0; i--)
+            {
+                var layer = layers[i];
+                if (layer.ButtonReleased(info) || layer.BlocksParentLayer)
+                    break;
+            }
+        }
+
+        internal static void AxisChanged(AnalogInfo info)
+        {
+            for (int i = LayerCount - 1; i >= 0; i--)
+            {
+                var layer = layers[i];
+                if (layer.AxisChanged(info) || layer.BlocksParentLayer)
+                    break;
+            }
+        }
     }
 }

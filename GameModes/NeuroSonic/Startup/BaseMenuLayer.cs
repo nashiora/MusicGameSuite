@@ -47,8 +47,6 @@ namespace NeuroSonic.Startup
 
         public override void Init()
         {
-            Keyboard.KeyPress += KeyboardButtonPress;
-
             GenerateMenuItems();
 
             m_guiRoot = new Panel()
@@ -89,9 +87,9 @@ namespace NeuroSonic.Startup
         {
         }
 
-        private void KeyboardButtonPress(KeyInfo key)
+        public override bool KeyPressed(KeyInfo key)
         {
-            if (IsSuspended) return;
+            if (IsSuspended) return false;
 
             switch (key.KeyCode)
             {
@@ -114,7 +112,12 @@ namespace NeuroSonic.Startup
                 break;
 
                 case KeyCode.RETURN: m_items[m_itemIndex].Action(); break;
+
+                // stick our false thing here, returning true is the default for handled keys
+                default: return false;
             }
+
+            return true;
         }
 
         protected virtual void OnExit() => Host.PopToParent(this);

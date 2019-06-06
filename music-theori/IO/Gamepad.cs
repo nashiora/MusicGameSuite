@@ -4,6 +4,21 @@ using static SDL2.SDL;
 
 namespace theori.IO
 {
+    public class ButtonInfo
+    {
+        public int DeviceIndex;
+
+        public uint Button;
+    }
+
+    public class AnalogInfo
+    {
+        public int DeviceIndex;
+
+        public uint Axis;
+        public float Value;
+    }
+
     public class Gamepad : Disposable
     {
         public static bool operator true (Gamepad g) => g.joystick != IntPtr.Zero;
@@ -109,15 +124,35 @@ namespace theori.IO
 
         internal void HandleInputEvent(uint buttonIndex, uint newState)
         {
+            var info = new ButtonInfo()
+            {
+                DeviceIndex = DeviceIndex,
+                Button = buttonIndex,
+            };
+
             buttonStates[buttonIndex] = newState;
             if (newState == 0)
+            {
+                Host.ButtonPressed(info);
                 ButtonReleased?.Invoke(buttonIndex);
-            else ButtonPressed?.Invoke(buttonIndex);
+            }
+            else
+            {
+                Host.ButtonReleased(info);
+                ButtonPressed?.Invoke(buttonIndex);
+            }
         }
 
         internal void HandleAxisEvent(uint axisIndex, short newValue)
         {
-            axisStates[axisIndex] = newValue / (float)0x7FFF;
+            float value = newValue / (float)0x7FFF;
+            axisStates[axisIndex] = value;
+            Host.AxisChanged(new AnalogInfo()
+            {
+                DeviceIndex = DeviceIndex,
+                Axis = axisIndex,
+                Value = value,
+            });
         }
     }
 }

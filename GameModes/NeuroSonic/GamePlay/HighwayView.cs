@@ -25,26 +25,16 @@ namespace NeuroSonic.GamePlay
         public Transform WorldTransform { get; private set; }
         public Transform CritLineTransform { get; private set; }
 
-        private Texture highwayTexture;
-        private Texture btChipTexture, btHoldTexture;
-        private Texture fxChipTexture, fxHoldTexture;
-        private Texture laserTexture, laserEntryTexture, laserExitTexture;
+        private Drawable3D highwayDrawable;
+        private Drawable3D btChipDrawable, btHoldDrawable;
+        private Drawable3D fxChipDrawable, fxHoldDrawable;
+        private Drawable3D lVolEntryDrawable, lVolExitDrawable;
+        private Drawable3D rVolEntryDrawable, rVolExitDrawable;
 
-        private Material basicMaterial, highwayMaterial;
-        private Material btChipMaterial, btHoldMaterial;
-        private Material fxChipMaterial, fxHoldMaterial;
-        private Material laserMaterial, laserEntryMaterial, laserExitMaterial;
-        
-        private Mesh highwayMesh;
-        private Mesh btChipMesh, btHoldMesh;
-        private Mesh fxChipMesh, fxHoldMesh;
-        private Mesh laserEntryMesh, laserExitMesh;
-        
-        private MaterialParams btChipParams, btHoldParams;
-        private MaterialParams fxChipParams, fxHoldParams;
-        private MaterialParams lLaserParams, rLaserParams;
-        private MaterialParams lLaserEntryParams, rLaserEntryParams;
-        private MaterialParams lLaserExitParams, rLaserExitParams;
+        // vol segment pieces are separate, generate drawables for each segment because mesh :shrug:
+        private Texture lVolTexture, rVolTexture;
+        private Material lVolMaterial, rVolMaterial;
+        private MaterialParams lVolParams, rVolParams;
 
         internal Dictionary<OpenRM.Object, ObjectRenderable3D>[] renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
 
@@ -83,78 +73,96 @@ namespace NeuroSonic.GamePlay
 
         public HighwayView()
         {
-            highwayTexture = new Texture();
-            highwayTexture.Load2DFromFile(@".\skins\Default\textures\highway.png");
+            var lVolColor = new Vector3(0.0f, 0.5f, 1);
+            var rVolColor = new Vector3(1, 0.0f, 0.5f);
+            var hiliteColor = new Vector3(1, 1, 0);
 
-            basicMaterial = new Material("basic");
+            var highwayParams = new MaterialParams();
+            highwayParams["LeftColor"] = lVolColor;
+            highwayParams["RightColor"] = rVolColor;
+            highwayParams["Hidden"] = 0.0f;
 
-            highwayMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter);
-            highwayMaterial = new Material("highway");
+            var basicMaterial = new Material("basic");
 
-            void CreateTextureAndMesh(string texName, int width, bool useAspect, ref Texture texture, ref Mesh mesh, ref MaterialParams p)
-            {
-                texture = new Texture();
-                texture.Load2DFromFile($@".\skins\Default\textures\{ texName }.png");
-
-                float aspect = btChipTexture.Height / (float)btChipTexture.Width;
-                float height = useAspect ? width * aspect / 6 : 1;
-
-                mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width / 6.0f, height, Anchor.BottomCenter);
-
-                p = new MaterialParams();
-                p["Color"] = new Vector4(1);
-                p["MainTexture"] = texture;
-            }
-            
-            CreateTextureAndMesh("bt_chip", 1, true , ref btChipTexture, ref btChipMesh, ref btChipParams);
-            CreateTextureAndMesh("bt_hold", 1, false, ref btHoldTexture, ref btHoldMesh, ref btHoldParams);
-            CreateTextureAndMesh("fx_chip", 2, true , ref fxChipTexture, ref fxChipMesh, ref fxChipParams);
-            CreateTextureAndMesh("fx_hold", 2, false, ref fxHoldTexture, ref fxHoldMesh, ref fxHoldParams);
-            
-            laserTexture = new Texture();
-            laserTexture.Load2DFromFile(@".\skins\Default\textures\laser.png");
-            
-            laserEntryTexture = new Texture();
-            laserEntryTexture.Load2DFromFile(@".\skins\Default\textures\laser_entry.png");
-            
-            laserExitTexture = new Texture();
-            laserExitTexture.Load2DFromFile(@".\skins\Default\textures\laser_exit.png");
-            
-            laserEntryMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (laserEntryTexture.Height / (float)laserEntryTexture.Width) / 6.0f, Anchor.TopCenter);
-            laserExitMesh  = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (laserExitTexture.Height  / (float)laserExitTexture.Width ) / 6.0f, Anchor.BottomCenter);
-
-            void CreateLaserMaterialsParams(Vector3 color, out MaterialParams laser, out MaterialParams laserEntry, out MaterialParams laserExit)
-            {
-                laser = new MaterialParams();
-                laser["LaserColor"] = color;
-                laser["HiliteColor"] = new Vector3(1, 1, 0);
-                laser["MainTexture"] = laserTexture;
-                
-                laserEntry = new MaterialParams();
-                laserEntry["Color"] = color;
-                laser["HiliteColor"] = new Vector3(1, 1, 0);
-                laserEntry["MainTexture"] = laserEntryTexture;
-                
-                laserExit = new MaterialParams();
-                laserExit["Color"] = color;
-                laser["HiliteColor"] = new Vector3(1, 1, 0);
-                laserExit["MainTexture"] = laserExitTexture;
-            }
-            
-            CreateLaserMaterialsParams(new Vector3(0, 0.5f, 1), out lLaserParams, out lLaserEntryParams, out lLaserExitParams);
-            CreateLaserMaterialsParams(new Vector3(1, 0, 0.5f), out rLaserParams, out rLaserEntryParams, out rLaserExitParams);
-
-            btChipMaterial = basicMaterial;
-            btHoldMaterial = basicMaterial;
-            fxChipMaterial = basicMaterial;
-            fxHoldMaterial = basicMaterial;
-
-            laserMaterial = new Material("laser")
+            var volMaterial = new Material("laser")
             {
                 BlendMode = BlendMode.Additive,
             };
-            laserEntryMaterial = laserMaterial;
-            laserExitMaterial = laserMaterial;
+
+            highwayDrawable = new Drawable3D()
+            {
+                Texture = Texture.FromFile2D(@".\skins\Default\textures\highway.png"),
+                Material = new Material("highway"),
+                Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter),
+                Params = highwayParams,
+            };
+
+            Drawable3D CreateDrawable3D(string texName, int width, bool isChip)
+            {
+                var texture = Texture.FromFile2D($@".\skins\Default\textures\{ texName }.png");
+
+                var mparams = new MaterialParams();
+                mparams["Color"] = new Vector4(1);
+
+                float aspect = texture.Height / (float)texture.Width;
+                float height = isChip ? width * aspect / 6 : 1;
+
+                return new Drawable3D()
+                {
+                    Texture = texture,
+                    Material = basicMaterial,
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width / 6.0f, height, Anchor.BottomCenter),
+                    Params = mparams,
+                };
+            }
+            
+            btChipDrawable = CreateDrawable3D("bt_chip", 1, true);
+            btHoldDrawable = CreateDrawable3D("bt_hold", 1, false);
+            fxChipDrawable = CreateDrawable3D("fx_chip", 2, true);
+            fxHoldDrawable = CreateDrawable3D("fx_hold", 2, false);
+
+            MaterialParams CreateVolumeParams(int lane)
+            {
+                var volParams = new MaterialParams();
+                volParams["LaserColor"] = lane == 0 ? lVolColor : rVolColor;
+                volParams["HiliteColor"] = new Vector3(1, 1, 0);
+                return volParams;
+            }
+
+            void CreateVolDrawables(int lane, Vector3 color, ref Drawable3D entryDrawable, ref Drawable3D exitDrawable)
+            {
+                // TODO(local): use the lane value!
+                var entryTexture = Texture.FromFile2D(@".\skins\Default\textures\laser_entry.png");
+                var exitTexture = Texture.FromFile2D(@".\skins\Default\textures\laser_exit.png");
+
+                entryDrawable = new Drawable3D()
+                {
+                    Texture = entryTexture,
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (entryTexture.Height / (float)entryTexture.Width) / 6.0f, Anchor.TopCenter),
+                    Material = volMaterial,
+                    Params = CreateVolumeParams(lane),
+                };
+
+                exitDrawable = new Drawable3D()
+                {
+                    Texture = exitTexture,
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (entryTexture.Height / (float)entryTexture.Width) / 6.0f, Anchor.BottomCenter),
+                    Material = volMaterial,
+                    Params = CreateVolumeParams(lane),
+                };
+            }
+
+            CreateVolDrawables(0, new Vector3(0, 0.5f, 1), ref lVolEntryDrawable, ref lVolExitDrawable);
+            CreateVolDrawables(1, new Vector3(1, 0, 0.5f), ref rVolEntryDrawable, ref rVolExitDrawable);
+
+            lVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
+            rVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
+
+            lVolMaterial = volMaterial;
+            rVolMaterial = volMaterial;
+
+            lVolParams = CreateVolumeParams(0);
+            rVolParams = CreateVolumeParams(1);
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
@@ -176,11 +184,11 @@ namespace NeuroSonic.GamePlay
             {
                 ButtonRenderState3D br3d;
                 if (obj.IsInstant)
-                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btChipMesh : fxChipMesh, 0);
+                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btChipDrawable : fxChipDrawable, 0);
                 else
                 {
                     float zDur = (float)(obj.AbsoluteDuration.Seconds / ViewDuration.Seconds);
-                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btHoldMesh : fxHoldMesh, zDur * LENGTH_BASE);
+                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btHoldDrawable : fxHoldDrawable, zDur * LENGTH_BASE);
                 }
 
                 renderables[obj.Stream][obj] = br3d;
@@ -215,17 +223,6 @@ namespace NeuroSonic.GamePlay
             Camera.ViewportWidth = Window.Width;
             Camera.ViewportHeight = Window.Height;
 
-            void LerpTo(ref float value, float target, float speed = 10)
-            {
-                float diff = MathL.Abs(target - value);
-                float change = diff * Time.Delta * 10;
-                change = MathL.Min(speed * 0.02f, change);
-
-                if (target < value)
-                    value = MathL.Max(value - change, target);
-                else value = MathL.Min(value + change, target);
-            }
-            
             roll = TargetLaserRoll;
             pitch = TargetPitch;
             zoom = TargetZoom;
@@ -317,30 +314,39 @@ namespace NeuroSonic.GamePlay
 
             using (var queue = new RenderQueue(renderState))
             {
-                var highwayParams = new MaterialParams();
-                highwayParams["LeftColor"] = new Vector3(0.0f, 0.5f, 1);
-                highwayParams["RightColor"] = new Vector3(1, 0.0f, 0.5f);
-                highwayParams["Hidden"] = 0.0f;
-                highwayParams["MainTexture"] = highwayTexture;
-                queue.Draw(Transform.Translation(0, 0, 1) * WorldTransform, highwayMesh, highwayMaterial, highwayParams);
+                highwayDrawable.DrawToQueue(queue, Transform.Translation(0, 0, 1) * WorldTransform);
 
                 void RenderButtonStream(int i)
                 {
                     foreach (var objr in renderables[i].Values)
                     {
-                        float z = LENGTH_BASE * (float)((objr.Object.AbsolutePosition - PlaybackPosition) / ViewDuration);
+                        float zAbs = (float)((objr.Object.AbsolutePosition - PlaybackPosition) / ViewDuration);
+                        float z = LENGTH_BASE * zAbs;
+
                         float xOffs = 0;
                         if (i < 4)
                             xOffs = -3 / 12.0f + i / 6.0f;
                         else xOffs = -1 / 6.0f + (i - 4) / 3.0f;
 
-                        MaterialParams p;
-                        if (i < 4)
-                            p = objr.Object.IsInstant ? btChipParams : btHoldParams;
-                        else p = objr.Object.IsInstant ? fxChipParams : fxHoldParams;
+                        // TODO(local): [CONFIG] Allow user to change the scaling of chips, or use a different texture
+                        Transform tDiff = Transform.Identity;
+                        if (objr.Object.IsInstant)
+                        {
+                            float distScaling = zAbs * 1.0f;
+                            float widthMult = 1.0f;
 
-                        Transform t = objr.Transform * Transform.Translation(xOffs, 0, -z) * WorldTransform;
-                        queue.Draw(t, objr.Mesh, basicMaterial, p);
+                            if (objr.Object.Stream < 4)
+                            {
+                                int fxLaneCheck = 4 + objr.Object.Stream / 2;
+                                if (objr.Object.Chart[fxLaneCheck].TryGetAt(objr.Object.Position, out var overlap))
+                                    widthMult = 0.8f;
+                            }
+
+                            tDiff = Transform.Scale(widthMult, 1, 1 + distScaling);
+                        }
+
+                        Transform t = tDiff * objr.Transform * Transform.Translation(xOffs, 0, -z) * WorldTransform;
+                        objr.Drawable.DrawToQueue(queue, t);
                     }
                 }
 
@@ -360,7 +366,11 @@ namespace NeuroSonic.GamePlay
 
                         Transform s = Transform.Scale(1, 1, 1 + HISCALE);
                         Transform t = objr.Transform * Transform.Translation(0, 0, -z) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
-                        queue.Draw(t, objr.Mesh, laserMaterial, i == 0 ? lLaserParams : rLaserParams);
+
+                        var volMaterial = i == 0 ? lVolMaterial : rVolMaterial;
+                        var volParams = i == 0 ? lVolParams : rVolParams;
+                        volParams["MainTexture"] = i == 0 ? lVolTexture : rVolTexture;
+                        queue.Draw(t, objr.Mesh, volMaterial, volParams);
 
                         if (objr.Object.PreviousConnected == null)
                         {
@@ -371,7 +381,8 @@ namespace NeuroSonic.GamePlay
                             float zEntry = LENGTH_BASE * (float)((entryPosition - PlaybackPosition) / ViewDuration);
 
                             Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
-                            queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
+                            //queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
+                            (i == 0 ? lVolEntryDrawable : rVolEntryDrawable).DrawToQueue(queue, tEntry);
                         }
 
                         if (objr.Object.NextConnected == null && objr.Object.IsInstant)
@@ -386,7 +397,8 @@ namespace NeuroSonic.GamePlay
                             float zExit = LENGTH_BASE * (float)((exitPosition - PlaybackPosition) / ViewDuration);
 
                             Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, 0, -zExit) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
-                            queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
+                            //queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
+                            (i == 0 ? lVolExitDrawable : rVolExitDrawable).DrawToQueue(queue, tExit);
                         }
                     }
                 }

@@ -33,14 +33,18 @@ namespace theori
 
         internal static void InvokePress(KeyInfo info)
         {
-            //System.Diagnostics.Debug.Assert(heldKeys.Add(info.KeyCode), "added a key which was pressed");
-            if (!heldKeys.Add(info.KeyCode)) return;
+            System.Diagnostics.Debug.Assert(heldKeys.Add(info.KeyCode), "added a key which was pressed");
+            //if (!heldKeys.Add(info.KeyCode)) return;
+
+            Host.KeyPressed(info);
             KeyPress?.Invoke(info);
         }
 
         internal static void InvokeRelease(KeyInfo info)
         {
             System.Diagnostics.Debug.Assert(heldKeys.Remove(info.KeyCode), "removed a key which wasn't pressed");
+
+            Host.KeyReleased(info);
             KeyRelease?.Invoke(info);
         }
     }

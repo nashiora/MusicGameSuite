@@ -7,6 +7,13 @@ namespace OpenGL
     {
         public static readonly Texture Empty;
 
+        public static Texture FromFile2D(string fileName)
+        {
+            var texture = new Texture();
+            texture.Load2DFromFile(fileName);
+            return texture;
+        }
+
         static Texture()
         {
             Empty = new Texture();

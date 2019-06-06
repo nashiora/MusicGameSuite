@@ -1,4 +1,6 @@
-﻿namespace theori
+﻿using theori.IO;
+
+namespace theori
 {
     public abstract class Layer
     {
@@ -45,6 +47,11 @@
         public abstract void Destroy();
         public abstract void Suspended();
         public abstract void Resumed();
+        public virtual bool KeyPressed(KeyInfo info) => false;
+        public virtual bool KeyReleased(KeyInfo info) => false;
+        public virtual bool ButtonPressed(ButtonInfo info) => false;
+        public virtual bool ButtonReleased(ButtonInfo info) => false;
+        public virtual bool AxisChanged(AnalogInfo info) => false;
         public virtual void Update() { }
         public virtual void Update(float delta) => Update();
         public virtual void Update(float delta, float total) => Update(delta);

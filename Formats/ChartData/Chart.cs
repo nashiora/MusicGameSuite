@@ -350,6 +350,18 @@ namespace OpenRM
 				    action(obj);
 			    }
             }
+
+            public bool TryGetAt(tick_t position, out Object overlap)
+            {
+                overlap = null;
+                for (int i = 0; i < m_objects.Count && overlap == null; i++)
+                {
+                    var obj = m_objects[i];
+                    if (obj.Position == position)
+                        overlap = obj;
+                }
+                return overlap != null;
+            }
         }
 
         public sealed class ControlPointList

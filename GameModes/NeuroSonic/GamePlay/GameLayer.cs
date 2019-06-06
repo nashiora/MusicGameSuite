@@ -62,8 +62,6 @@ namespace NeuroSonic.GamePlay
 
         public override void Init()
         {
-            Keyboard.KeyPress += KeyboardButtonPress;
-
             m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
             m_slamSample.Channel = Host.Mixer.MasterChannel;
             m_slamSample.Volume = 0.5f * 0.7f;
@@ -279,7 +277,7 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private void KeyboardButtonPress(KeyInfo key)
+        public override bool KeyPressed(KeyInfo key)
         {
             var cp = m_chart?.ControlPoints.MostRecent(m_audioController.Position);
 
@@ -309,7 +307,11 @@ namespace NeuroSonic.GamePlay
                 break;
 
                 case KeyCode.PAGEUP: m_audioController.Position += cp.MeasureDuration; break;
+
+                default: return false;
             }
+
+            return true;
         }
 
         public override void Update(float delta, float total)
