@@ -12,6 +12,7 @@ using OpenRM;
 using OpenRM.Audio.Effects;
 using OpenRM.Convert;
 using OpenRM.Voltex;
+using NeuroSonic.GamePlay.Scoring;
 
 namespace NeuroSonic.GamePlay
 {
@@ -45,6 +46,7 @@ namespace NeuroSonic.GamePlay
 
         private Chart m_chart;
         private SlidingChartPlayback m_playback;
+        private MasterJudge m_judge;
 
         private AudioEffectController m_audioController;
         private AudioTrack m_audio;
@@ -156,6 +158,8 @@ namespace NeuroSonic.GamePlay
 
                     // TODO(local): properly dispose of old stuffs
                     m_playback.SetChart(chart);
+                    m_judge = new MasterJudge(chart);
+
                     m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
                     m_highwayView.Reset();
 
@@ -314,12 +318,32 @@ namespace NeuroSonic.GamePlay
             return true;
         }
 
+        public override bool ButtonPressed(ButtonInfo info)
+        {
+            if (info.DeviceIndex != InputManager.Gamepad.DeviceIndex) return false;
+
+            switch (info.Button)
+            {
+                case 1: m_highwayView.CreateKeyBeam(0); break;
+                case 2: m_highwayView.CreateKeyBeam(1); break;
+                case 3: m_highwayView.CreateKeyBeam(2); break;
+                case 7: m_highwayView.CreateKeyBeam(3); break;
+                case 5: m_highwayView.CreateKeyBeam(4); break;
+                case 6: m_highwayView.CreateKeyBeam(5); break;
+
+                default: return false;
+            }
+
+            return true;
+        }
+
         public override void Update(float delta, float total)
         {
             if (m_chart != null)
             {
                 time_t position = m_audio?.Position ?? 0;
 
+                m_judge.Position = position;
                 m_control.Position = position;
                 m_playback.Position = position;
 

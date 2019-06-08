@@ -64,7 +64,7 @@ namespace theori.Gui
             if (scissor.Width == 0 || scissor.Height == 0)
                 return;
 
-            transform = Transform.Scale(rect.Width, rect.Height, 1) * transform;
+            transform = Transform.Scale(rect.Width, rect.Height, 1) * Transform.Translation(rect.Left, rect.Top, 0) * transform;
 
             var p = new MaterialParams();
             p["MainTexture"] = texture;

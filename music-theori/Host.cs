@@ -340,10 +340,30 @@ namespace theori
 
         public static void Quit(int code = 0)
         {
+            SaveConfig();
+
             //Gamepad.Destroy();
             Window.Destroy();
 
             Environment.Exit(code);
+        }
+
+        internal static void WindowMoved(int x, int y)
+        {
+            GameConfig.Set(GameConfigKey.Maximized, false);
+        }
+
+        internal static void WindowMaximized()
+        {
+            GameConfig.Set(GameConfigKey.Maximized, true);
+        }
+
+        internal static void WindowMinimized()
+        {
+        }
+
+        internal static void WindowRestored()
+        {
         }
 
         internal static void KeyPressed(KeyInfo info)

@@ -48,7 +48,7 @@ namespace theori.IO
                 gamepad = new Gamepad(deviceIndex);
                 if (gamepad)
                 {
-                    openGamepads[deviceIndex] = gamepad;
+                    openGamepads[gamepad.InstanceId] = gamepad;
                     SDL_JoystickEventState(SDL_ENABLE);
                 }
             }
@@ -58,17 +58,17 @@ namespace theori.IO
         internal static void HandleAddedEvent(int deviceIndex)
         {
             string name = SDL_JoystickNameForIndex(deviceIndex);
-            Logger.Log($"Joystick Added: [{ deviceIndex }] \"{ name }\"", LogPriority.Verbose);
+            Logger.Log($"Joystick Added: Device [{ deviceIndex }] \"{ name }\"", LogPriority.Verbose);
 
             Connect?.Invoke(deviceIndex);
         }
 
-        internal static void HandleRemovedEvent(int deviceIndex)
+        internal static void HandleRemovedEvent(int instanceId)
         {
-            Logger.Log($"Joystick Removed: [{ deviceIndex }]", LogPriority.Verbose);
+            Logger.Log($"Joystick Removed: Instance [{ instanceId }]", LogPriority.Verbose);
             
-            Disconnect?.Invoke(deviceIndex);
-            openGamepads.Remove(deviceIndex);
+            Disconnect?.Invoke(instanceId);
+            openGamepads.Remove(instanceId);
         }
 
         internal static void HandleInputEvent(int deviceIndex, uint buttonIndex, uint newState)
@@ -87,6 +87,8 @@ namespace theori.IO
         public event Action<uint> ButtonReleased;
         
         public readonly int DeviceIndex;
+        public readonly int InstanceId;
+
         private IntPtr joystick;
         
         private readonly uint[] buttonStates;
@@ -99,13 +101,18 @@ namespace theori.IO
 
         private Gamepad(int deviceIndex)
         {
-            DeviceIndex = deviceIndex;
             joystick = SDL_JoystickOpen(deviceIndex);
+            DeviceIndex = deviceIndex;
 
             if (joystick == IntPtr.Zero)
+            {
+                InstanceId = 0;
                 Logger.Log($"Failed to open joystick { deviceIndex }.");
+            }
             else
             {
+                InstanceId = SDL_JoystickInstanceID(joystick);
+
                 buttonStates = new uint[SDL_JoystickNumButtons(joystick)];
                 axisStates = new float[SDL_JoystickNumAxes(joystick)];
                 
@@ -131,7 +138,7 @@ namespace theori.IO
             };
 
             buttonStates[buttonIndex] = newState;
-            if (newState == 0)
+            if (newState == 1)
             {
                 Host.ButtonPressed(info);
                 ButtonReleased?.Invoke(buttonIndex);

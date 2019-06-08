@@ -66,8 +66,11 @@ namespace theori.Graphics
             SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1);
             SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, 16);
 
-            window = SDL_CreateWindow("theori", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width = 1280, Height = 720, 
-                SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_SHOWN);
+            var windowFlags = SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_SHOWN;
+            if (Host.GameConfig.GetBool(Configuration.GameConfigKey.Maximized))
+                windowFlags |= SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
+
+            window = SDL_CreateWindow("theori", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Width = 1280, Height = 720, windowFlags);
 
             SDL_DisableScreenSaver();
 
@@ -191,31 +194,6 @@ namespace theori.Graphics
 
                         string composition = Encoding.UTF8.GetString(bytes, 0, Array.IndexOf<byte>(bytes, 0));
                     } break;
-                        
-                    case SDL_EventType.SDL_CONTROLLERDEVICEADDED:
-                    {
-                        int id = evt.cdevice.which;
-                        string name = SDL_GameControllerNameForIndex(id);
-
-                        Logger.Log($"Controller Added: [{ id }] { name }", LogPriority.Verbose); 
-                    } break;
-                    case SDL_EventType.SDL_CONTROLLERDEVICEREMOVED:
-                    {
-                        int id = evt.cdevice.which;
-                        string name = SDL_GameControllerNameForIndex(id);
-
-                        Logger.Log($"Controller Removed: [{ id }] { name }", LogPriority.Verbose);
-                    } break;
-                    case SDL_EventType.SDL_CONTROLLERDEVICEREMAPPED:
-                    {
-                        int id = evt.cdevice.which;
-                        string name = SDL_GameControllerNameForIndex(id);
-
-                        Logger.Log($"Controller Remapped: [{ id }] { name }", LogPriority.Verbose);
-                    } break;
-                    case SDL_EventType.SDL_CONTROLLERAXISMOTION: break;
-                    case SDL_EventType.SDL_CONTROLLERBUTTONDOWN: break;
-                    case SDL_EventType.SDL_CONTROLLERBUTTONUP: break;
 
                     case SDL_EventType.SDL_JOYDEVICEADDED: Gamepad.HandleAddedEvent(evt.jdevice.which); break;
                     case SDL_EventType.SDL_JOYDEVICEREMOVED: Gamepad.HandleRemovedEvent(evt.jdevice.which); break;
@@ -228,11 +206,11 @@ namespace theori.Graphics
                     case SDL_EventType.SDL_JOYBALLMOTION: break;
                     case SDL_EventType.SDL_JOYBUTTONDOWN:
                     {
-                        Gamepad.HandleInputEvent(evt.jbutton.which, evt.jaxis.axis, 1);
+                        Gamepad.HandleInputEvent(evt.jbutton.which, evt.jbutton.button, 1);
                     } break;
                     case SDL_EventType.SDL_JOYBUTTONUP:
                     {
-                        Gamepad.HandleInputEvent(evt.jbutton.which, evt.jaxis.axis, 0);
+                        Gamepad.HandleInputEvent(evt.jbutton.which, evt.jbutton.button, 0);
                     } break;
                     case SDL_EventType.SDL_JOYHATMOTION: break;
                         
@@ -270,14 +248,14 @@ namespace theori.Graphics
                                 ClientSizeChanged?.Invoke(Width, Height);
                                 break;
 
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED: break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_MOVED: Host.WindowMoved(evt.window.data1, evt.window.data2); break;
 
                             case SDL_WindowEventID.SDL_WINDOWEVENT_HIDDEN: break;
                             case SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN: break;
 
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED: break;
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED: break;
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED: break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED: Host.WindowMaximized(); break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_MINIMIZED: Host.WindowMinimized(); break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED: Host.WindowRestored(); break;
 
                             case SDL_WindowEventID.SDL_WINDOWEVENT_EXPOSED: break;
                         }

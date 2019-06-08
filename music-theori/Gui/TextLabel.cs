@@ -1,10 +1,35 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Numerics;
 
 using theori.Graphics;
 
 namespace theori.Gui
 {
+    [Flags]
+    public enum TextAlignment
+    {
+        Top = 0x1,
+        Middle = 0x2,
+        Bottom = 0x3,
+
+        Left = 0x10,
+        Center = 0x20,
+        Right = 0x30,
+
+        TopLeft = Top | Left,
+        MiddleLeft = Middle | Left,
+        BottomLeft = Bottom | Left,
+
+        TopCenter = Top | Center,
+        MiddleCenter = Middle | Center,
+        BottomCenter = Bottom | Center,
+
+        TopRight = Top | Right,
+        MiddleRight = Middle | Right,
+        BottomRight = Bottom | Right,
+    }
+
     public class TextLabel : GuiElement
     {
         private string m_text = null;
@@ -47,6 +72,8 @@ namespace theori.Gui
             }
         }
 
+        public TextAlignment TextAlignment = TextAlignment.TopLeft;
+
         private TextRasterizer m_staticRasterizer = null;
 
         public TextLabel(Font font, string text = null)
@@ -82,7 +109,24 @@ namespace theori.Gui
             base.Render(rq);
 
             if (m_text == null) return;
-            rq.DrawRect(CompleteTransform, new Rect(Vector2.Zero, DrawSize), m_staticRasterizer.Texture, Color);
+
+            Vector2 offset = Vector2.Zero;
+            switch ((TextAlignment)((int)TextAlignment & 0x0F))
+            {
+                case TextAlignment.Top: break;
+                case TextAlignment.Middle: offset.Y = (int)(-DrawSize.Y / 2); break;
+                case TextAlignment.Bottom: offset.Y = -DrawSize.Y; break;
+            }
+
+            switch ((TextAlignment)((int)TextAlignment & 0xF0))
+            {
+                case TextAlignment.Left: break;
+                case TextAlignment.Center: offset.X = (int)(-DrawSize.X / 2); break;
+                case TextAlignment.Right: offset.X = -DrawSize.X; break;
+            }
+
+            Rect rect = new Rect(offset, DrawSize);
+            rq.DrawRect(CompleteTransform, rect, m_staticRasterizer.Texture, Color);
         }
     }
 }

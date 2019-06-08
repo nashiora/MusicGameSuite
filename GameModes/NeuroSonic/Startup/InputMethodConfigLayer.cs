@@ -1,5 +1,6 @@
 ﻿using System;
-
+using theori;
+using theori.Configuration;
 using theori.IO;
 
 namespace NeuroSonic.Startup
@@ -31,6 +32,12 @@ namespace NeuroSonic.Startup
         private void SelectGamepad(int id)
         {
             Logger.Log($"Selected Gamepad { id }");
+
+            Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, id);
+            InputManager.ReopenGamepad();
+
+            // TODO: temp, find a better way to schedule saving
+            Host.SaveConfig();
         }
     }
 }

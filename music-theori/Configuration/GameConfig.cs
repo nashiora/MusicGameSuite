@@ -13,8 +13,9 @@ namespace theori.Configuration
 	        Set(GameConfigKey.FullScreenWidth, -1);
 	        Set(GameConfigKey.FullScreenHeight, -1);
 	        Set(GameConfigKey.Fullscreen, false);
-	        Set(GameConfigKey.FullscreenMonitorIndex, 0);
-	        Set(GameConfigKey.MasterVolume, 1.0f);
+            Set(GameConfigKey.FullscreenMonitorIndex, 0);
+            Set(GameConfigKey.Maximized, false);
+            Set(GameConfigKey.MasterVolume, 1.0f);
 	        Set(GameConfigKey.ScreenX, -1);
 	        Set(GameConfigKey.ScreenY, -1);
 	        Set(GameConfigKey.VSync, 0);
@@ -93,11 +94,13 @@ namespace theori.Configuration
 	    ScreenY,
 	    Fullscreen,
 	    FullscreenMonitorIndex,
-	    MasterVolume,
 	    VSync,
+        Maximized,
 
-	    // Game settings
-	    HiSpeed,
+        MasterVolume,
+
+        // Game settings
+        HiSpeed,
         HiSpeedModKind,
         ModSpeed,
 	    GlobalOffset,

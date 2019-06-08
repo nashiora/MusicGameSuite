@@ -14,41 +14,41 @@ namespace NeuroSonic.GamePlay
 {
     public class HighwayView
     {
+        struct KeyBeamInfo
+        {
+            public float Alpha;
+            public Vector3 Color;
+        }
+
         //private const float PITCH_AMT = 15;
         private const float LENGTH_BASE = 12;
 
         private float roll;
-        private float pitch, zoom; // "top", "bottom"
+        private float m_pitch, m_zoom; // "top", "bottom"
         public float CritScreenY = 0.1f;
 
         public readonly BasicCamera Camera;
         public Transform WorldTransform { get; private set; }
         public Transform CritLineTransform { get; private set; }
 
-        private Drawable3D highwayDrawable;
-        private Drawable3D btChipDrawable, btHoldDrawable;
-        private Drawable3D fxChipDrawable, fxHoldDrawable;
-        private Drawable3D lVolEntryDrawable, lVolExitDrawable;
-        private Drawable3D rVolEntryDrawable, rVolExitDrawable;
+        private readonly Drawable3D m_highwayDrawable;
+        private readonly Drawable3D[] m_keyBeamDrawables = new Drawable3D[6];
+        private readonly Drawable3D m_btChipDrawable, m_btHoldDrawable;
+        private readonly Drawable3D m_fxChipDrawable, m_fxHoldDrawable;
+        private readonly Drawable3D m_lVolEntryDrawable, m_lVolExitDrawable;
+        private readonly Drawable3D m_rVolEntryDrawable, m_rVolExitDrawable;
 
         // vol segment pieces are separate, generate drawables for each segment because mesh :shrug:
-        private Texture lVolTexture, rVolTexture;
-        private Material lVolMaterial, rVolMaterial;
-        private MaterialParams lVolParams, rVolParams;
+        private readonly Texture m_lVolTexture, m_rVolTexture;
+        private readonly Material m_lVolMaterial, m_rVolMaterial;
+        private readonly MaterialParams m_lVolParams, m_rVolParams;
 
-        internal Dictionary<OpenRM.Object, ObjectRenderable3D>[] renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
+        private Dictionary<OpenRM.Object, ObjectRenderable3D>[] m_renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
+        private readonly KeyBeamInfo[] m_keyBeamInfos = new KeyBeamInfo[6];
 
         public time_t PlaybackPosition { get; set; }
 
-        private time_t m_vd;
-        public time_t ViewDuration
-        {
-            get => m_vd;
-            set
-            {
-                m_vd = value;
-            }
-        }
+        public time_t ViewDuration { get; set; }
 
         public float LaserRoll => roll;
         public float CriticalHeight => (1 - CritScreenY) * Camera.ViewportHeight;
@@ -83,19 +83,31 @@ namespace NeuroSonic.GamePlay
             highwayParams["Hidden"] = 0.0f;
 
             var basicMaterial = new Material("basic");
-
             var volMaterial = new Material("laser")
             {
                 BlendMode = BlendMode.Additive,
             };
 
-            highwayDrawable = new Drawable3D()
+            var keyBeamTexture = Texture.FromFile2D($@".\skins\Default\textures\key_beam.png");
+            var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter);
+
+            m_highwayDrawable = new Drawable3D()
             {
                 Texture = Texture.FromFile2D(@".\skins\Default\textures\highway.png"),
                 Material = new Material("highway"),
                 Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter),
                 Params = highwayParams,
             };
+
+            for (int i = 0; i < 6; i++)
+            {
+                m_keyBeamDrawables[i] = new Drawable3D()
+                {
+                    Texture = keyBeamTexture,
+                    Mesh = keyBeamMesh,
+                    Material = basicMaterial,
+                };
+            }
 
             Drawable3D CreateDrawable3D(string texName, int width, bool isChip)
             {
@@ -116,10 +128,10 @@ namespace NeuroSonic.GamePlay
                 };
             }
             
-            btChipDrawable = CreateDrawable3D("bt_chip", 1, true);
-            btHoldDrawable = CreateDrawable3D("bt_hold", 1, false);
-            fxChipDrawable = CreateDrawable3D("fx_chip", 2, true);
-            fxHoldDrawable = CreateDrawable3D("fx_hold", 2, false);
+            m_btChipDrawable = CreateDrawable3D("bt_chip", 1, true);
+            m_btHoldDrawable = CreateDrawable3D("bt_hold", 1, false);
+            m_fxChipDrawable = CreateDrawable3D("fx_chip", 2, true);
+            m_fxHoldDrawable = CreateDrawable3D("fx_hold", 2, false);
 
             MaterialParams CreateVolumeParams(int lane)
             {
@@ -152,27 +164,27 @@ namespace NeuroSonic.GamePlay
                 };
             }
 
-            CreateVolDrawables(0, new Vector3(0, 0.5f, 1), ref lVolEntryDrawable, ref lVolExitDrawable);
-            CreateVolDrawables(1, new Vector3(1, 0, 0.5f), ref rVolEntryDrawable, ref rVolExitDrawable);
+            CreateVolDrawables(0, new Vector3(0, 0.5f, 1), ref m_lVolEntryDrawable, ref m_lVolExitDrawable);
+            CreateVolDrawables(1, new Vector3(1, 0, 0.5f), ref m_rVolEntryDrawable, ref m_rVolExitDrawable);
 
-            lVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
-            rVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
+            m_lVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
+            m_rVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
 
-            lVolMaterial = volMaterial;
-            rVolMaterial = volMaterial;
+            m_lVolMaterial = volMaterial;
+            m_rVolMaterial = volMaterial;
 
-            lVolParams = CreateVolumeParams(0);
-            rVolParams = CreateVolumeParams(1);
+            m_lVolParams = CreateVolumeParams(0);
+            m_rVolParams = CreateVolumeParams(1);
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
             
-            renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
+            m_renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
         }
 
         public void Reset()
         {
-            foreach (var r in renderables)
+            foreach (var r in m_renderables)
                 r.Clear();
         }
 
@@ -184,21 +196,21 @@ namespace NeuroSonic.GamePlay
             {
                 ButtonRenderState3D br3d;
                 if (obj.IsInstant)
-                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btChipDrawable : fxChipDrawable, 0);
+                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? m_btChipDrawable : m_fxChipDrawable, 0);
                 else
                 {
                     float zDur = (float)(obj.AbsoluteDuration.Seconds / ViewDuration.Seconds);
-                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? btHoldDrawable : fxHoldDrawable, zDur * LENGTH_BASE);
+                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? m_btHoldDrawable : m_fxHoldDrawable, zDur * LENGTH_BASE);
                 }
 
-                renderables[obj.Stream][obj] = br3d;
+                m_renderables[obj.Stream][obj] = br3d;
             }
             else if (obj is AnalogObject aobj)
             {
                 if (obj.IsInstant)
                 {
                     float zDur = (float)(SlamDurationTime(aobj).Seconds / ViewDuration.Seconds);
-                    renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE);
+                    m_renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE);
                 }
                 else
                 {
@@ -207,7 +219,7 @@ namespace NeuroSonic.GamePlay
                         duration -= SlamDurationTime(aobj.PreviousConnected);
 
                     float zDur = (float)(duration.Seconds / ViewDuration.Seconds);
-                    renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE);
+                    m_renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE);
                 }
             }
         }
@@ -215,17 +227,29 @@ namespace NeuroSonic.GamePlay
         public void RenderableObjectDisappear(OpenRM.Object obj)
         {
             if (obj.Stream >= 8) return;
-            renderables[obj.Stream].Remove(obj);
+            m_renderables[obj.Stream].Remove(obj);
+        }
+
+        public void CreateKeyBeam(int lane)
+        {
+            m_keyBeamInfos[lane].Alpha = 1.0f;
+            m_keyBeamInfos[lane].Color = new Vector3(1, 1, 1);
         }
 
         public void Update()
         {
+            for (int i = 0; i < 6; i++)
+            {
+                const float KEY_BEAM_SPEED = 10.0f;
+                m_keyBeamInfos[i].Alpha = Math.Max(0, m_keyBeamInfos[i].Alpha - Time.Delta * KEY_BEAM_SPEED);
+            }
+
             Camera.ViewportWidth = Window.Width;
             Camera.ViewportHeight = Window.Height;
 
             roll = TargetLaserRoll;
-            pitch = TargetPitch;
-            zoom = TargetZoom;
+            m_pitch = TargetPitch;
+            m_zoom = TargetZoom;
             
             Transform GetAtRoll(float roll, float xOffset)
             {
@@ -240,7 +264,7 @@ namespace NeuroSonic.GamePlay
                 var anchor = Transform.RotationX(ANCHOR_ROT)
                            * Transform.Translation(xOffset, ANCHOR_Y, 0);
                 var contnr = Transform.Translation(0, 0, 0)
-                           * Transform.RotationX(pitch)
+                           * Transform.RotationX(m_pitch)
                            * Transform.Translation(0, 0, CONTNR_Z);
 
                 return contnr * anchor * origin;
@@ -255,7 +279,7 @@ namespace NeuroSonic.GamePlay
             float highwayDist = zoomDir.Length();
             zoomDir = Vector3.Normalize(zoomDir);
 
-            var zoomTransform = Transform.Translation(zoomDir * zoom * highwayDist);
+            var zoomTransform = Transform.Translation(zoomDir * m_zoom * highwayDist);
 
             WorldTransform = worldNormal * zoomTransform;
             CritLineTransform = worldCritLine;
@@ -314,11 +338,24 @@ namespace NeuroSonic.GamePlay
 
             using (var queue = new RenderQueue(renderState))
             {
-                highwayDrawable.DrawToQueue(queue, Transform.Translation(0, 0, 1) * WorldTransform);
+                m_highwayDrawable.DrawToQueue(queue, Transform.Translation(0, 0, 1) * WorldTransform);
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var keyBeamInfo = m_keyBeamInfos[i];
+                    var keyBeamDrawable = m_keyBeamDrawables[i];
+
+                    Transform t = Transform.Scale(i < 4 ? 1.0f / 6 : 2.0f / 6, 1, 1)
+                                * Transform.Translation(i < 4 ? -3.0f / 12 + (float)i / 6 : -1.0f / 6 + (2.0f * (i - 4)) / 6, 0, 1)
+                                * WorldTransform;
+
+                    keyBeamDrawable.Params["Color"] = new Vector4(keyBeamInfo.Color, keyBeamInfo.Alpha);
+                    keyBeamDrawable.DrawToQueue(queue, t);
+                }
 
                 void RenderButtonStream(int i)
                 {
-                    foreach (var objr in renderables[i].Values)
+                    foreach (var objr in m_renderables[i].Values)
                     {
                         float zAbs = (float)((objr.Object.AbsolutePosition - PlaybackPosition) / ViewDuration);
                         float z = LENGTH_BASE * zAbs;
@@ -354,7 +391,7 @@ namespace NeuroSonic.GamePlay
                 {
                     const float HISCALE = 0.1f;
 
-                    foreach (var objr in renderables[i + 6].Values)
+                    foreach (var objr in m_renderables[i + 6].Values)
                     {
                         var analog = objr.Object as AnalogObject;
 
@@ -367,9 +404,9 @@ namespace NeuroSonic.GamePlay
                         Transform s = Transform.Scale(1, 1, 1 + HISCALE);
                         Transform t = objr.Transform * Transform.Translation(0, 0, -z) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
 
-                        var volMaterial = i == 0 ? lVolMaterial : rVolMaterial;
-                        var volParams = i == 0 ? lVolParams : rVolParams;
-                        volParams["MainTexture"] = i == 0 ? lVolTexture : rVolTexture;
+                        var volMaterial = i == 0 ? m_lVolMaterial : m_rVolMaterial;
+                        var volParams = i == 0 ? m_lVolParams : m_rVolParams;
+                        volParams["MainTexture"] = i == 0 ? m_lVolTexture : m_rVolTexture;
                         queue.Draw(t, objr.Mesh, volMaterial, volParams);
 
                         if (objr.Object.PreviousConnected == null)
@@ -382,7 +419,7 @@ namespace NeuroSonic.GamePlay
 
                             Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
                             //queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
-                            (i == 0 ? lVolEntryDrawable : rVolEntryDrawable).DrawToQueue(queue, tEntry);
+                            (i == 0 ? m_lVolEntryDrawable : m_rVolEntryDrawable).DrawToQueue(queue, tEntry);
                         }
 
                         if (objr.Object.NextConnected == null && objr.Object.IsInstant)
@@ -398,7 +435,7 @@ namespace NeuroSonic.GamePlay
 
                             Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, 0, -zExit) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
                             //queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
-                            (i == 0 ? lVolExitDrawable : rVolExitDrawable).DrawToQueue(queue, tExit);
+                            (i == 0 ? m_lVolExitDrawable : m_rVolExitDrawable).DrawToQueue(queue, tExit);
                         }
                     }
                 }

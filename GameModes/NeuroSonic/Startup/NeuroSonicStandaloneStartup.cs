@@ -6,13 +6,13 @@ namespace NeuroSonic.Startup
 {
     public class NeuroSonicStandaloneStartup : BaseMenuLayer
     {
-        protected override string Title => "NeuroSonic Standalone Application";
+        protected override string Title => "NeuroSonic - Main Menu";
 
         protected override void GenerateMenuItems()
         {
             AddMenuItem(new MenuItem(ItemIndex, "Input Method", EnterInputMethod));
             AddSpacing();
-            AddMenuItem(new MenuItem(ItemIndex, "Event Mode", EnterEventMode));
+            AddMenuItem(new MenuItem(ItemIndex, "Free Play", EnterFreePlay));
             AddMenuItem(new MenuItem(ItemIndex, "Demo Mode", EnterDemoMode));
         }
 
@@ -22,7 +22,7 @@ namespace NeuroSonic.Startup
             Host.PushLayer(layer);
         }
 
-        private void EnterEventMode()
+        private void EnterFreePlay()
         {
             var gameLayer = new GameLayer(AutoPlay.None);
             Host.PushLayer(gameLayer, _ => gameLayer.OpenChart());

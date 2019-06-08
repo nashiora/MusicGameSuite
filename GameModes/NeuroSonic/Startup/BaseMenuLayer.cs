@@ -55,7 +55,9 @@ namespace NeuroSonic.Startup
                 {
                     new TextLabel(Font.Default32, Title)
                     {
-                        Position = new Vector2(20, 20),
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.5f, 20),
+                        TextAlignment = TextAlignment.TopCenter,
                     },
 
                     new Panel()
