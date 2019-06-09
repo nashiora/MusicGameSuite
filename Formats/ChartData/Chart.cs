@@ -111,6 +111,12 @@ namespace OpenRM
         public void ForEachControlPointInRange(int stream, time_t startPos, time_t endPos, Action<ControlPoint> action) =>
             ControlPoints.ForEachInRange(startPos, endPos, action);
 
+        public time_t CalcTimeFromTick(tick_t pos)
+        {
+            ControlPoint cp = ControlPoints.MostRecent(pos);
+            return cp.AbsolutePosition + cp.MeasureDuration * (pos - cp.Position);
+        }
+
         public sealed class ObjectStream : IEnumerable<Object>
         {
             private readonly Chart m_chart;

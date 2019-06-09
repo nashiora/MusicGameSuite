@@ -22,12 +22,12 @@ namespace NeuroSonic.GamePlay.Scoring
             }
         }
 
-        public const int TOTAL_MISS_MILLIS = 150;
-        public const int TOTAL_NEAR_MILLIS = 100;
-        public const int TOTAL_CRIT_MILLIS = 36;
-        public const int TOTAL_PERF_MILLIS = 18;
+        public const int TOTAL_MISS_MILLIS = 150 * 2;
+        public const int TOTAL_NEAR_MILLIS = 100 * 2;
+        public const int TOTAL_CRIT_MILLIS = 36 * 2;
+        public const int TOTAL_PERF_MILLIS = 18 * 2;
 
-        public const int TOTAL_HOLD_MILLIS = 36;
+        public const int TOTAL_HOLD_MILLIS = 36 * 2;
 
         private const double MISS_RADIUS = (TOTAL_MISS_MILLIS / 2) / 1000.0;
         private const double NEAR_RADIUS = (TOTAL_NEAR_MILLIS / 2) / 1000.0;
@@ -39,6 +39,8 @@ namespace NeuroSonic.GamePlay.Scoring
         private const double MAX_RADIUS = MISS_RADIUS;
 
         private bool m_userHeld = false;
+        private time_t m_userWhen = 0.0;
+
         private readonly List<Tick> m_ticks = new List<Tick>();
 
         public event Action<time_t, JudgeResult> OnTickProcessed;
@@ -50,14 +52,16 @@ namespace NeuroSonic.GamePlay.Scoring
 
         protected override time_t JudgementRadius => MAX_RADIUS;
 
-        public void UserPressed(time_t timeStamp)
+        public JudgeResult? UserPressed(time_t timeStamp)
         {
             m_userHeld = true;
-            if (m_ticks.Count == 0) return;
+            m_userWhen = timeStamp;
+
+            if (m_ticks.Count == 0) return null;
 
             var tick = m_ticks[0];
             // Don't ACTUALLY handle holds handled in here
-            if (tick.IsHold) return;
+            if (tick.IsHold) return null;
 
             m_ticks.RemoveAt(0);
 
@@ -68,14 +72,19 @@ namespace NeuroSonic.GamePlay.Scoring
             time_t absDiff = MathL.Abs(diff.Seconds);
 
             time_t offsetTime = timeStamp - JudgementOffset;
+
+            JudgeResult result;
             if (absDiff <= PERF_RADIUS)
-                OnTickProcessed?.Invoke(offsetTime, new JudgeResult(diff, JudgeKind.Perfect));
+                result = new JudgeResult(diff, JudgeKind.Perfect);
             else if (absDiff <= CRIT_RADIUS)
-                OnTickProcessed?.Invoke(offsetTime, new JudgeResult(diff, JudgeKind.Critical));
+                result = new JudgeResult(diff, JudgeKind.Critical);
             else if (absDiff <= NEAR_RADIUS)
-                OnTickProcessed?.Invoke(offsetTime, new JudgeResult(diff, JudgeKind.Near));
+                result = new JudgeResult(diff, JudgeKind.Near);
             // TODO(local): Is this how we want to handle misses?
-            else OnTickProcessed?.Invoke(offsetTime, new JudgeResult(diff, JudgeKind.Miss));
+            else result = new JudgeResult(diff, JudgeKind.Miss);
+
+            OnTickProcessed?.Invoke(offsetTime, result);
+            return result;
         }
 
         public void UserReleased(time_t timeStamp)
@@ -104,10 +113,13 @@ namespace NeuroSonic.GamePlay.Scoring
                 var tick = m_ticks[0];
                 if (!tick.IsHold) break;
 
+                time_t check = tick.AssociatedObject.AbsolutePosition + JudgementOffset - m_userWhen;
+                if (check > NEAR_RADIUS) break;
+
                 time_t diff = tick.Position + JudgementOffset - position;
                 time_t absDiff = MathL.Abs(diff.Seconds);
 
-                if (absDiff <= HOLD_RADIUS)
+                if (diff > 0 && absDiff <= HOLD_RADIUS)
                 {
                     m_ticks.RemoveAt(0);
                     OnTickProcessed?.Invoke(position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
@@ -124,6 +136,25 @@ namespace NeuroSonic.GamePlay.Scoring
             {
                 var chipTick = new Tick(obj, obj.AbsolutePosition, false);
                 m_ticks.Add(chipTick);
+            }
+            else
+            {
+                tick_t margin = 1.0 / (4 * 2);
+                tick_t step = 1.0 / (4 * 4);
+
+                int numTicks = MathL.FloorToInt((double)(obj.Duration - margin) / (double)step);
+
+                if (numTicks == 0)
+                    m_ticks.Add(new Tick(obj, obj.AbsolutePosition + obj.AbsoluteDuration / 2, true));
+                else
+                {
+                    tick_t pos = obj.Position + margin;
+                    for (int i = 0; i < numTicks; i++)
+                    {
+                        time_t timeAtTick = Chart.CalcTimeFromTick(pos + i * step);
+                        m_ticks.Add(new Tick(obj, timeAtTick, true));
+                    }
+                }
             }
         }
 

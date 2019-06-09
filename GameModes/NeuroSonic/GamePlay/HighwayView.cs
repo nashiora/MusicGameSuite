@@ -230,10 +230,10 @@ namespace NeuroSonic.GamePlay
             m_renderables[obj.Stream].Remove(obj);
         }
 
-        public void CreateKeyBeam(int lane)
+        public void CreateKeyBeam(int lane, Vector3 color)
         {
             m_keyBeamInfos[lane].Alpha = 1.0f;
-            m_keyBeamInfos[lane].Color = new Vector3(1, 1, 1);
+            m_keyBeamInfos[lane].Color = color;
         }
 
         public void Update()

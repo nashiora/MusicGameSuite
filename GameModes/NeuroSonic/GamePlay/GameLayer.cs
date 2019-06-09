@@ -163,10 +163,10 @@ namespace NeuroSonic.GamePlay
                     {
                         int stream = i;
                         var judge = (ButtonJudge)m_judge[i];
-                        judge.JudgementOffset = 0.030;
+                        judge.JudgementOffset = 0.032;
                         judge.OnTickProcessed += (when, result) =>
                         {
-                            Logger.Log($"[{ stream }] { result.Kind } :: { result.Difference } @ { when }");
+                            Logger.Log($"[{ stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { when }");
                         };
                     }
 
@@ -346,8 +346,24 @@ namespace NeuroSonic.GamePlay
 
             void BtPress(int streamIndex)
             {
-                m_highwayView.CreateKeyBeam(streamIndex);
-                (m_judge[streamIndex] as ButtonJudge).UserPressed(m_judge.Position);
+                var result = (m_judge[streamIndex] as ButtonJudge).UserPressed(m_judge.Position);
+                if (result == null)
+                    m_highwayView.CreateKeyBeam(streamIndex, Vector3.One);
+                else
+                {
+                    Vector3 color = Vector3.One;
+
+                    bool isEarly = result?.Difference < 0.0;
+                    switch (result?.Kind)
+                    {
+                        case JudgeKind.Perfect: color = new Vector3(1, 1, 0); break;
+                        case JudgeKind.Critical: color = new Vector3(1, 1, 0); break;
+                        case JudgeKind.Near: color = isEarly ? new Vector3(1.0f, 0, 0.5f) : new Vector3(0.5f, 1, 0.25f); break;
+                        case JudgeKind.Miss: color = new Vector3(1, 0, 0); break;
+                    }
+
+                    m_highwayView.CreateKeyBeam(streamIndex, color);
+                }
             }
 
             return true;
