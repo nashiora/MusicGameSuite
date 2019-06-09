@@ -53,7 +53,7 @@ namespace NeuroSonic
 
         private static void SaveNscConfig()
         {
-            using (var writer = new StreamWriter(File.OpenWrite(NSC_CONFIG_FILE)))
+            using (var writer = new StreamWriter(File.Open(NSC_CONFIG_FILE, FileMode.Create)))
                 Config.Save(writer);
         }
 

@@ -15,7 +15,7 @@ namespace theori.IO
 
         public static void ReopenGamepad()
         {
-            Gamepad?.Dispose();
+            Gamepad?.Close();
 
             int deviceIndex = Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID);
             Gamepad = Gamepad.Open(deviceIndex);

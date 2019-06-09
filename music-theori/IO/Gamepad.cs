@@ -120,17 +120,18 @@ namespace theori.IO
             }
         }
 
-        protected override void DisposeUnmanaged()
+        public void Close()
         {
-            try
-            {
-                if (joystick != IntPtr.Zero) SDL_JoystickClose(joystick);
-            }
-            catch (AccessViolationException) { } // TODO(local): figure out why tf this keeps triggering on exit
-
+            if (joystick != IntPtr.Zero) SDL_JoystickClose(joystick);
             joystick = IntPtr.Zero;
 
             openGamepads.Remove(DeviceIndex);
+        }
+
+        protected override void DisposeUnmanaged()
+        {
+            // TODO(local): throws access violation all the fkin time, but it's only at exit so it's like fine?
+            //Close();
         }
 
         public bool ButtonDown(uint buttonIndex) => buttonStates[buttonIndex] != 0;

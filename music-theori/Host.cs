@@ -211,7 +211,7 @@ namespace theori
 
         public static void SaveConfig()
         {
-            using (var writer = new StreamWriter(File.OpenWrite(GAME_CONFIG_FILE)))
+            using (var writer = new StreamWriter(File.Open(GAME_CONFIG_FILE, FileMode.Create)))
                 GameConfig.Save(writer);
         }
 

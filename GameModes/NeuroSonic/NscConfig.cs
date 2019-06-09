@@ -1,5 +1,6 @@
 ﻿using theori;
 using theori.Configuration;
+using theori.Gui;
 using theori.IO;
 
 namespace NeuroSonic
@@ -27,7 +28,6 @@ namespace NeuroSonic
         Skin,
         Laser0Color,
         Laser1Color,
-        LaserAssistLevel,
 
         // Input device setting per element
         LaserInputDevice,
@@ -95,7 +95,6 @@ namespace NeuroSonic
             Set(NscConfigKey.HiSpeed, 1.0f);
             Set(NscConfigKey.VideoOffset, 0);
             Set(NscConfigKey.InputOffset, 0);
-            Set(NscConfigKey.LaserAssistLevel, 1.5f);
             Set(NscConfigKey.HiSpeedModKind, HiSpeedMod.Default);
             Set(NscConfigKey.ModSpeed, 300.0f);
             Set(NscConfigKey.StandaloneChartsDirectory, "charts");
@@ -132,7 +131,7 @@ namespace NeuroSonic
             Set(NscConfigKey.Key_Laser0PosAlt, KeyCode.UNKNOWN);
             Set(NscConfigKey.Key_Laser1NegAlt, KeyCode.UNKNOWN);
             Set(NscConfigKey.Key_Laser1PosAlt, KeyCode.UNKNOWN);
-            Set(NscConfigKey.Key_Sensitivity, 3.0f);
+            Set(NscConfigKey.Key_Sensitivity, 1.0f);
             Set(NscConfigKey.Key_LaserReleaseTime, 0.0f);
 
             // Default controller settings
@@ -150,8 +149,8 @@ namespace NeuroSonic
             Set(NscConfigKey.Controller_Deadzone, 0.0f);
 
             // Default mouse settings
-            Set(NscConfigKey.Mouse_Laser0Axis, 0);
-            Set(NscConfigKey.Mouse_Laser1Axis, 1);
+            Set(NscConfigKey.Mouse_Laser0Axis, Axes.X);
+            Set(NscConfigKey.Mouse_Laser1Axis, Axes.Y);
             Set(NscConfigKey.Mouse_Sensitivity, 1.0f);
         }
     }

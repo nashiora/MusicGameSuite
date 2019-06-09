@@ -36,12 +36,14 @@ namespace NeuroSonic.Startup
 
         private void SelectGamepad(int id)
         {
-
             Plugin.Config.Set(NscConfigKey.ButtonInputDevice, InputDevice.Controller);
             Plugin.Config.Set(NscConfigKey.LaserInputDevice, InputDevice.Controller);
-            Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, id);
 
-            InputManager.ReopenGamepad();
+            if (Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID) != id)
+            {
+                Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, id);
+                InputManager.ReopenGamepad();
+            }
 
             // TODO: temp, find a better way to schedule saving
             Plugin.SaveConfig();

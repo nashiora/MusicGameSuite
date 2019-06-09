@@ -420,9 +420,32 @@ namespace NeuroSonic.Startup
                         }
                         else
                         {
-                            if (m_laserInputDevice != InputDevice.Keyboard) return true;
-                            Debug.Assert(binding.Which != ControllerInput.Laser0Axis && binding.Which != ControllerInput.Laser1Axis, "Axes not supported for keys bro");
-                            SetKeyboardBinding();
+                            if (m_laserInputDevice == InputDevice.Keyboard)
+                            {
+                                Debug.Assert(binding.Which != ControllerInput.Laser0Axis && binding.Which != ControllerInput.Laser1Axis, "Axes not supported for keys bro");
+                                SetKeyboardBinding();
+                            }
+                            else if (m_laserInputDevice == InputDevice.Mouse)
+                            {
+                                switch (key.KeyCode)
+                                {
+                                    case KeyCode.X:
+                                    case KeyCode.D0:
+                                    case KeyCode.KP_0:
+                                    case KeyCode.H:
+                                        SetMouseAxisBinding(Axes.X);
+                                        break;
+
+                                    case KeyCode.Y:
+                                    case KeyCode.D1:
+                                    case KeyCode.KP_1:
+                                    case KeyCode.V:
+                                        SetMouseAxisBinding(Axes.Y);
+                                        break;
+
+                                    default: break;
+                                }
+                            }
                         }
 
                         // both will do the same thing, but require different checks. this is fine for now.
@@ -435,6 +458,20 @@ namespace NeuroSonic.Startup
                             Plugin.SaveConfig();
 
                             Logger.Log($"Set Key for { configKey } (from { binding.Which }) to { key.KeyCode }");
+                            UpdateBindableText(binding, configKeys);
+
+                            m_codeIndex = -1; // when we set the binding, exit binding config
+                        }
+
+                        void SetMouseAxisBinding(Axes axis)
+                        {
+                            var configKeys = m_bindingIndices[binding.Which];
+                            var configKey = (NscConfigKey)(m_codeIndex == 0 ? configKeys.Item1 : configKeys.Item2);
+
+                            Plugin.Config.Set(configKey, axis);
+                            Plugin.SaveConfig();
+
+                            Logger.Log($"Set Mouse Axis for { configKey } (from { binding.Which }) to Axis { axis }");
                             UpdateBindableText(binding, configKeys);
 
                             m_codeIndex = -1; // when we set the binding, exit binding config
@@ -500,7 +537,7 @@ namespace NeuroSonic.Startup
                 var configKeys = m_bindingIndices[binding.Which];
                 var configKey = (NscConfigKey)(m_codeIndex == 0 ? configKeys.Item1 : configKeys.Item2);
 
-                Plugin.Config.Set(configKey, info.Axis);
+                Plugin.Config.Set(configKey, (int)info.Axis);
                 Plugin.SaveConfig();
 
                 Logger.Log($"Set Button for { configKey } (from { binding.Which }) to { info.Axis }");
