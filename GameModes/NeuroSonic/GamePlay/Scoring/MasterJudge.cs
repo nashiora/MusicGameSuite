@@ -27,6 +27,8 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private readonly StreamJudge[] m_judges = new StreamJudge[8];
 
+        public StreamJudge this[int index] => m_judges[index];
+
         public MasterJudge(Chart chart)
         {
             Chart = chart;

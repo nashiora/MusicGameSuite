@@ -53,6 +53,7 @@
     <Compile Include="GamePlay\LaserRollSampler.cs" />
     <Compile Include="GamePlay\ObjectRenderable3D.cs" />
     <Compile Include="GamePlay\Scoring\ButtonJudge.cs" />
+    <Compile Include="GamePlay\Scoring\JudgeResult.cs" />
     <Compile Include="GamePlay\Scoring\MasterJudge.cs" />
     <Compile Include="GamePlay\Scoring\StreamJudge.cs" />
     <Compile Include="Startup\BaseMenuLayer.cs" />

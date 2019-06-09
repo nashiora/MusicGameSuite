@@ -120,10 +120,10 @@ namespace NeuroSonic.GamePlay
                 var dialog = new OpenFileDialogDesc("Open Chart",
                                     new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
 
-                var result = FileSystem.ShowOpenFileDialog(dialog);
-                if (result.DialogResult == DialogResult.OK)
+                var dialogResult = FileSystem.ShowOpenFileDialog(dialog);
+                if (dialogResult.DialogResult == DialogResult.OK)
                 {
-                    string kshChart = result.FilePath;
+                    string kshChart = dialogResult.FilePath;
 
                     string fileDir = Directory.GetParent(kshChart).FullName;
                     var ksh = KShootMania.Chart.CreateFromFile(kshChart);
@@ -159,6 +159,16 @@ namespace NeuroSonic.GamePlay
                     // TODO(local): properly dispose of old stuffs
                     m_playback.SetChart(chart);
                     m_judge = new MasterJudge(chart);
+                    for (int i = 0; i < 6; i++)
+                    {
+                        int stream = i;
+                        var judge = (ButtonJudge)m_judge[i];
+                        judge.JudgementOffset = 0.030;
+                        judge.OnTickProcessed += (when, result) =>
+                        {
+                            Logger.Log($"[{ stream }] { result.Kind } :: { result.Difference } @ { when }");
+                        };
+                    }
 
                     m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
                     m_highwayView.Reset();
@@ -324,14 +334,44 @@ namespace NeuroSonic.GamePlay
 
             switch (info.Button)
             {
-                case 1: m_highwayView.CreateKeyBeam(0); break;
-                case 2: m_highwayView.CreateKeyBeam(1); break;
-                case 3: m_highwayView.CreateKeyBeam(2); break;
-                case 7: m_highwayView.CreateKeyBeam(3); break;
-                case 5: m_highwayView.CreateKeyBeam(4); break;
-                case 6: m_highwayView.CreateKeyBeam(5); break;
+                case 1: BtPress(0); break;
+                case 2: BtPress(1); break;
+                case 3: BtPress(2); break;
+                case 7: BtPress(3); break;
+                case 5: BtPress(4); break;
+                case 6: BtPress(5); break;
 
                 default: return false;
+            }
+
+            void BtPress(int streamIndex)
+            {
+                m_highwayView.CreateKeyBeam(streamIndex);
+                (m_judge[streamIndex] as ButtonJudge).UserPressed(m_judge.Position);
+            }
+
+            return true;
+        }
+
+        public override bool ButtonReleased(ButtonInfo info)
+        {
+            if (info.DeviceIndex != InputManager.Gamepad.DeviceIndex) return false;
+
+            switch (info.Button)
+            {
+                case 1: BtRelease(0); break;
+                case 2: BtRelease(1); break;
+                case 3: BtRelease(2); break;
+                case 7: BtRelease(3); break;
+                case 5: BtRelease(4); break;
+                case 6: BtRelease(5); break;
+
+                default: return false;
+            }
+
+            void BtRelease(int streamIndex)
+            {
+                (m_judge[streamIndex] as ButtonJudge).UserReleased(m_judge.Position);
             }
 
             return true;
@@ -370,7 +410,7 @@ namespace NeuroSonic.GamePlay
 
                 m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
                 m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
-                m_control.Offset = GetPathValueLerped(StreamIndex.Offset) * 5 / 6.0f;
+                m_control.Offset = GetPathValueLerped(StreamIndex.Offset);
                 m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
 
                 m_highwayView.PlaybackPosition = position;
