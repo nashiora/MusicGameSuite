@@ -33,7 +33,6 @@ namespace theori.Gui
         public override bool OnMouseButtonPress(MouseButton button)
         {
             Pressed?.Invoke();
-            Logger.Log("TempButtonTest pressed");
             return true;
         }
     }

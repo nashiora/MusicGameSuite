@@ -51,6 +51,8 @@ namespace theori
         private static int LayerCount => layers.Count;
         private static int OverlayCount => overlays.Count;
 
+        public static event Action OnUserQuit;
+
         /// <summary>
         /// Adds a new, uninitialized layer to the top of the layer stack.
         /// The layer must never have been in the layer stack before.
@@ -340,6 +342,8 @@ namespace theori
 
         public static void Quit(int code = 0)
         {
+            OnUserQuit?.Invoke();
+
             SaveConfig();
 
             //Gamepad.Destroy();

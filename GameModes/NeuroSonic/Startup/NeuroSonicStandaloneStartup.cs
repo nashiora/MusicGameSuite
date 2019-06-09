@@ -10,11 +10,11 @@ namespace NeuroSonic.Startup
 
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(ItemIndex, "Input Method", EnterInputMethod));
-            AddMenuItem(new MenuItem(ItemIndex, "Input Binding Configuration", EnterBindingConfig));
+            AddMenuItem(new MenuItem(NextOffset, "Input Method", EnterInputMethod));
+            AddMenuItem(new MenuItem(NextOffset, "Input Binding Configuration", EnterBindingConfig));
             AddSpacing();
-            AddMenuItem(new MenuItem(ItemIndex, "Free Play", EnterFreePlay));
-            AddMenuItem(new MenuItem(ItemIndex, "Demo Mode", EnterDemoMode));
+            AddMenuItem(new MenuItem(NextOffset, "Free Play", EnterFreePlay));
+            AddMenuItem(new MenuItem(NextOffset, "Demo Mode", EnterDemoMode));
         }
 
         private void EnterInputMethod()

@@ -110,7 +110,9 @@ namespace theori.Configuration
                 return result;
             throw new ArgumentException("Entry of invalid type");
         }
-        
+
+        public string GetAsStringImage(TKey key) => GetEnsure<ConfigEntry>(key).ToString();
+
         public int GetInt(TKey key) => GetEnsure<IntConfig>(key).Value;
         public float GetFloat(TKey key) => GetEnsure<FloatConfig>(key).Value;
         public bool GetBool(TKey key) => GetEnsure<BoolConfig>(key).Value;

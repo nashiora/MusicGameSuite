@@ -36,12 +36,12 @@ namespace NeuroSonic.Startup
     {
         protected Panel GuiRoot;
 
-        private int m_itemIndex;
+        protected int ItemIndex { get; private set; }
         private readonly List<MenuItem> m_items = new List<MenuItem>();
 
         private int m_extraSpacing = 0;
 
-        protected int ItemIndex => m_items.Count + m_extraSpacing;
+        protected int NextOffset => m_items.Count + m_extraSpacing;
 
         protected abstract string Title { get; }
 
@@ -69,7 +69,7 @@ namespace NeuroSonic.Startup
                 }
             };
 
-            m_items[m_itemIndex].Hilited = true;
+            m_items[ItemIndex].Hilited = true;
         }
 
         protected abstract void GenerateMenuItems();
@@ -99,21 +99,21 @@ namespace NeuroSonic.Startup
 
                 case KeyCode.UP:
                 {
-                    m_items[m_itemIndex].Hilited = false;
-                    m_itemIndex = Math.Max(0, m_itemIndex - 1);
-                    m_items[m_itemIndex].Hilited = true;
+                    m_items[ItemIndex].Hilited = false;
+                    ItemIndex = Math.Max(0, ItemIndex - 1);
+                    m_items[ItemIndex].Hilited = true;
                 }
                 break;
 
                 case KeyCode.DOWN:
                 {
-                    m_items[m_itemIndex].Hilited = false;
-                    m_itemIndex = Math.Min(m_items.Count - 1, m_itemIndex + 1);
-                    m_items[m_itemIndex].Hilited = true;
+                    m_items[ItemIndex].Hilited = false;
+                    ItemIndex = Math.Min(m_items.Count - 1, ItemIndex + 1);
+                    m_items[ItemIndex].Hilited = true;
                 }
                 break;
 
-                case KeyCode.RETURN: m_items[m_itemIndex].Action(); break;
+                case KeyCode.RETURN: m_items[ItemIndex].Action(); break;
 
                 // stick our false thing here, returning true is the default for handled keys
                 default: return false;
@@ -126,6 +126,7 @@ namespace NeuroSonic.Startup
 
         public override void Update(float delta, float total)
         {
+            GuiRoot.Update();
         }
 
         public override void Render()

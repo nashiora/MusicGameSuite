@@ -122,7 +122,14 @@ namespace theori.IO
 
         protected override void DisposeUnmanaged()
         {
-            if (joystick != IntPtr.Zero) SDL_JoystickClose(joystick);
+            try
+            {
+                if (joystick != IntPtr.Zero) SDL_JoystickClose(joystick);
+            }
+            catch (AccessViolationException) { } // TODO(local): figure out why tf this keeps triggering on exit
+
+            joystick = IntPtr.Zero;
+
             openGamepads.Remove(DeviceIndex);
         }
 

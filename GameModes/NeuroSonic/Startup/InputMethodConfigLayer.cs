@@ -12,8 +12,8 @@ namespace NeuroSonic.Startup
 
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(ItemIndex, "Keyboard Only", () => SelectKeyboard(false)));
-            AddMenuItem(new MenuItem(ItemIndex, "Keyboard and Mouse", () => SelectKeyboard(true)));
+            AddMenuItem(new MenuItem(NextOffset, "Keyboard Only", () => SelectKeyboard(false)));
+            AddMenuItem(new MenuItem(NextOffset, "Keyboard and Mouse", () => SelectKeyboard(true)));
 
             for (int id = 0; id < Gamepad.NumConnected; id++)
             {
@@ -21,24 +21,32 @@ namespace NeuroSonic.Startup
                 Logger.Log($"Connected Controller { id }: { name }");
 
                 int gpId = id;
-                AddMenuItem(new MenuItem(ItemIndex, name, () => SelectGamepad(gpId)));
+                AddMenuItem(new MenuItem(NextOffset, name, () => SelectGamepad(gpId)));
             }
         }
 
         private void SelectKeyboard(bool andMouse)
         {
-            Logger.Log($"Selected Keyboard{ (andMouse ? " and Mouse" : "") }");
+            Plugin.Config.Set(NscConfigKey.ButtonInputDevice, InputDevice.Keyboard);
+            Plugin.Config.Set(NscConfigKey.LaserInputDevice, andMouse ? InputDevice.Mouse : InputDevice.Keyboard);
+            Plugin.SaveConfig();
+
+            Host.PopToParent(this);
         }
 
         private void SelectGamepad(int id)
         {
-            Logger.Log($"Selected Gamepad { id }");
 
+            Plugin.Config.Set(NscConfigKey.ButtonInputDevice, InputDevice.Controller);
+            Plugin.Config.Set(NscConfigKey.LaserInputDevice, InputDevice.Controller);
             Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, id);
+
             InputManager.ReopenGamepad();
 
             // TODO: temp, find a better way to schedule saving
-            Host.SaveConfig();
+            Plugin.SaveConfig();
+
+            Host.PopToParent(this);
         }
     }
 }
