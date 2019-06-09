@@ -34,7 +34,7 @@ namespace NeuroSonic.Startup
 
     public abstract class BaseMenuLayer : Layer
     {
-        private Panel m_guiRoot;
+        protected Panel GuiRoot;
 
         private int m_itemIndex;
         private readonly List<MenuItem> m_items = new List<MenuItem>();
@@ -49,7 +49,7 @@ namespace NeuroSonic.Startup
         {
             GenerateMenuItems();
 
-            m_guiRoot = new Panel()
+            GuiRoot = new Panel()
             {
                 Children = new GuiElement[]
                 {
@@ -148,7 +148,7 @@ namespace NeuroSonic.Startup
                 }
             }
 
-            DrawUiRoot(m_guiRoot);
+            DrawUiRoot(GuiRoot);
         }
     }
 }

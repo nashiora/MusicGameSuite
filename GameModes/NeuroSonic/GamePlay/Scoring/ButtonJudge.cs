@@ -65,9 +65,6 @@ namespace NeuroSonic.GamePlay.Scoring
 
             m_ticks.RemoveAt(0);
 
-            // TODO(local): MAKE SURE EVERYTHING IS TRANSFORMED INTO THE CORRECT SPACES
-            // I THINK I MISSED SOMETHING WITH "WHERE IS THE CRIT CENTER"
-
             time_t diff = tick.Position + JudgementOffset - timeStamp;
             time_t absDiff = MathL.Abs(diff.Seconds);
 

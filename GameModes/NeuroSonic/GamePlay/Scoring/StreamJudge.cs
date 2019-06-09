@@ -27,6 +27,8 @@ namespace NeuroSonic.GamePlay.Scoring
         /// </summary>
         public time_t JudgementOffset = 0.0;
 
+        public bool AutoPlay = false;
+
         protected StreamJudge(Chart chart, int streamIndex)
         {
             Chart = chart;

@@ -11,6 +11,7 @@ namespace NeuroSonic.Startup
         protected override void GenerateMenuItems()
         {
             AddMenuItem(new MenuItem(ItemIndex, "Input Method", EnterInputMethod));
+            AddMenuItem(new MenuItem(ItemIndex, "Input Binding Configuration", EnterBindingConfig));
             AddSpacing();
             AddMenuItem(new MenuItem(ItemIndex, "Free Play", EnterFreePlay));
             AddMenuItem(new MenuItem(ItemIndex, "Demo Mode", EnterDemoMode));
@@ -19,6 +20,13 @@ namespace NeuroSonic.Startup
         private void EnterInputMethod()
         {
             var layer = new InputMethodConfigLayer();
+            Host.PushLayer(layer);
+        }
+
+        private void EnterBindingConfig()
+        {
+            Layer layer;
+            layer = new ControllerConfigurationLayer();
             Host.PushLayer(layer);
         }
 
@@ -36,7 +44,7 @@ namespace NeuroSonic.Startup
             //  this kind of use-case works. An otherwise invisible layer controls the parent
             //  layer silently, and is still handled properly as if it wasn't there c:
             // NOT an overlay, though, overlays are special and will ofc work if considered.
-            Host.PushLayer(gameLayer);
+            Host.PushLayer(gameLayer, _ => gameLayer.OpenChart());
         }
     }
 }

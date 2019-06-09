@@ -57,6 +57,7 @@
     <Compile Include="GamePlay\Scoring\MasterJudge.cs" />
     <Compile Include="GamePlay\Scoring\StreamJudge.cs" />
     <Compile Include="Startup\BaseMenuLayer.cs" />
+    <Compile Include="Startup\BindingConfigurationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
     <Compile Include="NeuroSonicDescription.cs" />
     <Compile Include="NscConfig.cs" />
