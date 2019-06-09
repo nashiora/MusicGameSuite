@@ -119,7 +119,7 @@ namespace NeuroSonic.GamePlay.Scoring
                 time_t diff = tick.Position + JudgementOffset - position;
                 time_t absDiff = MathL.Abs(diff.Seconds);
 
-                if (diff > 0 && absDiff <= HOLD_RADIUS)
+                if (m_userHeld && diff > 0 && absDiff <= HOLD_RADIUS)
                 {
                     m_ticks.RemoveAt(0);
                     OnTickProcessed?.Invoke(position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
