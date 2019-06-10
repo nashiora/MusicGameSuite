@@ -13,6 +13,7 @@ using OpenRM.Audio.Effects;
 using OpenRM.Convert;
 using OpenRM.Voltex;
 using NeuroSonic.GamePlay.Scoring;
+using System.Collections.Generic;
 
 namespace NeuroSonic.GamePlay
 {
@@ -52,9 +53,71 @@ namespace NeuroSonic.GamePlay
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
+        private readonly InputDevice m_buttonInputDevice;
+        private readonly InputDevice m_laserInputDevice;
+
+        private readonly Dictionary<KeyCode, ControllerInput> m_keyToControllerInput = new Dictionary<KeyCode, ControllerInput>();
+        private readonly Dictionary<Axes, ControllerInput> m_mouseToControllerInput = new Dictionary<Axes, ControllerInput>();
+        private readonly Dictionary<int, ControllerInput> m_buttonToControllerInput = new Dictionary<int, ControllerInput>();
+        private readonly Dictionary<int, ControllerInput> m_axisToControllerInput = new Dictionary<int, ControllerInput>();
+
         internal GameLayer(AutoPlay autoPlay = AutoPlay.None)
         {
             m_autoPlay = autoPlay;
+
+            m_buttonInputDevice = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice);
+            m_laserInputDevice = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.LaserInputDevice);
+
+            if (m_buttonInputDevice == InputDevice.Keyboard)
+            {
+                SetKeyCode(ControllerInput.Start, NscConfigKey.Key_Start, NscConfigKey.Key_StartAlt);
+                SetKeyCode(ControllerInput.Back, NscConfigKey.Key_Back, NscConfigKey.Key_BackAlt);
+
+                SetKeyCode(ControllerInput.BT0, NscConfigKey.Key_BT0, NscConfigKey.Key_BT0Alt);
+                SetKeyCode(ControllerInput.BT1, NscConfigKey.Key_BT1, NscConfigKey.Key_BT1Alt);
+                SetKeyCode(ControllerInput.BT2, NscConfigKey.Key_BT2, NscConfigKey.Key_BT2Alt);
+                SetKeyCode(ControllerInput.BT3, NscConfigKey.Key_BT3, NscConfigKey.Key_BT3Alt);
+
+                SetKeyCode(ControllerInput.FX0, NscConfigKey.Key_FX0, NscConfigKey.Key_FX0Alt);
+                SetKeyCode(ControllerInput.FX1, NscConfigKey.Key_FX1, NscConfigKey.Key_FX1Alt);
+            }
+            else if (m_buttonInputDevice == InputDevice.Controller)
+            {
+                SetButtonCode(ControllerInput.Start, NscConfigKey.Controller_Start);
+                SetButtonCode(ControllerInput.Back, NscConfigKey.Controller_Back);
+
+                SetButtonCode(ControllerInput.BT0, NscConfigKey.Controller_BT0);
+                SetButtonCode(ControllerInput.BT1, NscConfigKey.Controller_BT1);
+                SetButtonCode(ControllerInput.BT2, NscConfigKey.Controller_BT2);
+                SetButtonCode(ControllerInput.BT3, NscConfigKey.Controller_BT3);
+
+                SetButtonCode(ControllerInput.FX0, NscConfigKey.Controller_FX0);
+                SetButtonCode(ControllerInput.FX1, NscConfigKey.Controller_FX1);
+            }
+
+            if (m_laserInputDevice == InputDevice.Keyboard)
+            {
+            }
+            else if (m_laserInputDevice == InputDevice.Mouse)
+            {
+            }
+            else if (m_laserInputDevice == InputDevice.Controller)
+            {
+            }
+
+            void SetKeyCode(ControllerInput input, NscConfigKey primaryKey, NscConfigKey? secondaryKey = null)
+            {
+                m_keyToControllerInput[Plugin.Config.GetEnum<KeyCode>(primaryKey)] = input;
+                if (secondaryKey is NscConfigKey s)
+                    m_keyToControllerInput[Plugin.Config.GetEnum<KeyCode>(s)] = input;
+            }
+
+            void SetButtonCode(ControllerInput input, NscConfigKey primaryKey, NscConfigKey? secondaryKey = null)
+            {
+                m_buttonToControllerInput[Plugin.Config.GetInt(primaryKey)] = input;
+                if (secondaryKey is NscConfigKey s)
+                    m_buttonToControllerInput[Plugin.Config.GetInt(s)] = input;
+            }
         }
 
         public override void ClientSizeChanged(int width, int height)
@@ -293,10 +356,34 @@ namespace NeuroSonic.GamePlay
             }
         }
 
+        private void ControllerInputButtonPressed(ControllerInput input)
+        {
+            switch (input)
+            {
+                case ControllerInput.BT0: UserInput_BtPress(0); break;
+                case ControllerInput.BT1: UserInput_BtPress(1); break;
+                case ControllerInput.BT2: UserInput_BtPress(2); break;
+                case ControllerInput.BT3: UserInput_BtPress(3); break;
+                case ControllerInput.FX0: UserInput_BtPress(4); break;
+                case ControllerInput.FX1: UserInput_BtPress(5); break;
+            }
+        }
+
+        private void ControllerInputButtonReleased(ControllerInput input)
+        {
+            switch (input)
+            {
+                case ControllerInput.BT0: UserInput_BtRelease(0); break;
+                case ControllerInput.BT1: UserInput_BtRelease(1); break;
+                case ControllerInput.BT2: UserInput_BtRelease(2); break;
+                case ControllerInput.BT3: UserInput_BtRelease(3); break;
+                case ControllerInput.FX0: UserInput_BtRelease(4); break;
+                case ControllerInput.FX1: UserInput_BtRelease(5); break;
+            }
+        }
+
         public override bool KeyPressed(KeyInfo key)
         {
-            var cp = m_chart?.ControlPoints.MostRecent(m_audioController.Position);
-
             switch (key.KeyCode)
             {
                 case KeyCode.ESCAPE:
@@ -304,68 +391,54 @@ namespace NeuroSonic.GamePlay
                     Host.PopToParent(this);
                 } break;
 
-                case KeyCode.RETURN:
-                {
-                    if (m_audioController == null) break;
-
-                    time_t minStartTime = m_chart.TimeEnd;
-                    for (int i = 0; i < 8; i++)
+                default:
+                    if (m_keyToControllerInput.TryGetValue(key.KeyCode, out ControllerInput input))
                     {
-                        time_t startTime = m_chart[i].FirstObject?.AbsolutePosition ?? 0;
-                        if (startTime < minStartTime)
-                            minStartTime = startTime;
+                        ControllerInputButtonPressed(input);
+                        return true;
                     }
 
-                    minStartTime -= 2;
-                    if (minStartTime > m_audioController.Position)
-                        m_audioController.Position = minStartTime;
-                }
-                break;
-
-                case KeyCode.PAGEUP: m_audioController.Position += cp.MeasureDuration; break;
-
-                default: return false;
+                    return false;
             }
 
             return true;
+        }
+
+        public override bool KeyReleased(KeyInfo key)
+        {
+            if (m_keyToControllerInput.TryGetValue(key.KeyCode, out ControllerInput input))
+            {
+                ControllerInputButtonReleased(input);
+                return true;
+            }
+
+            return false;
         }
 
         public override bool ButtonPressed(ButtonInfo info)
         {
             if (info.DeviceIndex != InputManager.Gamepad.DeviceIndex) return false;
 
-            switch (info.Button)
+            if (m_buttonToControllerInput.TryGetValue((int)info.Button, out ControllerInput input))
             {
-                case 1: UserInput_BtPress(0); break;
-                case 2: UserInput_BtPress(1); break;
-                case 3: UserInput_BtPress(2); break;
-                case 7: UserInput_BtPress(3); break;
-                case 5: UserInput_BtPress(4); break;
-                case 6: UserInput_BtPress(5); break;
-
-                default: return false;
+                ControllerInputButtonPressed(input);
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         public override bool ButtonReleased(ButtonInfo info)
         {
             if (info.DeviceIndex != InputManager.Gamepad.DeviceIndex) return false;
 
-            switch (info.Button)
+            if (m_buttonToControllerInput.TryGetValue((int)info.Button, out ControllerInput input))
             {
-                case 1: UserInput_BtRelease(0); break;
-                case 2: UserInput_BtRelease(1); break;
-                case 3: UserInput_BtRelease(2); break;
-                case 7: UserInput_BtRelease(3); break;
-                case 5: UserInput_BtRelease(4); break;
-                case 6: UserInput_BtRelease(5); break;
-
-                default: return false;
+                ControllerInputButtonReleased(input);
+                return true;
             }
 
-            return true;
+            return false;
         }
 
         void UserInput_BtPress(int streamIndex)
