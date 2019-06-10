@@ -44,6 +44,7 @@ namespace NeuroSonic.GamePlay
 
         private Panel m_foreUiRoot, m_backUiRoot;
         private CriticalLine m_critRoot;
+        private ComboDisplay m_comboDisplay;
 
         private Chart m_chart;
         private SlidingChartPlayback m_playback;
@@ -175,6 +176,11 @@ namespace NeuroSonic.GamePlay
                 Children = new GuiElement[]
                 {
                     m_critRoot = new CriticalLine(),
+                    m_comboDisplay = new ComboDisplay()
+                    {
+                        RelativePositionAxes = Axes.Both,
+                        Position = new Vector2(0.5f, 0.7f)
+                    },
                 }
             };
         }
@@ -339,8 +345,12 @@ namespace NeuroSonic.GamePlay
         {
             Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
 
-            if (!obj.IsInstant && result.Kind == JudgeKind.Miss)
-                m_streamHasActiveEffects[obj.Stream] = false;
+            if (result.Kind == JudgeKind.Miss)
+                m_comboDisplay.Combo = 0;
+            else m_comboDisplay.Combo++;
+
+            if (!obj.IsInstant)
+                m_streamHasActiveEffects[obj.Stream] = result.Kind != JudgeKind.Miss;
         }
 
         private void Judge_OnHoldReleased(time_t position, OpenRM.Object obj)

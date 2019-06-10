@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GamePlay\ComboDisplay.cs" />
     <Compile Include="GamePlay\CriticalLine.cs" />
     <Compile Include="GamePlay\GameDebugOverlay.cs" />
     <Compile Include="GamePlay\GameLayer.cs" />
