@@ -49,6 +49,14 @@ namespace theori.Graphics
                 else Params[name] = new MaterialParam(value);
             }
         }
+
+        public MaterialParams Copy()
+        {
+            var result = new MaterialParams();
+            foreach (var entry in Params)
+                result.Params[entry.Key] = entry.Value.Copy();
+            return result;
+        }
     }
 
     public class Material : Disposable

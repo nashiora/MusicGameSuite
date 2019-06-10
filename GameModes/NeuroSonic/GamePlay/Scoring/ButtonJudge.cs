@@ -43,7 +43,12 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private readonly List<Tick> m_ticks = new List<Tick>();
 
-        public event Action<time_t, JudgeResult> OnTickProcessed;
+        public event Action<time_t, OpenRM.Object> OnChipPressed;
+
+        public event Action<time_t, OpenRM.Object> OnHoldPressed;
+        public event Action<time_t, OpenRM.Object> OnHoldReleased;
+
+        public event Action<OpenRM.Object, time_t, JudgeResult> OnTickProcessed;
 
         public ButtonJudge(Chart chart, int streamIndex)
             : base(chart, streamIndex)
@@ -61,7 +66,12 @@ namespace NeuroSonic.GamePlay.Scoring
 
             var tick = m_ticks[0];
             // Don't ACTUALLY handle holds handled in here
-            if (tick.IsHold) return null;
+            if (tick.IsHold)
+            {
+                OnHoldPressed?.Invoke(timeStamp, tick.AssociatedObject);
+                return null;
+            }
+            else OnChipPressed?.Invoke(timeStamp, tick.AssociatedObject);
 
             m_ticks.RemoveAt(0);
 
@@ -80,13 +90,16 @@ namespace NeuroSonic.GamePlay.Scoring
             // TODO(local): Is this how we want to handle misses?
             else result = new JudgeResult(diff, JudgeKind.Miss);
 
-            OnTickProcessed?.Invoke(offsetTime, result);
+            OnTickProcessed?.Invoke(tick.AssociatedObject, offsetTime, result);
             return result;
         }
 
         public void UserReleased(time_t timeStamp)
         {
             m_userHeld = false;
+
+            if (m_ticks.Count > 0 && m_ticks[0].IsHold)
+                OnHoldReleased?.Invoke(timeStamp, m_ticks[0].AssociatedObject);
         }
 
         protected override void AdvancePosition(time_t position)
@@ -100,7 +113,7 @@ namespace NeuroSonic.GamePlay.Scoring
                 if (tick.Position + JudgementOffset < position - radius)
                 {
                     m_ticks.RemoveAt(0);
-                    OnTickProcessed?.Invoke(position, new JudgeResult(tick.Position + JudgementOffset - position, JudgeKind.Miss));
+                    OnTickProcessed?.Invoke(tick.AssociatedObject, position, new JudgeResult(tick.Position + JudgementOffset - position, JudgeKind.Miss));
                 }
                 else break;
             }
@@ -119,7 +132,7 @@ namespace NeuroSonic.GamePlay.Scoring
                 if (m_userHeld && diff > 0 && absDiff <= HOLD_RADIUS)
                 {
                     m_ticks.RemoveAt(0);
-                    OnTickProcessed?.Invoke(position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
+                    OnTickProcessed?.Invoke(tick.AssociatedObject, position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
                 }
                 else break;
             }

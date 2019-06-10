@@ -50,6 +50,7 @@ namespace theori.Audio
         #endif
 
         private readonly EffectDef[] effectDefs;
+        private readonly bool[] m_effectsActive;
         private readonly Dsp[] dsps;
 
         public EffectDef this[int i]
@@ -61,6 +62,7 @@ namespace theori.Audio
         public AudioEffectController(int effectCount, AudioTrack track, bool ownsTrack = true)
         {
             effectDefs = new EffectDef[effectCount];
+            m_effectsActive = new bool[effectCount].Fill(true);
             dsps = new Dsp[effectCount];
 
             Track = track;
@@ -119,36 +121,50 @@ namespace theori.Audio
             dsp.Mix = mix;
         }
 
+        public void SetEffectActive(int i, bool active)
+        {
+            m_effectsActive[i] = active;
+        }
+
         public float GetEffectMix(int i) => dsps[i]?.Mix ?? 0;
 
         public void Play() => Track.Play();
         public void Stop() => Track.Stop();
 
         private float[] copyBuffer = new float[1024];
+        private float[] dummyBuffer = new float[1024];
 
         public override int Read(float[] buffer, int offset, int count)
         {
+            // NOTE(local): make sure this doesn't give out garbage?
             if (count > copyBuffer.Length)
+            {
                 copyBuffer = new float[count];
+                dummyBuffer = new float[count];
+            }
 
             int result = Track.Read(buffer, offset, count);
             Array.Copy(buffer, offset, copyBuffer, 0, result);
+            Array.Copy(buffer, offset, dummyBuffer, 0, result);
 
-            foreach (var effect in dsps)
+            //foreach (var effect in dsps)
+            for (int fxi = 0; fxi < dsps.Length; fxi++)
             {
+                var effect = dsps[fxi];
                 if (effect == null)
                     continue;
 
-                effect.Process(copyBuffer, offset, result);
+                var dataBuffer = m_effectsActive[fxi] ? copyBuffer : dummyBuffer;
+                effect.Process(dataBuffer, offset, result);
 
                 // Always process the effects to keep timing, but don't always mix them in.
-                if (EffectsActive)
+                if (EffectsActive && m_effectsActive[fxi])
                 {
                     float mix = effect.Mix;
                     for (int i = 0; i < result; i++)
                     {
                         float original = buffer[offset + i];
-                        float processed = copyBuffer[i];
+                        float processed = dataBuffer[i];
                         buffer[offset + i] = original + (processed - original) * mix;
                     }
                 

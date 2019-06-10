@@ -61,6 +61,9 @@ namespace NeuroSonic.GamePlay
         private readonly Dictionary<int, ControllerInput> m_buttonToControllerInput = new Dictionary<int, ControllerInput>();
         private readonly Dictionary<int, ControllerInput> m_axisToControllerInput = new Dictionary<int, ControllerInput>();
 
+        private readonly OpenRM.Object[] m_activeObjects = new OpenRM.Object[8];
+        private readonly bool[] m_streamHasActiveEffects = new bool[8].Fill(true);
+
         internal GameLayer(AutoPlay autoPlay = AutoPlay.None)
         {
             m_autoPlay = autoPlay;
@@ -229,15 +232,15 @@ namespace NeuroSonic.GamePlay
                         var judge = (ButtonJudge)m_judge[i];
                         judge.JudgementOffset = 0.032;
                         judge.AutoPlay = AutoButtons;
-                        judge.OnTickProcessed += (when, result) =>
-                        {
-                            Logger.Log($"[{ stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { when }");
-                        };
+                        judge.OnTickProcessed += Judge_OnTickProcessed;
+                        judge.OnHoldPressed += Judge_OnHoldPressed;
+                        judge.OnHoldReleased += Judge_OnHoldReleased;
                     }
 
                     m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
                     m_highwayView.Reset();
 
+                    m_audio.Volume = 0.8f;
                     m_audio.Position = m_chart.Offset;
                     m_audioController = new AudioEffectController(8, m_audio, true)
                     {
@@ -257,6 +260,9 @@ namespace NeuroSonic.GamePlay
                     m_audioController.Play();
                 }
             }
+
+            // chart can never be null, sorry
+            if (m_chart == null) Host.PopToParent(this);
         }
 
         public override void Destroy()
@@ -302,6 +308,10 @@ namespace NeuroSonic.GamePlay
                 if (bobj.HasEffect)
                     m_audioController.SetEffect(obj.Stream, bobj.Effect);
                 else m_audioController.RemoveEffect(obj.Stream);
+
+                // NOTE(local): can move this out for analog as well, but it doesn't matter RN
+                if (!bobj.IsInstant)
+                    m_activeObjects[obj.Stream] = obj;
             }
         }
 
@@ -318,7 +328,29 @@ namespace NeuroSonic.GamePlay
             if (obj is ButtonObject bobj)
             {
                 m_audioController.RemoveEffect(obj.Stream);
+
+                // guard in case the Begin function already overwrote us
+                if (m_activeObjects[obj.Stream] == obj)
+                    m_activeObjects[obj.Stream] = null;
             }
+        }
+
+        private void Judge_OnTickProcessed(OpenRM.Object obj, time_t position, JudgeResult result)
+        {
+            Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
+
+            if (!obj.IsInstant && result.Kind == JudgeKind.Miss)
+                m_streamHasActiveEffects[obj.Stream] = false;
+        }
+
+        private void Judge_OnHoldReleased(time_t position, OpenRM.Object obj)
+        {
+            m_streamHasActiveEffects[obj.Stream] = false;
+        }
+
+        private void Judge_OnHoldPressed(time_t position, OpenRM.Object obj)
+        {
+            m_streamHasActiveEffects[obj.Stream] = true;
         }
 
         private void PlaybackEventTrigger(Event evt, PlayDirection direction)
@@ -474,49 +506,61 @@ namespace NeuroSonic.GamePlay
 
         public override void Update(float delta, float total)
         {
-            if (m_chart != null)
+            time_t position = m_audio?.Position ?? 0;
+
+            m_judge.Position = position;
+            m_control.Position = position;
+            m_playback.Position = position;
+
+            float GetPathValueLerped(int stream)
             {
-                time_t position = m_audio?.Position ?? 0;
+                var s = m_playback.Chart[stream];
 
-                m_judge.Position = position;
-                m_control.Position = position;
-                m_playback.Position = position;
+                var mrPoint = s.MostRecent<PathPointEvent>(position);
+                if (mrPoint == null)
+                    return ((PathPointEvent)s.FirstObject)?.Value ?? 0;
 
-                float GetPathValueLerped(int stream)
+                if (mrPoint.HasNext)
                 {
-                    var s = m_playback.Chart[stream];
-
-                    var mrPoint = s.MostRecent<PathPointEvent>(position);
-                    if (mrPoint == null)
-                        return ((PathPointEvent)s.FirstObject)?.Value ?? 0;
-
-                    if (mrPoint.HasNext)
-                    {
-                        float alpha = (float)((position - mrPoint.AbsolutePosition).Seconds / (mrPoint.Next.AbsolutePosition - mrPoint.AbsolutePosition).Seconds);
-                        return MathL.Lerp(mrPoint.Value, ((PathPointEvent)mrPoint.Next).Value, alpha);
-                    }
-                    else return mrPoint.Value;
+                    float alpha = (float)((position - mrPoint.AbsolutePosition).Seconds / (mrPoint.Next.AbsolutePosition - mrPoint.AbsolutePosition).Seconds);
+                    return MathL.Lerp(mrPoint.Value, ((PathPointEvent)mrPoint.Next).Value, alpha);
                 }
-
-                m_control.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
-
-                m_control.LeftLaserInput = GetTempRollValue(position, 6);
-                m_control.RightLaserInput = GetTempRollValue(position, 7, true);
-
-                m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
-                m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
-                m_control.Offset = GetPathValueLerped(StreamIndex.Offset);
-                m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
-
-                m_highwayView.PlaybackPosition = position;
-
-                UpdateEffects();
-                m_audioController.EffectsActive = true;
+                else return mrPoint.Value;
             }
+
+            m_control.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
+
+            m_control.LeftLaserInput = GetTempRollValue(position, 6);
+            m_control.RightLaserInput = GetTempRollValue(position, 7, true);
+
+            m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
+            m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
+            m_control.Offset = GetPathValueLerped(StreamIndex.Offset);
+            m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
+
+            m_highwayView.PlaybackPosition = position;
+
+            for (int i = 0; i < 8; i++)
+                m_audioController.SetEffectActive(i, m_streamHasActiveEffects[i]);
+
+            UpdateEffects();
+            m_audioController.EffectsActive = true;
 
             m_control.Update(Time.Delta);
             m_control.ApplyToView(m_highwayView);
 
+            for (int i = 0; i < 8; i++)
+            {
+                var obj = m_activeObjects[i];
+                if (obj == null) continue;
+
+                float glow = 0.0f;
+                if (m_streamHasActiveEffects[i])
+                    glow = MathL.Cos(10 * MathL.TwoPi * (float)(position - obj.AbsolutePosition)) * 0.35f;
+                else glow = -0.5f;
+
+                m_highwayView.SetObjectGlow(obj, glow);
+            }
             m_highwayView.Update();
 
             {

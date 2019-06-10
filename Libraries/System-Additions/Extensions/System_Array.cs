@@ -134,42 +134,48 @@ namespace System
 
         #region Fill
 
-        public static void Fill<T>(this T[] arr, T value)
+        public static T[] Fill<T>(this T[] arr, T value)
         {
             for (int i = 0, len = arr.Length; i < len; i++)
                 arr[i] = value;
+            return arr;
         }
 
-        public static void FillDefault<T>(this T[] arr)
+        public static T[] FillDefault<T>(this T[] arr)
         {
             for (int i = 0, len = arr.Length; i < len; i++)
                 arr[i] = default(T);
+            return arr;
         }
 
-        public static void Fill<T>(this T[] arr, Func<T> f)
+        public static T[] Fill<T>(this T[] arr, Func<T> f)
         {
             for (int i = 0, len = arr.Length; i < len; i++)
                 arr[i] = f();
+            return arr;
         }
 
-        public static void Fill<T>(this T[] arr, Func<int, T> f)
+        public static T[] Fill<T>(this T[] arr, Func<int, T> f)
         {
             for (int i = 0, len = arr.Length; i < len; i++)
                 arr[i] = f(i);
+            return arr;
         }
 
-        public static void Fill<T>(this T[] arr, int offset, int length, Func<int, T> f)
+        public static T[] Fill<T>(this T[] arr, int offset, int length, Func<int, T> f)
         {
             // TODO(local): proper bounds checking
             for (int i = offset, len = Math.Min(offset + length, arr.Length); i < len; i++)
                 arr[i] = f(i);
+            return arr;
         }
 
-        public static void Fill<T>(this T[] arr, int offset, int length, T value)
+        public static T[] Fill<T>(this T[] arr, int offset, int length, T value)
         {
             // TODO(local): proper bounds checking
             for (int i = offset, len = Math.Min(offset + length, arr.Length); i < len; i++)
                 arr[i] = value;
+            return arr;
         }
 
         #endregion

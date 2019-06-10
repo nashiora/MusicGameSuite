@@ -94,6 +94,7 @@
     <Compile Include="Disposable.cs" />
     <Compile Include="Ease.cs" />
     <Compile Include="Extensions\System_Array.cs" />
+    <Compile Include="Extensions\System_Collections_Generic_Dictionary.cs" />
     <Compile Include="Extensions\System_Collections_Generic_List.cs" />
     <Compile Include="Extensions\System_Double.cs" />
     <Compile Include="Extensions\System_Single.cs" />

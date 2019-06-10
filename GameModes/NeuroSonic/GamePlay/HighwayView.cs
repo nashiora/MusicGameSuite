@@ -20,6 +20,12 @@ namespace NeuroSonic.GamePlay
             public Vector3 Color;
         }
 
+        struct GlowInfo
+        {
+            public OpenRM.Object Object;
+            public float Glow;
+        }
+
         //private const float PITCH_AMT = 15;
         private const float LENGTH_BASE = 12;
 
@@ -45,6 +51,7 @@ namespace NeuroSonic.GamePlay
 
         private Dictionary<OpenRM.Object, ObjectRenderable3D>[] m_renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
         private readonly KeyBeamInfo[] m_keyBeamInfos = new KeyBeamInfo[6];
+        private readonly GlowInfo[] m_glowInfos = new GlowInfo[8];
 
         public time_t PlaybackPosition { get; set; }
 
@@ -83,6 +90,7 @@ namespace NeuroSonic.GamePlay
             highwayParams["Hidden"] = 0.0f;
 
             var basicMaterial = new Material("basic");
+            var holdMaterial = new Material("hold_button");
             var volMaterial = new Material("laser")
             {
                 BlendMode = BlendMode.Additive,
@@ -115,6 +123,7 @@ namespace NeuroSonic.GamePlay
 
                 var mparams = new MaterialParams();
                 mparams["Color"] = new Vector4(1);
+                if (!isChip) mparams["Glow"] = 0.0f;
 
                 float aspect = texture.Height / (float)texture.Width;
                 float height = isChip ? width * aspect / 6 : 1;
@@ -122,7 +131,7 @@ namespace NeuroSonic.GamePlay
                 return new Drawable3D()
                 {
                     Texture = texture,
-                    Material = basicMaterial,
+                    Material = isChip ? basicMaterial : holdMaterial,
                     Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width / 6.0f, height, Anchor.BottomCenter),
                     Params = mparams,
                 };
@@ -199,8 +208,17 @@ namespace NeuroSonic.GamePlay
                     br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? m_btChipDrawable : m_fxChipDrawable, 0);
                 else
                 {
+                    Drawable3D template = obj.Stream < 4 ? m_btHoldDrawable : m_fxHoldDrawable;
+                    Drawable3D holdDrawable = new Drawable3D()
+                    {
+                        Texture = template.Texture,
+                        Mesh = template.Mesh,
+                        Material = template.Material,
+                        Params = template.Params.Copy(),
+                    };
+
                     float zDur = (float)(obj.AbsoluteDuration.Seconds / ViewDuration.Seconds);
-                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? m_btHoldDrawable : m_fxHoldDrawable, zDur * LENGTH_BASE);
+                    br3d = new ButtonRenderState3D(bobj, holdDrawable, zDur * LENGTH_BASE);
                 }
 
                 m_renderables[obj.Stream][obj] = br3d;
@@ -234,6 +252,13 @@ namespace NeuroSonic.GamePlay
         {
             m_keyBeamInfos[lane].Alpha = 1.0f;
             m_keyBeamInfos[lane].Color = color;
+        }
+
+        public void SetObjectGlow(OpenRM.Object targetObject, float glow)
+        {
+            ref GlowInfo glowInfo = ref m_glowInfos[targetObject.Stream];
+            glowInfo.Object = targetObject;
+            glowInfo.Glow = glow;
         }
 
         public void Update()
@@ -381,6 +406,9 @@ namespace NeuroSonic.GamePlay
 
                             tDiff = Transform.Scale(widthMult, 1, 1 + distScaling);
                         }
+
+                        if (m_glowInfos[objr.Object.Stream].Object == objr.Object)
+                            objr.Drawable.Params["Glow"] = m_glowInfos[objr.Object.Stream].Glow;
 
                         Transform t = tDiff * objr.Transform * Transform.Translation(xOffs, 0, -z) * WorldTransform;
                         objr.Drawable.DrawToQueue(queue, t);

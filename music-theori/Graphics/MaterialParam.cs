@@ -12,6 +12,12 @@ namespace theori.Graphics
         private object v;
         public object Value { get => v; set => SetValue(value); }
 
+        private MaterialParam(GLType type, object value)
+        {
+            Type = type;
+            v = value;
+        }
+
         public MaterialParam(GLType type)
         {
             SetDefault(type);
@@ -21,6 +27,8 @@ namespace theori.Graphics
         {
             SetValue(value);
         }
+
+        public MaterialParam Copy() => new MaterialParam(Type, v);
 
         // TODO(local): provide specific errors when the type is incorrect
         internal T Get<T>() => (T)v;

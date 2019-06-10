@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using CSCore;
-using CSCore.DSP;
 using CSCore.SoundOut;
 
 namespace theori.Audio
@@ -27,8 +26,10 @@ namespace theori.Audio
         public int Read(float[] buffer, int offset, int count)
         {
             int numRead = Channel.Read(buffer, offset, count);
+#if false
             for (int i = 0; i < numRead; i++)
                 buffer[offset + i] = MathL.Clamp(buffer[offset + i], -1, 1);
+#endif
             return numRead;
         }
     }
