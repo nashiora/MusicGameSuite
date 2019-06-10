@@ -328,6 +328,40 @@ namespace NeuroSonic.Startup
 
             foreach (var binding in m_bindables)
                 UpdateBindableText(binding, m_bindingIndices[binding.Which]);
+
+            GuiRoot.AddChild(new Panel()
+            {
+                RelativeSizeAxes = Axes.X,
+                RelativePositionAxes = Axes.Both,
+
+                Position = new Vector2(0, 1),
+                Size = new Vector2(1, 0),
+
+                Children = new GuiElement[]
+                {
+                    new TextLabel(Font.Default16, "[Enter] Change Primary Binding")
+                    {
+                        TextAlignment = TextAlignment.BottomLeft,
+                        Position = new Vector2(10, -40),
+                    },
+
+                    new Panel()
+                    {
+                        RelativePositionAxes = Axes.X,
+
+                        Position = new Vector2(1, 0),
+
+                        Children = new GuiElement[]
+                        {
+                            new TextLabel(Font.Default16, "Change Secondary Binding [Control + Enter]")
+                            {
+                                TextAlignment = TextAlignment.BottomRight,
+                                Position = new Vector2(-10, -40),
+                            },
+                        }
+                    },
+                }
+            });
         }
 
         public override bool KeyPressed(KeyInfo key)
@@ -485,6 +519,7 @@ namespace NeuroSonic.Startup
 
         public override bool ButtonPressed(ButtonInfo info)
         {
+            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
             if (!m_isEditing) return base.ButtonPressed(info);
 
             if (m_codeIndex == -1)

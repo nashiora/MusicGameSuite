@@ -29,7 +29,7 @@ namespace NeuroSonic.Startup
         {
             Plugin.Config.Set(NscConfigKey.ButtonInputDevice, InputDevice.Keyboard);
             Plugin.Config.Set(NscConfigKey.LaserInputDevice, andMouse ? InputDevice.Mouse : InputDevice.Keyboard);
-            Plugin.SaveConfig();
+            Plugin.SaveNscConfig();
 
             Host.PopToParent(this);
         }
@@ -38,15 +38,7 @@ namespace NeuroSonic.Startup
         {
             Plugin.Config.Set(NscConfigKey.ButtonInputDevice, InputDevice.Controller);
             Plugin.Config.Set(NscConfigKey.LaserInputDevice, InputDevice.Controller);
-
-            if (Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID) != id)
-            {
-                Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, id);
-                InputManager.ReopenGamepad();
-            }
-
-            // TODO: temp, find a better way to schedule saving
-            Plugin.SaveConfig();
+            Plugin.SwitchGamepad(id); // Saves the config anyway
 
             Host.PopToParent(this);
         }

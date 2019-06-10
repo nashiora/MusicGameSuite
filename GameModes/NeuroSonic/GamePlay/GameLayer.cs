@@ -417,7 +417,7 @@ namespace NeuroSonic.GamePlay
 
         public override bool ButtonPressed(ButtonInfo info)
         {
-            if (info.DeviceIndex != InputManager.Gamepad.DeviceIndex) return false;
+            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
 
             if (m_buttonToControllerInput.TryGetValue((int)info.Button, out ControllerInput input))
             {
@@ -430,7 +430,7 @@ namespace NeuroSonic.GamePlay
 
         public override bool ButtonReleased(ButtonInfo info)
         {
-            if (info.DeviceIndex != InputManager.Gamepad.DeviceIndex) return false;
+            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
 
             if (m_buttonToControllerInput.TryGetValue((int)info.Button, out ControllerInput input))
             {

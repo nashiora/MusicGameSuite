@@ -31,9 +31,6 @@ namespace NeuroSonic.Win32
             if (!Host.InitWindowSystem())
                 ;
 
-            if (!Host.InitInputSystem())
-                ;
-
             if (!Host.InitGraphicsPipeline())
                 ;
 

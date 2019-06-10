@@ -5,6 +5,7 @@ using System.Numerics;
 using theori;
 using theori.Graphics;
 using theori.Gui;
+using theori.IO;
 
 namespace NeuroSonic.Startup
 {
@@ -66,6 +67,40 @@ namespace NeuroSonic.Startup
 
                         Children = m_items
                     },
+
+                    new Panel()
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        RelativePositionAxes = Axes.Both,
+
+                        Position = new Vector2(0, 1),
+                        Size = new Vector2(1, 0),
+
+                        Children = new GuiElement[]
+                        {
+                            new TextLabel(Font.Default16, "[Up / Down] or [BT-A / BT-B] Navigate Menu")
+                            {
+                                TextAlignment = TextAlignment.BottomLeft,
+                                Position = new Vector2(10, -10),
+                            },
+
+                            new Panel()
+                            {
+                                RelativePositionAxes = Axes.X,
+
+                                Position = new Vector2(1, 0),
+
+                                Children = new GuiElement[]
+                                {
+                                    new TextLabel(Font.Default16, "Select Option [Enter] or [START]")
+                                    {
+                                        TextAlignment = TextAlignment.BottomRight,
+                                        Position = new Vector2(-10, -10),
+                                    },
+                                }
+                            },
+                        }
+                    }
                 }
             };
 
@@ -89,6 +124,20 @@ namespace NeuroSonic.Startup
         {
         }
 
+        protected void NavigateUp()
+        {
+            m_items[ItemIndex].Hilited = false;
+            ItemIndex = Math.Max(0, ItemIndex - 1);
+            m_items[ItemIndex].Hilited = true;
+        }
+
+        protected void NavigateDown()
+        {
+            m_items[ItemIndex].Hilited = false;
+            ItemIndex = Math.Min(m_items.Count - 1, ItemIndex + 1);
+            m_items[ItemIndex].Hilited = true;
+        }
+
         public override bool KeyPressed(KeyInfo key)
         {
             if (IsSuspended) return false;
@@ -97,29 +146,75 @@ namespace NeuroSonic.Startup
             {
                 case KeyCode.ESCAPE: OnExit(); break;
 
-                case KeyCode.UP:
-                {
-                    m_items[ItemIndex].Hilited = false;
-                    ItemIndex = Math.Max(0, ItemIndex - 1);
-                    m_items[ItemIndex].Hilited = true;
-                }
-                break;
-
-                case KeyCode.DOWN:
-                {
-                    m_items[ItemIndex].Hilited = false;
-                    ItemIndex = Math.Min(m_items.Count - 1, ItemIndex + 1);
-                    m_items[ItemIndex].Hilited = true;
-                }
-                break;
+                case KeyCode.UP: NavigateUp(); break;
+                case KeyCode.DOWN: NavigateDown(); break;
 
                 case KeyCode.RETURN: m_items[ItemIndex].Action(); break;
 
                 // stick our false thing here, returning true is the default for handled keys
-                default: return false;
+                default:
+                    if (Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice) != InputDevice.Keyboard) return false;
+
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_Back))
+                    {
+                        OnExit();
+                        return true;
+                    }
+
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_BT0))
+                    {
+                        NavigateUp();
+                        return true;
+                    }
+
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_BT1))
+                    {
+                        NavigateDown();
+                        return true;
+                    }
+
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_Start))
+                    {
+                        m_items[ItemIndex].Action();
+                        return true;
+                    }
+
+                    return false;
             }
 
             return true;
+        }
+
+        public override bool ButtonPressed(ButtonInfo info)
+        {
+            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
+            if (Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice) != InputDevice.Controller) return false;
+
+            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_Back))
+            {
+                OnExit();
+                return true;
+            }
+
+            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_BT0))
+            {
+                NavigateUp();
+                return true;
+            }
+
+            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_BT1))
+            {
+                NavigateDown();
+                return true;
+            }
+
+            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_Start))
+            {
+                m_items[ItemIndex].Action();
+                return true;
+            }
+
+            return false;
         }
 
         protected virtual void OnExit() => Host.PopToParent(this);

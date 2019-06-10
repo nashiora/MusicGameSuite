@@ -151,7 +151,6 @@ namespace theori
             InitGameConfig();
             InitWindowSystem();
             Logger.Log($"Window VSync: { Window.VSync }");
-            InitInputSystem();
             InitGraphicsPipeline();
             InitAudioSystem();
         }
@@ -173,12 +172,6 @@ namespace theori
 
             Window.ClientSizeChanged += OnClientSizeChanged;
 
-            return true;
-        }
-
-        public static bool InitInputSystem()
-        {
-            InputManager.Initialize();
             return true;
         }
 

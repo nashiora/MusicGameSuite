@@ -1,6 +1,9 @@
 ﻿using theori;
 
 using NeuroSonic.GamePlay;
+using theori.Gui;
+using theori.Graphics;
+using System.Numerics;
 
 namespace NeuroSonic.Startup
 {
@@ -15,6 +18,11 @@ namespace NeuroSonic.Startup
             AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Free Play", EnterFreePlay));
             AddMenuItem(new MenuItem(NextOffset, "Demo Mode", EnterDemoMode));
+        }
+
+        public override void Init()
+        {
+            base.Init();
         }
 
         private void EnterInputMethod()

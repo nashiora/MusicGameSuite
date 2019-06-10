@@ -125,7 +125,7 @@ namespace theori.IO
             if (joystick != IntPtr.Zero) SDL_JoystickClose(joystick);
             joystick = IntPtr.Zero;
 
-            openGamepads.Remove(DeviceIndex);
+            openGamepads.Remove(InstanceId);
         }
 
         protected override void DisposeUnmanaged()

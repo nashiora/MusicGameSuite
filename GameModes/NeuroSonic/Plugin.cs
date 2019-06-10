@@ -3,6 +3,8 @@
 using NeuroSonic.GamePlay;
 using NeuroSonic.Startup;
 using System.IO;
+using theori.IO;
+using theori.Configuration;
 
 namespace NeuroSonic
 {
@@ -13,6 +15,8 @@ namespace NeuroSonic
         public static string[] ProgramArgs { get; private set; }
 
         public static NscConfig Config { get; private set; }
+
+        public static Gamepad Gamepad { get; private set; }
 
         /// <summary>
         /// Invoked when the plugin starts in Standalone.
@@ -29,6 +33,8 @@ namespace NeuroSonic
             // save the defaults on init
             else SaveNscConfig();
 
+            Gamepad = Gamepad.Open(Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID));
+
             // TODO(local): push the game loading layer, which creates the game layer
             //Host.PushLayer(new GameLayer(true));
             Host.PushLayer(new NeuroSonicStandaloneStartup());
@@ -36,6 +42,17 @@ namespace NeuroSonic
 
         private static void NSC_Quit()
         {
+            SaveNscConfig();
+        }
+
+        public static void SwitchGamepad(int newDeviceIndex)
+        {
+            if (newDeviceIndex == Gamepad.DeviceIndex) return;
+            Gamepad.Close();
+
+            Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, newDeviceIndex);
+            Gamepad = Gamepad.Open(newDeviceIndex);
+
             SaveNscConfig();
         }
 
@@ -51,7 +68,7 @@ namespace NeuroSonic
             Host.LoadConfig();
         }
 
-        private static void SaveNscConfig()
+        internal static void SaveNscConfig()
         {
             using (var writer = new StreamWriter(File.Open(NSC_CONFIG_FILE, FileMode.Create)))
                 Config.Save(writer);

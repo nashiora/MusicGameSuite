@@ -153,7 +153,7 @@
     <Compile Include="Gui\TextLabel.cs" />
     <Compile Include="Host.cs" />
     <Compile Include="IO\Gamepad.cs" />
-    <Compile Include="IO\InputManager.cs" />
+    <Compile Include="IO\InputDevice.cs" />
     <Compile Include="IResourceFactory.cs" />
     <Compile Include="Keyboard.cs" />
     <Compile Include="KeyboardData.cs" />
