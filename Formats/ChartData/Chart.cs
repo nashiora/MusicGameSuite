@@ -63,6 +63,25 @@ namespace OpenRM
             }
         }
 
+        private double? m_maxBpm = null;
+        public double MaxBpm
+        {
+            get
+            {
+                if (!m_maxBpm.HasValue)
+                {
+                    double value = double.MinValue;
+                    ControlPoints.ForEach(cp =>
+                    {
+                        if (cp.BeatsPerMinute > value)
+                            value = cp.BeatsPerMinute;
+                    });
+                    m_maxBpm = value;
+                }
+                return m_maxBpm.Value;
+            }
+        }
+
         public Chart(int streamCount)
         {
             StreamCount = streamCount;

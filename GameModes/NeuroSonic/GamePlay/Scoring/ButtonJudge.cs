@@ -14,11 +14,15 @@ namespace NeuroSonic.GamePlay.Scoring
             public time_t Position;
             public bool IsHold;
 
-            public Tick(OpenRM.Object obj, time_t pos, bool isHold)
+            public bool IsAutoTick;
+
+            public Tick(OpenRM.Object obj, time_t pos, bool isHold, bool isAutoTick = false)
             {
                 AssociatedObject = obj;
                 Position = pos;
                 IsHold = isHold;
+
+                IsAutoTick = isAutoTick;
             }
         }
 
@@ -59,6 +63,8 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public JudgeResult? UserPressed(time_t timeStamp)
         {
+            if (AutoPlay) return null;
+
             m_userHeld = true;
             m_userWhen = timeStamp;
 
@@ -88,7 +94,7 @@ namespace NeuroSonic.GamePlay.Scoring
             else if (absDiff <= NEAR_RADIUS)
                 result = new JudgeResult(diff, JudgeKind.Near);
             // TODO(local): Is this how we want to handle misses?
-            else result = new JudgeResult(diff, JudgeKind.Miss);
+            else result = new JudgeResult(diff, JudgeKind.Bad);
 
             OnTickProcessed?.Invoke(tick.AssociatedObject, offsetTime, result);
             return result;
@@ -105,7 +111,7 @@ namespace NeuroSonic.GamePlay.Scoring
         protected override void AdvancePosition(time_t position)
         {
             // remove old ticks first
-            while (m_ticks.Count > 0)
+            while (!AutoPlay && m_ticks.Count > 0)
             {
                 var tick = m_ticks[0];
 
@@ -121,26 +127,49 @@ namespace NeuroSonic.GamePlay.Scoring
             while (m_ticks.Count > 0)
             {
                 var tick = m_ticks[0];
-                if (!tick.IsHold) break;
-
-                time_t check = tick.AssociatedObject.AbsolutePosition + JudgementOffset - m_userWhen;
-                if (check > NEAR_RADIUS) break;
-
-                time_t diff = tick.Position + JudgementOffset - position;
-                time_t absDiff = MathL.Abs(diff.Seconds);
-
-                if (m_userHeld && diff > 0 && absDiff <= HOLD_RADIUS)
+                if (AutoPlay && position >= tick.Position)
                 {
                     m_ticks.RemoveAt(0);
-                    OnTickProcessed?.Invoke(tick.AssociatedObject, position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
+                    if (tick.IsAutoTick)
+                    {
+                        if (tick.Position == tick.AssociatedObject.AbsolutePosition)
+                            OnHoldPressed?.Invoke(position, tick.AssociatedObject);
+                        else OnHoldReleased?.Invoke(position, tick.AssociatedObject);
+                    }
+                    else if (tick.IsHold)
+                    {
+                        OnTickProcessed?.Invoke(tick.AssociatedObject, position - JudgementOffset, new JudgeResult(0, JudgeKind.Passive));
+                    }
+                    else
+                    {
+                        OnChipPressed?.Invoke(position, tick.AssociatedObject);
+                        OnTickProcessed?.Invoke(tick.AssociatedObject, tick.Position, new JudgeResult(0, JudgeKind.Perfect));
+                    }
                 }
-                else break;
+                else // ===== NO AUTO PLAY =====
+                {
+                    if (!tick.IsHold) break;
+
+                    time_t check = tick.AssociatedObject.AbsolutePosition + JudgementOffset - m_userWhen;
+                    if (check > NEAR_RADIUS) break;
+
+                    time_t diff = tick.Position + JudgementOffset - position;
+                    time_t absDiff = MathL.Abs(diff.Seconds);
+
+                    if (m_userHeld && diff > 0 && absDiff <= HOLD_RADIUS)
+                    {
+                        m_ticks.RemoveAt(0);
+                        OnTickProcessed?.Invoke(tick.AssociatedObject, position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
+                    }
+                    else break;
+                }
             }
         }
 
         protected override void ObjectEnteredJudgement(OpenRM.Object obj)
         {
-            //Logger.Log($"Button [{ StreamIndex }] entered window @ { obj.AbsolutePosition } / { CurrentPosition }");
+            if (AutoPlay && !obj.IsInstant)
+                m_ticks.Add(new Tick(obj, obj.AbsolutePosition, true, true));
 
             if (obj.IsInstant)
             {
@@ -149,8 +178,8 @@ namespace NeuroSonic.GamePlay.Scoring
             }
             else
             {
-                tick_t margin = 1.0 / (4 * 2);
-                tick_t step = 1.0 / (4 * 4);
+                tick_t step = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
+                tick_t margin = 2 * step;
 
                 int numTicks = MathL.FloorToInt((double)(obj.Duration - margin) / (double)step);
 
@@ -166,6 +195,9 @@ namespace NeuroSonic.GamePlay.Scoring
                     }
                 }
             }
+
+            if (AutoPlay && !obj.IsInstant)
+                m_ticks.Add(new Tick(obj, obj.AbsoluteEndPosition, true, true));
         }
 
         protected override void ObjectExitedJudgement(OpenRM.Object obj)

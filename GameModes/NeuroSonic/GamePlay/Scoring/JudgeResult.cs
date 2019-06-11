@@ -6,6 +6,7 @@ namespace NeuroSonic.GamePlay.Scoring
     {
         Miss,
 
+        Bad,
         Near,
         Critical,
         Perfect,

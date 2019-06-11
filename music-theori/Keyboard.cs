@@ -42,7 +42,8 @@ namespace theori
 
         internal static void InvokeRelease(KeyInfo info)
         {
-            System.Diagnostics.Debug.Assert(heldKeys.Remove(info.KeyCode), "removed a key which wasn't pressed");
+            bool removed = heldKeys.Remove(info.KeyCode);
+            System.Diagnostics.Debug.Assert(removed, "removed a key which wasn't pressed");
 
             Host.KeyReleased(info);
             KeyRelease?.Invoke(info);
