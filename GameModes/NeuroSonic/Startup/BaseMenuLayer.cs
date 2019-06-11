@@ -155,25 +155,25 @@ namespace NeuroSonic.Startup
                 default:
                     if (Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice) != InputDevice.Keyboard) return false;
 
-                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_Back))
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Key_Back))
                     {
                         OnExit();
                         return true;
                     }
 
-                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_BT0))
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Key_BT0))
                     {
                         NavigateUp();
                         return true;
                     }
 
-                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_BT1))
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Key_BT1))
                     {
                         NavigateDown();
                         return true;
                     }
 
-                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Controller_Start))
+                    if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Key_Start))
                     {
                         m_items[ItemIndex].Action();
                         return true;
