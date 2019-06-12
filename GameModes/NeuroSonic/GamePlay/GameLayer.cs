@@ -589,8 +589,14 @@ namespace NeuroSonic.GamePlay
             {
                 var camera = m_highwayView.Camera;
 
+                var defaultTransform = m_highwayView.DefaultTransform;
                 var totalWorldTransform = m_highwayView.WorldTransform;
                 var critLineTransform = m_highwayView.CritLineTransform;
+
+                Vector2 comboLeft = camera.Project(defaultTransform, new Vector3(-1.0f / 6, 0, 0));
+                Vector2 comboRight = camera.Project(defaultTransform, new Vector3(1.0f / 6, 0, 0));
+
+                m_comboDisplay.DigitSize = (comboRight.X - comboLeft.X) / 4;
 
                 Vector2 critRootPosition = camera.Project(critLineTransform, Vector3.Zero);
                 Vector2 critRootPositionWest = camera.Project(critLineTransform, new Vector3(-1, 0, 0));

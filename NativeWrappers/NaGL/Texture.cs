@@ -23,7 +23,13 @@ namespace OpenGL
 
         public TextureTarget Target = TextureTarget.Texture2D;
         public int Width, Height, Depth;
-        
+
+        private TextureFilter m_minFilter = TextureFilter.Linear;
+        private TextureFilter m_magFilter = TextureFilter.Linear;
+
+        public TextureFilter MinFilter { get => m_minFilter; set { m_minFilter = value; SetParams(); } }
+        public TextureFilter MagFilter { get => m_magFilter; set { m_magFilter = value; SetParams(); } }
+
         public void Lock() { Locked = true; }
         public bool Locked { get; private set; }
 
@@ -41,8 +47,8 @@ namespace OpenGL
             GL.TexParameter((uint)Target, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
             GL.TexParameter((uint)Target, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);
 
-            GL.TexParameter((uint)Target, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-            GL.TexParameter((uint)Target, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+            GL.TexParameter((uint)Target, GL.GL_TEXTURE_MIN_FILTER, (uint)MinFilter);
+            GL.TexParameter((uint)Target, GL.GL_TEXTURE_MAG_FILTER, (uint)MagFilter);
         }
 
         public void Bind(uint unit)

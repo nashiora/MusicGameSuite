@@ -708,6 +708,12 @@ namespace OpenGL
         DecreaseWrap = GL.GL_DECR_WRAP,
         Invert = GL.GL_INVERT
     }    
+
+    public enum TextureFilter : uint
+    {
+        Nearest = GL.GL_NEAREST,
+        Linear = GL.GL_LINEAR,
+    }
     
     /// <summary>
     /// GetTextureParameter

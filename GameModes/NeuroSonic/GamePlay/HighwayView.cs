@@ -34,6 +34,7 @@ namespace NeuroSonic.GamePlay
         public float CritScreenY = 0.1f;
 
         public readonly BasicCamera Camera;
+        public Transform DefaultTransform { get; private set; }
         public Transform WorldTransform { get; private set; }
         public Transform CritLineTransform { get; private set; }
 
@@ -119,7 +120,7 @@ namespace NeuroSonic.GamePlay
 
             Drawable3D CreateDrawable3D(string texName, int width, bool isChip)
             {
-                var texture = Texture.FromFile2D($@".\skins\Default\textures\{ texName }.png");
+                var texture = SetFilterNearest(Texture.FromFile2D($@".\skins\Default\textures\{ texName }.png"));
 
                 var mparams = new MaterialParams();
                 mparams["Color"] = new Vector4(1);
@@ -153,8 +154,8 @@ namespace NeuroSonic.GamePlay
             void CreateVolDrawables(int lane, Vector3 color, ref Drawable3D entryDrawable, ref Drawable3D exitDrawable)
             {
                 // TODO(local): use the lane value!
-                var entryTexture = Texture.FromFile2D(@".\skins\Default\textures\laser_entry.png");
-                var exitTexture = Texture.FromFile2D(@".\skins\Default\textures\laser_exit.png");
+                var entryTexture = SetFilterNearest(Texture.FromFile2D(@".\skins\Default\textures\laser_entry.png"));
+                var exitTexture = SetFilterNearest(Texture.FromFile2D(@".\skins\Default\textures\laser_exit.png"));
 
                 entryDrawable = new Drawable3D()
                 {
@@ -176,8 +177,15 @@ namespace NeuroSonic.GamePlay
             CreateVolDrawables(0, new Vector3(0, 0.5f, 1), ref m_lVolEntryDrawable, ref m_lVolExitDrawable);
             CreateVolDrawables(1, new Vector3(1, 0, 0.5f), ref m_rVolEntryDrawable, ref m_rVolExitDrawable);
 
-            m_lVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
-            m_rVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
+            m_lVolTexture = SetFilterNearest(Texture.FromFile2D(@".\skins\Default\textures\laser.png"));
+            m_rVolTexture = SetFilterNearest(Texture.FromFile2D(@".\skins\Default\textures\laser.png"));
+
+            Texture SetFilterNearest(Texture t)
+            { // TODO(local): make this a part of Texture constructor/loading
+                t.MinFilter = TextureFilter.Nearest;
+                t.MagFilter = TextureFilter.Nearest;
+                return t;
+            }
 
             m_lVolMaterial = volMaterial;
             m_rVolMaterial = volMaterial;
@@ -306,6 +314,7 @@ namespace NeuroSonic.GamePlay
 
             var zoomTransform = Transform.Translation(zoomDir * m_zoom * highwayDist);
 
+            DefaultTransform = worldNoRoll;
             WorldTransform = worldNormal * zoomTransform;
             CritLineTransform = worldCritLine;
 
