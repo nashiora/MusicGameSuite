@@ -81,8 +81,8 @@ namespace NeuroSonic.GamePlay
 
         public HighwayView()
         {
-            var lVolColor = new Vector3(0.0f, 0.5f, 1);
-            var rVolColor = new Vector3(1, 0.0f, 0.5f);
+            var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
+            var rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
             var hiliteColor = new Vector3(1, 1, 0);
 
             var highwayParams = new MaterialParams();

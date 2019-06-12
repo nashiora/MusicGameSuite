@@ -518,9 +518,11 @@ namespace NeuroSonic.GamePlay
 
             switch (kind)
             {
+                case JudgeKind.Passive:
                 case JudgeKind.Perfect: color = new Vector3(1, 1, 0); break;
                 case JudgeKind.Critical: color = new Vector3(1, 1, 0); break;
-                case JudgeKind.Near: color = isEarly ? new Vector3(1.0f, 0, 0.5f) : new Vector3(0.5f, 1, 0.25f); break;
+                case JudgeKind.Near: color = isEarly ? new Vector3(1.0f, 0, 1.0f) : new Vector3(0.5f, 1, 0.25f); break;
+                case JudgeKind.Bad:
                 case JudgeKind.Miss: color = new Vector3(1, 0, 0); break;
             }
 

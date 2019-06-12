@@ -73,6 +73,7 @@ namespace System
         public static short Clamp(short value, short min, short max) => Max(min, Min(max, value));
         public static sbyte Clamp(sbyte value, sbyte min, sbyte max) => Max(min, Min(max, value));
 
+        public static Vector3 Clamp01(Vector3 value) => Vector3.Clamp(value, Vector3.Zero, Vector3.One);
         public static decimal Clamp01(decimal value) => Max(0, Min(1, value));
         public static double Clamp01(double value) => Max(0, Min(1, value));
         public static float Clamp01(float value) => Max(0, Min(1, value));
@@ -99,6 +100,9 @@ namespace System
         public static double Exp(double value) => Math.Exp(value);
         public static float Exp(float value) => (float)Math.Exp(value);
 
+        public static Vector4 Floor(Vector4 value) => new Vector4(Floor(value.X), Floor(value.Y), Floor(value.Z), Floor(value.W));
+        public static Vector3 Floor(Vector3 value) => new Vector3(Floor(value.X), Floor(value.Y), Floor(value.Z));
+        public static Vector2 Floor(Vector2 value) => new Vector2(Floor(value.X), Floor(value.Y));
         public static decimal Floor(decimal value) => Math.Floor(value);
         public static double Floor(double value) => Math.Floor(value);
         public static float Floor(float value) => (float)Math.Floor(value);
@@ -109,6 +113,13 @@ namespace System
 
         public static int FloorToInt(double value) => (int)Math.Floor(value);
         public static int FloorToInt(float value) => (int)Math.Floor(value);
+
+        public static Vector4 Fract(Vector4 value) => value - Floor(value);
+        public static Vector3 Fract(Vector3 value) => value - Floor(value);
+        public static Vector2 Fract(Vector2 value) => value - Floor(value);
+        public static decimal Fract(decimal value) => value - Floor(value);
+        public static double Fract(double value) => value - Floor(value);
+        public static float Fract(float value) => value - Floor(value);
 
         public static double IEEERemainder(double x, double y) => Math.IEEERemainder(x, y);
 

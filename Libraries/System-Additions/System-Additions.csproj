@@ -97,6 +97,7 @@
     <Compile Include="Extensions\System_Collections_Generic_Dictionary.cs" />
     <Compile Include="Extensions\System_Collections_Generic_List.cs" />
     <Compile Include="Extensions\System_Double.cs" />
+    <Compile Include="Extensions\System_Numerics_Vector.cs" />
     <Compile Include="Extensions\System_Single.cs" />
     <Compile Include="Extensions\System_String.cs" />
     <Compile Include="HashCode.cs" />

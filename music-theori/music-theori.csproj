@@ -128,6 +128,7 @@
     <Compile Include="GameModes\GameModeDescription.cs" />
     <Compile Include="BootLoaders\StandaloneBootLoader.cs" />
     <Compile Include="Game\PositionFunc.cs" />
+    <Compile Include="Graphics\Color.cs" />
     <Compile Include="Graphics\Drawable3D.cs" />
     <Compile Include="Layer.cs" />
     <Compile Include="Graphics\BasicCamera.cs" />
