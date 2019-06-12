@@ -44,8 +44,8 @@ namespace OpenGL
         {
             Bind(0);
 
-            GL.TexParameter((uint)Target, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
-            GL.TexParameter((uint)Target, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);
+            GL.TexParameter((uint)Target, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
+            GL.TexParameter((uint)Target, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
 
             GL.TexParameter((uint)Target, GL.GL_TEXTURE_MIN_FILTER, (uint)MinFilter);
             GL.TexParameter((uint)Target, GL.GL_TEXTURE_MAG_FILTER, (uint)MagFilter);
