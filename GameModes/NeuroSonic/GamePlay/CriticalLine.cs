@@ -13,10 +13,11 @@ namespace NeuroSonic.GamePlay
         private bool m_isDirty = true;
 
         private readonly Panel m_container;
-        private readonly Sprite m_image, m_capLeft, m_capRight;
+        private readonly Sprite m_image, m_capLeft, m_capRight, m_cursorLeft, m_cursorRight;
 
         private float m_horHeight, m_critHeight;
         private float m_laserRoll, m_baseRoll, m_addRoll, m_addOffset;
+        private float m_leftPos, m_rightPos;
 
         public float HorizonHeight { get => m_horHeight; set { m_horHeight = value; m_isDirty = true; } }
         public float CriticalHeight { get => m_critHeight; set { m_critHeight = value; m_isDirty = true; } }
@@ -26,13 +27,17 @@ namespace NeuroSonic.GamePlay
         public float EffectRoll { get => m_addRoll; set { m_addRoll = value; m_isDirty = true; } }
         public float EffectOffset { get => m_addOffset; set { m_addOffset = value; m_isDirty = true; } }
 
+        public float LeftCursorPosition { get => m_leftPos; set { m_leftPos = value; m_isDirty = true; } }
+        public float RightCursorPosition { get => m_rightPos; set { m_rightPos = value; m_isDirty = true; } }
+
         public CriticalLine()
         {
-            var critTexture = new Texture();
-            critTexture.Load2DFromFile(@".\skins\Default\textures\scorebar.png");
-            
-            var capTexture = new Texture();
-            capTexture.Load2DFromFile(@".\skins\Default\textures\critical_cap.png");
+            var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
+            var rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
+
+            var critTexture = Texture.FromFile2D(@".\skins\Default\textures\scorebar.png");
+            var capTexture = Texture.FromFile2D(@".\skins\Default\textures\critical_cap.png");
+            var cursorTexture = Texture.FromFile2D(@".\skins\Default\textures\cursor.png");
 
             RelativeSizeAxes = Axes.X;
             Size = new Vector2(0.75f, 0);
@@ -57,6 +62,9 @@ namespace NeuroSonic.GamePlay
                         },
                     }
                 },
+
+                m_cursorLeft = new Sprite(cursorTexture) { Color = new Vector4(lVolColor, 1) },
+                m_cursorRight = new Sprite(cursorTexture) { Color = new Vector4(rVolColor, 1) },
             };
 
             float critImageWidth = m_image.Size.X;
@@ -70,6 +78,12 @@ namespace NeuroSonic.GamePlay
 
             m_capRight.Position = new Vector2(critImageWidth - 20, 0);
             m_capRight.Origin = new Vector2(m_capRight.Size.X, m_capRight.Size.Y / 2);
+
+            m_cursorLeft.Origin = m_cursorLeft.Size / 2;
+            m_cursorLeft.Position = new Vector2(critImageWidth / 2 - 100, 0);
+
+            m_cursorRight.Origin = m_cursorRight.Size / 2;
+            m_cursorRight.Position = new Vector2(critImageWidth / 2 + 100, 0);
         }
 
         public override void Update()
@@ -83,14 +97,12 @@ namespace NeuroSonic.GamePlay
 
         private void UpdateOrientation()
         {
-            //Position = new Vector2(Window.Width / 2, HorizonHeight);
-            //Rotation = -(LaserRoll + BaseRoll) - MathL.Sin(EffectRoll * MathL.Pi * 2) * 30;
-
-            //float critDist = CriticalHeight - HorizonHeight;
             float desiredCritWidth = Window.Width * 0.75f;
 
-            //m_container.Position = new Vector2(-LaserRoll * 10 + EffectOffset * 100, 0);
             m_container.Scale = new Vector2(desiredCritWidth / m_image.Size.X);
+
+            m_cursorLeft.Position = new Vector2(LeftCursorPosition, 0);
+            m_cursorRight.Position = new Vector2(RightCursorPosition, 0);
         }
     }
 }

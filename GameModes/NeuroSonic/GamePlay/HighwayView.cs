@@ -27,7 +27,8 @@ namespace NeuroSonic.GamePlay
         }
 
         //private const float PITCH_AMT = 15;
-        private const float LENGTH_BASE = 12;
+        private const float LENGTH_BASE = 11;
+        private const float LENGTH_ADD = 1.1f;
 
         private float roll;
         private float m_pitch, m_zoom; // "top", "bottom"
@@ -35,6 +36,7 @@ namespace NeuroSonic.GamePlay
 
         public readonly BasicCamera Camera;
         public Transform DefaultTransform { get; private set; }
+        public Transform DefaultZoomedTransform { get; private set; }
         public Transform WorldTransform { get; private set; }
         public Transform CritLineTransform { get; private set; }
 
@@ -62,8 +64,6 @@ namespace NeuroSonic.GamePlay
         public float CriticalHeight => (1 - CritScreenY) * Camera.ViewportHeight;
 
         public float HorizonHeight { get; private set; }
-        
-        public float LaserRollSpeed { get; set; } = 1;
 
         public float TargetLaserRoll { get; set; }
         public float TargetBaseRoll { get; set; }
@@ -98,13 +98,13 @@ namespace NeuroSonic.GamePlay
             };
 
             var keyBeamTexture = Texture.FromFile2D($@".\skins\Default\textures\key_beam.png");
-            var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter);
+            var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter);
 
             m_highwayDrawable = new Drawable3D()
             {
                 Texture = Texture.FromFile2D(@".\skins\Default\textures\highway.png"),
                 Material = new Material("highway"),
-                Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + 1, Anchor.BottomCenter),
+                Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter),
                 Params = highwayParams,
             };
 
@@ -301,13 +301,18 @@ namespace NeuroSonic.GamePlay
             // TODO(local): does this need to use offset?
             var worldCritLine = GetAtRoll(TargetBaseRoll * 360 + roll, TargetOffset + TargetEffectOffset);
 
-            var zoomDir = ((Matrix4x4)worldNormal).Translation;
-            float highwayDist = zoomDir.Length();
-            zoomDir = Vector3.Normalize(zoomDir);
+            Vector3 ZoomDirection(Transform t, out float dist)
+            {
+                var dir = ((Matrix4x4)t).Translation;
+                dist = dir.Length();
+                return Vector3.Normalize(dir);
+            }
 
+            var zoomDir = ZoomDirection(worldNormal, out float highwayDist);
             var zoomTransform = Transform.Translation(zoomDir * m_zoom * highwayDist);
 
             DefaultTransform = worldNoRoll;
+            DefaultZoomedTransform = worldNoRoll * Transform.Translation(ZoomDirection(worldNoRoll, out float zoomedDist) * m_zoom * zoomedDist);
             WorldTransform = worldNormal * zoomTransform;
             CritLineTransform = worldCritLine;
 
@@ -353,7 +358,7 @@ namespace NeuroSonic.GamePlay
             Camera.FarDistance = clipFar;
         }
 
-        private Vector3[] m_clipPoints = new Vector3[4] { new Vector3(-1, 0, 1), new Vector3(1, 0, 1), new Vector3(-1, 0, -LENGTH_BASE), new Vector3(1, 0, -LENGTH_BASE) };
+        private Vector3[] m_clipPoints = new Vector3[4] { new Vector3(-1, 0, LENGTH_ADD), new Vector3(1, 0, LENGTH_ADD), new Vector3(-1, 0, -LENGTH_BASE), new Vector3(1, 0, -LENGTH_BASE) };
 
         public void Render()
         {
@@ -365,7 +370,7 @@ namespace NeuroSonic.GamePlay
 
             using (var queue = new RenderQueue(renderState))
             {
-                m_highwayDrawable.DrawToQueue(queue, Transform.Translation(0, 0, 1) * WorldTransform);
+                m_highwayDrawable.DrawToQueue(queue, Transform.Translation(0, 0, LENGTH_ADD) * WorldTransform);
 
                 for (int i = 0; i < 6; i++)
                 {
@@ -373,7 +378,7 @@ namespace NeuroSonic.GamePlay
                     var keyBeamDrawable = m_keyBeamDrawables[i];
 
                     Transform t = Transform.Scale(i < 4 ? 1.0f / 6 : 2.0f / 6, 1, 1)
-                                * Transform.Translation(i < 4 ? -3.0f / 12 + (float)i / 6 : -1.0f / 6 + (2.0f * (i - 4)) / 6, 0, 1)
+                                * Transform.Translation(i < 4 ? -3.0f / 12 + (float)i / 6 : -1.0f / 6 + (2.0f * (i - 4)) / 6, 0, LENGTH_ADD)
                                 * WorldTransform;
 
                     keyBeamDrawable.Params["Color"] = new Vector4(keyBeamInfo.Color, keyBeamInfo.Alpha);

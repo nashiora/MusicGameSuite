@@ -27,7 +27,7 @@ namespace NeuroSonic.GamePlay.Scoring
         }
 
         public const int TOTAL_MISS_MILLIS = 144 * 2;
-        public const int TOTAL_NEAR_MILLIS = 72 * 2;
+        public const int TOTAL_NEAR_MILLIS = 108 * 2;
         public const int TOTAL_CRIT_MILLIS = 36 * 2;
         public const int TOTAL_PERF_MILLIS = 18 * 2;
 
@@ -151,7 +151,7 @@ namespace NeuroSonic.GamePlay.Scoring
                     if (!tick.IsHold) break;
 
                     time_t check = tick.AssociatedObject.AbsolutePosition + JudgementOffset - m_userWhen;
-                    if (check > NEAR_RADIUS) break;
+                    if (check > MISS_RADIUS) break;
 
                     time_t diff = tick.Position + JudgementOffset - position;
                     time_t absDiff = MathL.Abs(diff.Seconds);

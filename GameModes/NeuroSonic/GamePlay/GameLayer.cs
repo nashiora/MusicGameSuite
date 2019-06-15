@@ -14,6 +14,7 @@ using OpenRM.Convert;
 using OpenRM.Voltex;
 using NeuroSonic.GamePlay.Scoring;
 using System.Collections.Generic;
+using NeuroSonic.IO;
 
 namespace NeuroSonic.GamePlay
 {
@@ -35,11 +36,12 @@ namespace NeuroSonic.GamePlay
         public override bool BlocksParentLayer => true;
 
         private readonly AutoPlay m_autoPlay;
+        private readonly Controller m_controller;
 
         private bool AutoButtons => (m_autoPlay & AutoPlay.Buttons) != 0;
         private bool AutoLasers => (m_autoPlay & AutoPlay.Lasers) != 0;
 
-        private HighwayControl m_control;
+        private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
 
         private Panel m_foreUiRoot, m_backUiRoot;
@@ -54,74 +56,19 @@ namespace NeuroSonic.GamePlay
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
-        private readonly InputDevice m_buttonInputDevice;
-        private readonly InputDevice m_laserInputDevice;
-
-        private readonly Dictionary<KeyCode, ControllerInput> m_keyToControllerInput = new Dictionary<KeyCode, ControllerInput>();
-        private readonly Dictionary<Axes, ControllerInput> m_mouseToControllerInput = new Dictionary<Axes, ControllerInput>();
-        private readonly Dictionary<int, ControllerInput> m_buttonToControllerInput = new Dictionary<int, ControllerInput>();
-        private readonly Dictionary<int, ControllerInput> m_axisToControllerInput = new Dictionary<int, ControllerInput>();
-
         private readonly OpenRM.Object[] m_activeObjects = new OpenRM.Object[8];
         private readonly bool[] m_streamHasActiveEffects = new bool[8].Fill(true);
 
+        #region Debug Overlay
+
+        private GameDebugOverlay m_debugOverlay;
+
+        #endregion
+
         internal GameLayer(AutoPlay autoPlay = AutoPlay.None)
         {
+            m_controller = Controller.Create();
             m_autoPlay = autoPlay;
-
-            m_buttonInputDevice = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice);
-            m_laserInputDevice = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.LaserInputDevice);
-
-            if (m_buttonInputDevice == InputDevice.Keyboard)
-            {
-                SetKeyCode(ControllerInput.Start, NscConfigKey.Key_Start, NscConfigKey.Key_StartAlt);
-                SetKeyCode(ControllerInput.Back, NscConfigKey.Key_Back, NscConfigKey.Key_BackAlt);
-
-                SetKeyCode(ControllerInput.BT0, NscConfigKey.Key_BT0, NscConfigKey.Key_BT0Alt);
-                SetKeyCode(ControllerInput.BT1, NscConfigKey.Key_BT1, NscConfigKey.Key_BT1Alt);
-                SetKeyCode(ControllerInput.BT2, NscConfigKey.Key_BT2, NscConfigKey.Key_BT2Alt);
-                SetKeyCode(ControllerInput.BT3, NscConfigKey.Key_BT3, NscConfigKey.Key_BT3Alt);
-
-                SetKeyCode(ControllerInput.FX0, NscConfigKey.Key_FX0, NscConfigKey.Key_FX0Alt);
-                SetKeyCode(ControllerInput.FX1, NscConfigKey.Key_FX1, NscConfigKey.Key_FX1Alt);
-            }
-            else if (m_buttonInputDevice == InputDevice.Controller)
-            {
-                SetButtonCode(ControllerInput.Start, NscConfigKey.Controller_Start);
-                SetButtonCode(ControllerInput.Back, NscConfigKey.Controller_Back);
-
-                SetButtonCode(ControllerInput.BT0, NscConfigKey.Controller_BT0);
-                SetButtonCode(ControllerInput.BT1, NscConfigKey.Controller_BT1);
-                SetButtonCode(ControllerInput.BT2, NscConfigKey.Controller_BT2);
-                SetButtonCode(ControllerInput.BT3, NscConfigKey.Controller_BT3);
-
-                SetButtonCode(ControllerInput.FX0, NscConfigKey.Controller_FX0);
-                SetButtonCode(ControllerInput.FX1, NscConfigKey.Controller_FX1);
-            }
-
-            if (m_laserInputDevice == InputDevice.Keyboard)
-            {
-            }
-            else if (m_laserInputDevice == InputDevice.Mouse)
-            {
-            }
-            else if (m_laserInputDevice == InputDevice.Controller)
-            {
-            }
-
-            void SetKeyCode(ControllerInput input, NscConfigKey primaryKey, NscConfigKey? secondaryKey = null)
-            {
-                m_keyToControllerInput[Plugin.Config.GetEnum<KeyCode>(primaryKey)] = input;
-                if (secondaryKey is NscConfigKey s)
-                    m_keyToControllerInput[Plugin.Config.GetEnum<KeyCode>(s)] = input;
-            }
-
-            void SetButtonCode(ControllerInput input, NscConfigKey primaryKey, NscConfigKey? secondaryKey = null)
-            {
-                m_buttonToControllerInput[Plugin.Config.GetInt(primaryKey)] = input;
-                if (secondaryKey is NscConfigKey s)
-                    m_buttonToControllerInput[Plugin.Config.GetInt(s)] = input;
-            }
         }
 
         public override void ClientSizeChanged(int width, int height)
@@ -131,12 +78,16 @@ namespace NeuroSonic.GamePlay
 
         public override void Init()
         {
+            m_controller.ButtonPressed = ControllerInputButtonPressed;
+            m_controller.ButtonReleased = ControllerInputButtonReleased;
+            m_controller.AxisChanged = ControllerInputAxisChanged;
+
             m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
             m_slamSample.Channel = Host.Mixer.MasterChannel;
             m_slamSample.Volume = 0.5f * 0.7f;
 
             m_highwayView = new HighwayView();
-            m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
+            m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
 
             m_playback = new SlidingChartPlayback(null);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
@@ -245,7 +196,7 @@ namespace NeuroSonic.GamePlay
                         judge.OnHoldReleased += Judge_OnHoldReleased;
                     }
 
-                    m_control = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
+                    m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
                     m_highwayView.Reset();
 
                     m_audio.Volume = 0.8f;
@@ -275,6 +226,16 @@ namespace NeuroSonic.GamePlay
 
         public override void Destroy()
         {
+            if (m_debugOverlay != null)
+            {
+                Host.RemoveOverlay(m_debugOverlay);
+                m_debugOverlay = null;
+            }
+
+            m_controller.ButtonPressed = null;
+            m_controller.ButtonReleased = null;
+            m_controller.AxisChanged = null;
+
             m_audioController?.Stop();
 
             m_audioController?.Dispose();
@@ -283,6 +244,11 @@ namespace NeuroSonic.GamePlay
 
         public override void Suspended()
         {
+            if (m_debugOverlay != null)
+            {
+                Host.RemoveOverlay(m_debugOverlay);
+                m_debugOverlay = null;
+            }
             m_audioController?.Stop();
         }
 
@@ -298,10 +264,10 @@ namespace NeuroSonic.GamePlay
                 if (obj.IsInstant)
                 {
                     int dir = -MathL.Sign(aobj.FinalValue - aobj.InitialValue);
-                    m_control.ShakeCamera(dir);
+                    m_highwayControl.ShakeCamera(dir);
 
                     if (aobj.InitialValue == (aobj.Stream == 6 ? 0 : 1) && aobj.NextConnected == null)
-                        m_control.ApplyRollImpulse(-dir);
+                        m_highwayControl.ApplyRollImpulse(-dir);
                     m_slamSample.Play();
                 }
 
@@ -347,7 +313,7 @@ namespace NeuroSonic.GamePlay
         {
             Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
 
-            if (result.Kind == JudgeKind.Miss)
+            if (result.Kind == JudgeKind.Miss || result.Kind == JudgeKind.Bad)
                 m_comboDisplay.Combo = 0;
             else m_comboDisplay.Combo++;
 
@@ -381,7 +347,7 @@ namespace NeuroSonic.GamePlay
             {
                 switch (evt)
                 {
-                    case LaserApplicationEvent app: m_control.LaserApplication = app.Application; break;
+                    case LaserApplicationEvent app: m_highwayControl.LaserApplication = app.Application; break;
 
                     // TODO(local): left/right lasers separate + allow both independent if needed
                     case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
@@ -393,8 +359,8 @@ namespace NeuroSonic.GamePlay
 
                     case LaserParamsEvent pars:
                     {
-                        if (pars.LaserIndex.HasFlag(LaserIndex.Left)) m_control.LeftLaserParams = pars.Params;
-                        if (pars.LaserIndex.HasFlag(LaserIndex.Right)) m_control.RightLaserParams = pars.Params;
+                        if (pars.LaserIndex.HasFlag(LaserIndex.Left)) m_highwayControl.LeftLaserParams = pars.Params;
+                        if (pars.LaserIndex.HasFlag(LaserIndex.Right)) m_highwayControl.RightLaserParams = pars.Params;
                     }
                     break;
 
@@ -404,9 +370,9 @@ namespace NeuroSonic.GamePlay
 
             switch (evt)
             {
-                case SpinImpulseEvent spin: m_control.ApplySpin(spin.Params, spin.AbsolutePosition); break;
-                case SwingImpulseEvent swing: m_control.ApplySwing(swing.Params, swing.AbsolutePosition); break;
-                case WobbleImpulseEvent wobble: m_control.ApplyWobble(wobble.Params, wobble.AbsolutePosition); break;
+                case SpinImpulseEvent spin: m_highwayControl.ApplySpin(spin.Params, spin.AbsolutePosition); break;
+                case SwingImpulseEvent swing: m_highwayControl.ApplySwing(swing.Params, swing.AbsolutePosition); break;
+                case WobbleImpulseEvent wobble: m_highwayControl.ApplyWobble(wobble.Params, wobble.AbsolutePosition); break;
             }
         }
 
@@ -436,8 +402,30 @@ namespace NeuroSonic.GamePlay
             }
         }
 
+        private void ControllerInputAxisChanged(ControllerInput input, float delta)
+        {
+            switch (input)
+            {
+            }
+        }
+
         public override bool KeyPressed(KeyInfo key)
         {
+            if ((key.Mods & KeyMod.ALT) != 0 && key.KeyCode == KeyCode.D)
+            {
+                if (m_debugOverlay != null)
+                {
+                    Host.RemoveOverlay(m_debugOverlay);
+                    m_debugOverlay = null;
+                }
+                else
+                {
+                    m_debugOverlay = new GameDebugOverlay(m_controller);
+                    Host.AddOverlay(m_debugOverlay);
+                }
+                return true;
+            }
+
             switch (key.KeyCode)
             {
                 case KeyCode.ESCAPE:
@@ -445,54 +433,11 @@ namespace NeuroSonic.GamePlay
                     Host.PopToParent(this);
                 } break;
 
-                default:
-                    if (m_keyToControllerInput.TryGetValue(key.KeyCode, out ControllerInput input))
-                    {
-                        ControllerInputButtonPressed(input);
-                        return true;
-                    }
-
-                    return false;
+                // TODO(local): consume whatever the controller does
+                default: return false;
             }
 
             return true;
-        }
-
-        public override bool KeyReleased(KeyInfo key)
-        {
-            if (m_keyToControllerInput.TryGetValue(key.KeyCode, out ControllerInput input))
-            {
-                ControllerInputButtonReleased(input);
-                return true;
-            }
-
-            return false;
-        }
-
-        public override bool ButtonPressed(ButtonInfo info)
-        {
-            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
-
-            if (m_buttonToControllerInput.TryGetValue((int)info.Button, out ControllerInput input))
-            {
-                ControllerInputButtonPressed(input);
-                return true;
-            }
-
-            return false;
-        }
-
-        public override bool ButtonReleased(ButtonInfo info)
-        {
-            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
-
-            if (m_buttonToControllerInput.TryGetValue((int)info.Button, out ControllerInput input))
-            {
-                ControllerInputButtonReleased(input);
-                return true;
-            }
-
-            return false;
         }
 
         void UserInput_BtPress(int streamIndex)
@@ -531,10 +476,12 @@ namespace NeuroSonic.GamePlay
 
         public override void Update(float delta, float total)
         {
+            m_controller.Update();
+
             time_t position = m_audio?.Position ?? 0;
 
             m_judge.Position = position;
-            m_control.Position = position;
+            m_highwayControl.Position = position;
             m_playback.Position = position;
 
             float GetPathValueLerped(int stream)
@@ -553,15 +500,18 @@ namespace NeuroSonic.GamePlay
                 else return mrPoint.Value;
             }
 
-            m_control.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
+            m_highwayControl.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
 
-            m_control.LeftLaserInput = GetTempRollValue(position, 6);
-            m_control.RightLaserInput = GetTempRollValue(position, 7, true);
+            float leftLaserPos = GetTempRollValue(position, 6, out float leftLaserRange);
+            float rightLaserPos = GetTempRollValue(position, 7, out float rightLaserRange, true);
 
-            m_control.Zoom = GetPathValueLerped(StreamIndex.Zoom);
-            m_control.Pitch = GetPathValueLerped(StreamIndex.Pitch);
-            m_control.Offset = GetPathValueLerped(StreamIndex.Offset);
-            m_control.Roll = GetPathValueLerped(StreamIndex.Roll);
+            m_highwayControl.LeftLaserInput = leftLaserPos;
+            m_highwayControl.RightLaserInput = rightLaserPos;
+
+            m_highwayControl.Zoom = GetPathValueLerped(StreamIndex.Zoom);
+            m_highwayControl.Pitch = GetPathValueLerped(StreamIndex.Pitch);
+            m_highwayControl.Offset = GetPathValueLerped(StreamIndex.Offset);
+            m_highwayControl.Roll = GetPathValueLerped(StreamIndex.Roll);
 
             m_highwayView.PlaybackPosition = position;
 
@@ -571,15 +521,15 @@ namespace NeuroSonic.GamePlay
             UpdateEffects();
             m_audioController.EffectsActive = true;
 
-            m_control.Update(Time.Delta);
-            m_control.ApplyToView(m_highwayView);
+            m_highwayControl.Update(Time.Delta);
+            m_highwayControl.ApplyToView(m_highwayView);
 
             for (int i = 0; i < 8; i++)
             {
                 var obj = m_activeObjects[i];
                 if (obj == null) continue;
 
-                float glow = 0.0f;
+                float glow;
                 if (m_streamHasActiveEffects[i])
                     glow = MathL.Cos(10 * MathL.TwoPi * (float)(position - obj.AbsolutePosition)) * 0.35f;
                 else glow = -0.5f;
@@ -592,11 +542,12 @@ namespace NeuroSonic.GamePlay
                 var camera = m_highwayView.Camera;
 
                 var defaultTransform = m_highwayView.DefaultTransform;
+                var defaultZoomTransform = m_highwayView.DefaultZoomedTransform;
                 var totalWorldTransform = m_highwayView.WorldTransform;
                 var critLineTransform = m_highwayView.CritLineTransform;
 
-                Vector2 comboLeft = camera.Project(defaultTransform, new Vector3(-1.0f / 6, 0, 0));
-                Vector2 comboRight = camera.Project(defaultTransform, new Vector3(1.0f / 6, 0, 0));
+                Vector2 comboLeft = camera.Project(defaultTransform, new Vector3(-0.8f / 6, 0, 0));
+                Vector2 comboRight = camera.Project(defaultTransform, new Vector3(0.8f / 6, 0, 0));
 
                 m_comboDisplay.DigitSize = (comboRight.X - comboLeft.X) / 4;
 
@@ -605,16 +556,29 @@ namespace NeuroSonic.GamePlay
                 Vector2 critRootPositionEast = camera.Project(critLineTransform, new Vector3(1, 0, 0));
                 Vector2 critRootPositionForward = camera.Project(critLineTransform, new Vector3(0, 0, -1));
 
+                float GetCursorPosition(float xWorld)
+                {
+                    var critRootCenter = camera.Project(defaultZoomTransform, Vector3.Zero);
+                    var critRootCursor = camera.Project(defaultZoomTransform, new Vector3(xWorld, 0, 0));
+                    return critRootCursor.X - critRootCenter.X;
+                }
+
+                m_critRoot.LeftCursorPosition = GetCursorPosition((leftLaserPos - 0.5f) * 5.0f / 6 * leftLaserRange);
+                m_critRoot.RightCursorPosition = GetCursorPosition(-(rightLaserPos - 0.5f) * 5.0f / 6 * rightLaserRange);
+
                 Vector2 critRotationVector = critRootPositionEast - critRootPositionWest;
                 float critRootRotation = MathL.Atan(critRotationVector.Y, critRotationVector.X);
 
                 m_critRoot.LaserRoll = m_highwayView.LaserRoll;
-                m_critRoot.BaseRoll = m_control.Roll * 360;
-                m_critRoot.EffectRoll = m_control.EffectRoll;
-                m_critRoot.EffectOffset = m_control.EffectOffset;
+                m_critRoot.BaseRoll = m_highwayControl.Roll * 360;
+                m_critRoot.EffectRoll = m_highwayControl.EffectRoll;
+                m_critRoot.EffectOffset = m_highwayControl.EffectOffset;
                 m_critRoot.Position = critRootPosition;
-                m_critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_control.CritLineEffectRoll * 25;
+                m_critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_highwayControl.CritLineEffectRoll * 25;
             }
+
+            m_foreUiRoot?.Update();
+            m_backUiRoot?.Update();
         }
 
         private void UpdateEffects()
@@ -631,14 +595,17 @@ namespace NeuroSonic.GamePlay
         private const float BASE_LASER_MIX = 0.7f;
         private float laserGain = 0.5f;
 
-        private float GetTempRollValue(time_t position, int stream, bool oneMinus = false)
+        private float GetTempRollValue(time_t position, int stream, out float valueMult, bool oneMinus = false)
         {
             var s = m_playback.Chart[stream];
+            valueMult = 1.0f;
 
             var mrAnalog = s.MostRecent<AnalogObject>(position);
             if (mrAnalog == null || position > mrAnalog.AbsoluteEndPosition)
                 return 0;
 
+            if (mrAnalog.RangeExtended)
+                valueMult = 2.0f;
             float result = mrAnalog.SampleValue(position);
             if (oneMinus)
                 return 1 - result;
@@ -655,7 +622,7 @@ namespace NeuroSonic.GamePlay
 
             float LaserAlpha(int index)
             {
-                return GetTempRollValue(m_audio.Position, index + 6, index == 1);
+                return GetTempRollValue(m_audio.Position, index + 6, out float _, index == 1);
             }
 
             if (currentActiveLasers[0])

@@ -85,7 +85,8 @@ namespace theori.IO
         
         public event Action<uint> ButtonPressed;
         public event Action<uint> ButtonReleased;
-        
+        public event Action<uint, float> AxisChanged;
+
         public readonly int DeviceIndex;
         public readonly int InstanceId;
 
@@ -148,13 +149,13 @@ namespace theori.IO
             buttonStates[buttonIndex] = newState;
             if (newState == 1)
             {
+                ButtonPressed?.Invoke(buttonIndex);
                 Host.ButtonPressed(info);
-                ButtonReleased?.Invoke(buttonIndex);
             }
             else
             {
+                ButtonReleased?.Invoke(buttonIndex);
                 Host.ButtonReleased(info);
-                ButtonPressed?.Invoke(buttonIndex);
             }
         }
 
@@ -162,6 +163,7 @@ namespace theori.IO
         {
             float value = newValue / (float)0x7FFF;
             axisStates[axisIndex] = value;
+            AxisChanged?.Invoke(axisIndex, value);
             Host.AxisChanged(new AnalogInfo()
             {
                 DeviceIndex = DeviceIndex,

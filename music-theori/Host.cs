@@ -93,7 +93,7 @@ namespace theori
         /// <summary>
         /// Removes the topmost layer from the layer stack and destroys it.
         /// </summary>
-        public static void PopLayer()
+        private static void PopLayer()
         {
             var layer = layers[LayerCount - 1];
             layers.RemoveAt(LayerCount - 1);
@@ -133,6 +133,28 @@ namespace theori
 
             for (int i = 0; i < numLayersToPop; i++)
                 PopLayer();
+        }
+
+        public static void AddOverlay(Overlay overlay)
+        {
+            if (!overlays.Contains(overlay))
+            {
+                overlays.Add(overlay);
+                overlay.Init();
+            }
+        }
+
+        public static void RemoveOverlay(Overlay overlay)
+        {
+            if (overlays.Remove(overlay))
+                overlay.Destroy();
+        }
+
+        public static void RemoveAllOverlays()
+        {
+            foreach (var overlay in overlays)
+                overlay.Destroy();
+            overlays.Clear();
         }
 
         private static void OnClientSizeChanged(int w, int h)

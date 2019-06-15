@@ -2,6 +2,7 @@
 using theori.GameModes;
 
 using NeuroSonic.GamePlay;
+using NeuroSonic.IO;
 
 namespace NeuroSonic
 {

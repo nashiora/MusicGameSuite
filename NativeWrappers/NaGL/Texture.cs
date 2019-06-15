@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.IO;
 
 namespace OpenGL
 {
@@ -11,6 +12,13 @@ namespace OpenGL
         {
             var texture = new Texture();
             texture.Load2DFromFile(fileName);
+            return texture;
+        }
+
+        public static Texture FromStream2D(Stream stream)
+        {
+            var texture = new Texture();
+            texture.Load2DFromStream(stream);
             return texture;
         }
 
@@ -82,7 +90,7 @@ namespace OpenGL
             GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, Width, Height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixels);
         }
 
-        public void Load2DFromFile(string fileName)
+        private void Load2DFromBitmap(Bitmap bmp)
         {
             if (Locked) throw new Exception("Cannot direcly modify a locked texture.");
 
@@ -91,28 +99,37 @@ namespace OpenGL
             Bind(0);
             SetParams();
 
-            using (var bmp = new Bitmap(Image.FromFile(fileName)))
+            Width = bmp.Width;
+            Height = bmp.Height;
+            Depth = 0;
+
+            byte[] pixels = new byte[Width * Height * 4];
+            for (int i = 0; i < Width * Height; i++)
             {
-                Width = bmp.Width;
-                Height = bmp.Height;
-                Depth = 0;
+                int x = i % bmp.Width;
+                int y = i / bmp.Width;
 
-                byte[] pixels = new byte[Width * Height * 4];
-                for (int i = 0; i < Width * Height; i++)
-                {
-                    int x = i % bmp.Width;
-                    int y = i / bmp.Width;
+                var p = bmp.GetPixel(x, y);
 
-                    var p = bmp.GetPixel(x, y);
-                
-                    pixels[0 + i * 4] = p.R;
-                    pixels[1 + i * 4] = p.G;
-                    pixels[2 + i * 4] = p.B;
-                    pixels[3 + i * 4] = p.A;
-                }
-
-                GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, Width, Height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixels);
+                pixels[0 + i * 4] = p.R;
+                pixels[1 + i * 4] = p.G;
+                pixels[2 + i * 4] = p.B;
+                pixels[3 + i * 4] = p.A;
             }
+
+            GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, Width, Height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixels);
+        }
+
+        public void Load2DFromStream(Stream stream)
+        {
+            using (var bmp = new Bitmap(Image.FromStream(stream)))
+                Load2DFromBitmap(bmp);
+        }
+
+        public void Load2DFromFile(string fileName)
+        {
+            using (var bmp = new Bitmap(Image.FromFile(fileName)))
+                Load2DFromBitmap(bmp);
         }
 
         public void SetData2D(int width, int height, byte[] pixelData)

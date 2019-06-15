@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GamePlay\BakedLaserTilt.cs" />
     <Compile Include="GamePlay\ComboDisplay.cs" />
     <Compile Include="GamePlay\CriticalLine.cs" />
     <Compile Include="GamePlay\GameDebugOverlay.cs" />
@@ -61,6 +62,8 @@
     <Compile Include="GamePlay\Scoring\LaserJudge.cs" />
     <Compile Include="GamePlay\Scoring\MasterJudge.cs" />
     <Compile Include="GamePlay\Scoring\StreamJudge.cs" />
+    <Compile Include="GamePlay\WorldViewManager.cs" />
+    <Compile Include="IO\Controller.cs" />
     <Compile Include="Startup\BaseMenuLayer.cs" />
     <Compile Include="Startup\BindingConfigurationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
@@ -94,6 +97,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="textures\debug_bt.png" />
+    <EmbeddedResource Include="textures\debug_fx.png" />
+    <EmbeddedResource Include="textures\debug_vol.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="textures\debug_bt_active.png" />
+    <EmbeddedResource Include="textures\debug_fx_active.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
