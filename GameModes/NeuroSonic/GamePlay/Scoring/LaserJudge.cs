@@ -162,45 +162,10 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public void UserInput(float amount, time_t timeStamp)
         {
-            time_t assistCheck = 0.25;
-
-            m_userWhen = timeStamp;
-            if (m_targetDirection == LinearDirection.None && m_lockedOn)
-            {
-                m_assistWhen = m_userWhen;
-                m_lockedOn = true;
-
-                return;
-            }
-
-            bool isCorrectDirection = MathL.Sign(amount) == (int)m_targetDirection;
-            if (m_lockedOn)
-            {
-                if (isCorrectDirection)
-                {
-                    CursorPosition = m_currentObject.SampleValue(timeStamp);
-                    m_assistWhen = m_userWhen;
-                    m_lockedOn = true;
-                }
-                else
-                {
-                    if (timeStamp - m_assistWhen < assistCheck)
-                    {
-                        CursorPosition = m_currentObject.SampleValue(timeStamp);
-                        m_lockedOn = true;
-                    }
-                    else
-                    {
-                        CursorPosition += amount;
-                        m_lockedOn = false;
-                    }
-                }
-            }
         }
 
         protected override void AdvancePosition(time_t position)
         {
-            m_targetCursorPosition = m_currentObject.SampleValue(position);
         }
 
         protected override void ObjectEnteredJudgement(OpenRM.Object obj)

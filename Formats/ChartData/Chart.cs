@@ -9,8 +9,6 @@ namespace OpenRM
     /// </summary>
     public sealed class Chart
     {
-        public ChartMetadata Metadata;
-
         public readonly int StreamCount;
 
         /// <summary>

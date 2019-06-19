@@ -19,6 +19,6 @@ namespace NeuroSonic
         }
 
         public override void InvokeStandalone(string[] args) => Plugin.NSC_Main(args);
-        public override Layer CreateSharedGameLayer() => new GameLayer(AutoPlay.None);
+        public override Layer CreateSharedGameLayer() => new GameLayer(null, null, null, AutoPlay.None);
     }
 }

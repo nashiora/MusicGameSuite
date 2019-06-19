@@ -48,6 +48,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChartSelect\ChartSelectLayer.cs" />
+    <Compile Include="ChartSelect\DifficultySlot.cs" />
+    <Compile Include="ChartSelect\Landscape\LandscapeChartSelectLayer.cs" />
     <Compile Include="GamePlay\BakedLaserTilt.cs" />
     <Compile Include="GamePlay\ComboDisplay.cs" />
     <Compile Include="GamePlay\CriticalLine.cs" />
@@ -64,6 +67,8 @@
     <Compile Include="GamePlay\Scoring\StreamJudge.cs" />
     <Compile Include="GamePlay\WorldViewManager.cs" />
     <Compile Include="IO\Controller.cs" />
+    <Compile Include="IO\Input.cs" />
+    <Compile Include="NscLayer.cs" />
     <Compile Include="Startup\BaseMenuLayer.cs" />
     <Compile Include="Startup\BindingConfigurationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
@@ -92,20 +97,61 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Charting\" />
+    <Folder Include="ChartSelect\Portrait\" />
     <Folder Include="GamePlay\Shared\" />
     <Folder Include="GamePlay\Standalone\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\materials\chip.fs" />
+    <EmbeddedResource Include="Resources\materials\highway.fs" />
+    <EmbeddedResource Include="Resources\materials\hold.fs" />
+    <EmbeddedResource Include="Resources\materials\laser.fs" />
+    <EmbeddedResource Include="Resources\audio\sample_clap.ogg" />
+    <EmbeddedResource Include="Resources\audio\sample_kick.ogg" />
+    <EmbeddedResource Include="Resources\audio\sample_snare.ogg" />
+    <EmbeddedResource Include="Resources\audio\sample_snare_lo.ogg" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="textures\debug_bt.png" />
-    <EmbeddedResource Include="textures\debug_fx.png" />
-    <EmbeddedResource Include="textures\debug_vol.png" />
+    <EmbeddedResource Include="Resources\textures\bt_chip.png" />
+    <EmbeddedResource Include="Resources\textures\bt_chip_sample.png" />
+    <EmbeddedResource Include="Resources\textures\bt_hold.png" />
+    <EmbeddedResource Include="Resources\textures\bt_hold_entry.png" />
+    <EmbeddedResource Include="Resources\textures\bt_hold_exit.png" />
+    <EmbeddedResource Include="Resources\textures\combo\0.png" />
+    <EmbeddedResource Include="Resources\textures\combo\1.png" />
+    <EmbeddedResource Include="Resources\textures\combo\2.png" />
+    <EmbeddedResource Include="Resources\textures\combo\3.png" />
+    <EmbeddedResource Include="Resources\textures\combo\4.png" />
+    <EmbeddedResource Include="Resources\textures\combo\5.png" />
+    <EmbeddedResource Include="Resources\textures\combo\6.png" />
+    <EmbeddedResource Include="Resources\textures\combo\7.png" />
+    <EmbeddedResource Include="Resources\textures\combo\8.png" />
+    <EmbeddedResource Include="Resources\textures\combo\9.png" />
+    <EmbeddedResource Include="Resources\textures\critical_cap.png" />
+    <EmbeddedResource Include="Resources\textures\cursor.png" />
+    <EmbeddedResource Include="Resources\textures\debug_bt.png" />
+    <EmbeddedResource Include="Resources\textures\debug_bt_active.png" />
+    <EmbeddedResource Include="Resources\textures\debug_fx.png" />
+    <EmbeddedResource Include="Resources\textures\debug_fx_active.png" />
+    <EmbeddedResource Include="Resources\textures\debug_vol.png" />
+    <EmbeddedResource Include="Resources\textures\fx_chip.png" />
+    <EmbeddedResource Include="Resources\textures\fx_chip_sample.png" />
+    <EmbeddedResource Include="Resources\textures\fx_hold.png" />
+    <EmbeddedResource Include="Resources\textures\fx_hold_entry.png" />
+    <EmbeddedResource Include="Resources\textures\fx_hold_exit.png" />
+    <EmbeddedResource Include="Resources\textures\highway.png" />
+    <EmbeddedResource Include="Resources\textures\highway_simple.png" />
+    <EmbeddedResource Include="Resources\textures\inf.png" />
+    <EmbeddedResource Include="Resources\textures\key_beam.png" />
+    <EmbeddedResource Include="Resources\textures\laser.png" />
+    <EmbeddedResource Include="Resources\textures\laser_entry.png" />
+    <EmbeddedResource Include="Resources\textures\laser_exit.png" />
+    <EmbeddedResource Include="Resources\textures\scorebar.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="textures\debug_bt_active.png" />
-    <EmbeddedResource Include="textures\debug_fx_active.png" />
+    <EmbeddedResource Include="Resources\audio\slam.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

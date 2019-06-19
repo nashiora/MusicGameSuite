@@ -62,7 +62,6 @@
     <Compile Include="Voltex\VoltexChartSerializer.cs" />
     <Compile Include="SlidingChartPlayback.cs" />
     <Compile Include="Chart.cs" />
-    <Compile Include="ChartMetadata.cs" />
     <Compile Include="Convert\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="KShootMania\Chart.cs" />
     <Compile Include="KShootMania\ChartMetadata.cs" />

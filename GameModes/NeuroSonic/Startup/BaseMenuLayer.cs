@@ -33,10 +33,8 @@ namespace NeuroSonic.Startup
         }
     }
 
-    public abstract class BaseMenuLayer : Layer
+    public abstract class BaseMenuLayer : NscLayer
     {
-        protected Panel GuiRoot;
-
         protected int ItemIndex { get; private set; }
         private readonly List<MenuItem> m_items = new List<MenuItem>();
 
@@ -48,9 +46,11 @@ namespace NeuroSonic.Startup
 
         public override void Init()
         {
+            base.Init();
+
             GenerateMenuItems();
 
-            GuiRoot = new Panel()
+            ForegroundGui = new Panel()
             {
                 Children = new GuiElement[]
                 {
@@ -58,7 +58,7 @@ namespace NeuroSonic.Startup
                     {
                         RelativePositionAxes = Axes.X,
                         Position = new Vector2(0.5f, 20),
-                        TextAlignment = TextAlignment.TopCenter,
+                        TextAlignment = Anchor.TopCenter,
                     },
 
                     new Panel()
@@ -80,7 +80,7 @@ namespace NeuroSonic.Startup
                         {
                             new TextLabel(Font.Default16, "[Up / Down] or [BT-A / BT-B] Navigate Menu")
                             {
-                                TextAlignment = TextAlignment.BottomLeft,
+                                TextAlignment = Anchor.BottomLeft,
                                 Position = new Vector2(10, -10),
                             },
 
@@ -94,7 +94,7 @@ namespace NeuroSonic.Startup
                                 {
                                     new TextLabel(Font.Default16, "Select Option [Enter] or [START]")
                                     {
-                                        TextAlignment = TextAlignment.BottomRight,
+                                        TextAlignment = Anchor.BottomRight,
                                         Position = new Vector2(-10, -10),
                                     },
                                 }
@@ -107,15 +107,6 @@ namespace NeuroSonic.Startup
             m_items[ItemIndex].Hilited = true;
         }
 
-        protected abstract void GenerateMenuItems();
-
-        protected void AddMenuItem(MenuItem item) => m_items.Add(item);
-        protected void AddSpacing() => m_extraSpacing++;
-
-        public override void Destroy()
-        {
-        }
-
         public override void Suspended()
         {
         }
@@ -123,6 +114,11 @@ namespace NeuroSonic.Startup
         public override void Resumed()
         {
         }
+
+        protected abstract void GenerateMenuItems();
+
+        protected void AddMenuItem(MenuItem item) => m_items.Add(item);
+        protected void AddSpacing() => m_extraSpacing++;
 
         protected void NavigateUp()
         {
@@ -185,66 +181,26 @@ namespace NeuroSonic.Startup
             return true;
         }
 
-        public override bool ButtonPressed(ButtonInfo info)
+        protected internal override bool ControllerButtonPressed(ControllerInput input)
         {
-            if (info.DeviceIndex != Plugin.Gamepad.DeviceIndex) return false;
-            if (Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice) != InputDevice.Controller) return false;
-
-            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_Back))
+            switch (input)
             {
-                OnExit();
-                return true;
+                case ControllerInput.Start: m_items[ItemIndex].Action(); break;
+                case ControllerInput.Back: OnExit(); break;
+
+                case ControllerInput.BT0: NavigateUp(); break;
+                case ControllerInput.BT1: NavigateDown(); break;
+
+                default: return false;
             }
 
-            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_BT0))
-            {
-                NavigateUp();
-                return true;
-            }
-
-            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_BT1))
-            {
-                NavigateDown();
-                return true;
-            }
-
-            if (info.Button == Plugin.Config.GetInt(NscConfigKey.Controller_Start))
-            {
-                m_items[ItemIndex].Action();
-                return true;
-            }
-
-            return false;
+            return true;
         }
 
         protected virtual void OnExit() => Host.PopToParent(this);
 
-        public override void Update(float delta, float total)
-        {
-            GuiRoot.Update();
-        }
-
         public override void Render()
         {
-            void DrawUiRoot(Panel root)
-            {
-                if (root == null) return;
-
-                var viewportSize = new Vector2(Window.Width, Window.Height);
-                using (var grq = new GuiRenderQueue(viewportSize))
-                {
-                    root.Position = Vector2.Zero;
-                    root.RelativeSizeAxes = Axes.None;
-                    root.Size = viewportSize;
-                    root.Rotation = 0;
-                    root.Scale = Vector2.One;
-                    root.Origin = Vector2.Zero;
-
-                    root.Render(grq);
-                }
-            }
-
-            DrawUiRoot(GuiRoot);
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using NeuroSonic.GamePlay.Scoring;
 using NeuroSonic.IO;
 using OpenGL;
+using OpenRM;
 using theori;
 using theori.Graphics;
 using theori.Gui;
@@ -11,19 +13,31 @@ namespace NeuroSonic.GamePlay
 {
     public sealed class GameDebugOverlay : Overlay
     {
-        private Panel m_root;
-
         private ControllerVisualizer m_visualizer;
+        private TimingBar m_timingBar;
 
-        internal GameDebugOverlay(Controller controller)
+        internal GameDebugOverlay()
         {
-            m_root = new Panel()
+            ForegroundGui = new Panel()
             {
                 Children = new GuiElement[]
                 {
-                    m_visualizer = new ControllerVisualizer(controller),
+                    m_visualizer = new ControllerVisualizer(),
+                    m_timingBar = new TimingBar()
+                    {
+                        RelativePositionAxes = Axes.Both,
+                        RelativeSizeAxes = Axes.Both,
+
+                        Position = new Vector2(0.3f, 0.95f),
+                        Size = new Vector2(0.4f, 0.05f),
+                    },
                 }
             };
+        }
+
+        public void AddTimingInfo(time_t timingDelta, JudgeKind kind)
+        {
+            m_timingBar.AddTimingInfo(timingDelta, kind);
         }
 
         public override void Init()
@@ -36,26 +50,10 @@ namespace NeuroSonic.GamePlay
 
         public override void Update(float delta, float total)
         {
-            base.Update(delta, total);
-            m_root.Update();
         }
 
         public override void Render()
         {
-            if (m_root == null) return;
-
-            var viewportSize = new Vector2(Window.Width, Window.Height);
-            using (var grq = new GuiRenderQueue(viewportSize))
-            {
-                m_root.Position = Vector2.Zero;
-                m_root.RelativeSizeAxes = Axes.None;
-                m_root.Size = viewportSize;
-                m_root.Rotation = 0;
-                m_root.Scale = Vector2.One;
-                m_root.Origin = Vector2.Zero;
-
-                m_root.Render(grq);
-            }
         }
     }
 
@@ -125,15 +123,11 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        public Controller Controller { get; }
-
         private readonly Dictionary<ControllerInput, ButtonSprite> m_bts = new Dictionary<ControllerInput, ButtonSprite>();
         private readonly Dictionary<ControllerInput, KnobSprite> m_knobs = new Dictionary<ControllerInput, KnobSprite>();
 
-        public ControllerVisualizer(Controller controller)
+        public ControllerVisualizer()
         {
-            Controller = controller;
-
             Size = new Vector2(230, 120);
             Children = new GuiElement[]
             {
@@ -211,10 +205,75 @@ namespace NeuroSonic.GamePlay
             base.Update();
 
             foreach (var pair in m_bts)
-                pair.Value.Active = Controller.IsButtonDown(pair.Key);
+                pair.Value.Active = Input.IsButtonDown(pair.Key);
 
             foreach (var pair in m_knobs)
-                pair.Value.Rotation = 360 * (1 + Controller.RawAxisValue(pair.Key)) * 0.5f;
+                pair.Value.Rotation = 360 * (1 + Input.RawAxisValue(pair.Key)) * 0.5f;
+        }
+    }
+    
+    public class TimingBar : Panel
+    {
+        private readonly time_t m_inaccuracyWindow = 150.0 / 1000;
+
+        private int m_numInputs;
+        private time_t m_totalInaccuracy;
+
+        private Sprite m_cursor;
+
+        public TimingBar()
+        {
+            Children = new GuiElement[]
+            {
+                new Sprite(null)
+                {
+                    RelativePositionAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Both,
+                    Position = new Vector2(0, 0.25f),
+                    Size = new Vector2(1.0f, 0.5f),
+                    Color = Vector4.One,
+                },
+
+                new Sprite(null)
+                {
+                    RelativePositionAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Y,
+                    Origin = new Vector2(2, 0),
+                    Position = new Vector2(0.5f, 0),
+                    Size = new Vector2(4, 1.0f),
+                    Color = new Vector4(0, 0, 0, 1),
+                },
+
+                m_cursor = new Sprite(null)
+                {
+                    RelativePositionAxes = Axes.Both,
+                    RelativeSizeAxes = Axes.Y,
+                    Origin = new Vector2(5, 0),
+                    Size = new Vector2(10, 1.0f),
+                    Color = new Vector4(0, 1, 0, 1),
+                }
+            };
+        }
+
+        public void AddTimingInfo(time_t timingDelta, JudgeKind kind)
+        {
+            m_numInputs++;
+            m_totalInaccuracy += timingDelta;
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            if (m_numInputs == 0)
+                m_cursor.Position = new Vector2(0.5f, 0);
+            else
+            {
+                time_t inacc = m_totalInaccuracy / m_numInputs;
+                float alpha = (float)(inacc / m_inaccuracyWindow);
+
+                m_cursor.Position = new Vector2((1 + alpha) * 0.5f, 0);
+            }
         }
     }
 }

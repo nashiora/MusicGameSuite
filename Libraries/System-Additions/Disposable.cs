@@ -1,33 +1,40 @@
-﻿namespace System
+﻿using System.Diagnostics;
+
+namespace System
 {
     public abstract class Disposable : IDisposable
     {
-        #region IDisposable Support
-
-        private bool isDisposed = false;
+        public bool IsDisposed { get; private set; } = false;
 
         protected virtual bool SuppressFinalize => true;
 
-        protected virtual void DisposeManaged()
+#if DEBUG
+        private readonly StackTrace m_constructionStackTrace;
+#endif
+
+        protected Disposable()
         {
+#if DEBUG
+            m_constructionStackTrace = new StackTrace();
+#endif
         }
 
-        protected virtual void DisposeUnmanaged()
-        {
-        }
+        protected virtual void DisposeManaged() { }
+        protected virtual void DisposeUnmanaged() { }
 
-        private void Dispose(bool disposing)
+        private void Dispose(bool fromManagedDispose)
         {
-            if (isDisposed) return;
+            if (IsDisposed) return;
 
-            if (disposing) DisposeManaged();
+            if (fromManagedDispose) DisposeManaged();
             DisposeUnmanaged();
 
-            isDisposed = true;
+            IsDisposed = true;
         }
 
         ~Disposable()
         {
+            Debug.Assert(IsDisposed, "Disposable object finalized without previous managed dispose! The object was created:\n" + m_constructionStackTrace.ToString());
             try
             {
                 Dispose(false);
@@ -35,13 +42,12 @@
             catch (Exception) { }
         }
 
+        void IDisposable.Dispose() => Dispose();
         public void Dispose()
         {
             Dispose(true);
             if (SuppressFinalize)
                 GC.SuppressFinalize(this);
         }
-
-        #endregion
     }
 }

@@ -38,7 +38,7 @@ namespace NeuroSonic.Startup
         {
             Plugin.Config.Set(NscConfigKey.ButtonInputDevice, InputDevice.Controller);
             Plugin.Config.Set(NscConfigKey.LaserInputDevice, InputDevice.Controller);
-            Plugin.SwitchGamepad(id); // Saves the config anyway
+            Plugin.SwitchActiveGamepad(id); // Saves the config anyway
 
             Host.PopToParent(this);
         }

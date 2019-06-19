@@ -307,10 +307,10 @@ namespace theori
 
                     // update top down
                     for (int i = OverlayCount - 1; i >= 0 && runProgramLoop; i--)
-                        overlays[i].Update(Time.Delta, Time.Total);
+                        overlays[i].UpdateInternal(Time.Delta, Time.Total);
 
                     for (int i = LayerCount - 1; i >= layerStartIndex && runProgramLoop; i--)
-                        layers[i].Update(Time.Delta, Time.Total);
+                        layers[i].UpdateInternal(Time.Delta, Time.Total);
                 }
 
                 if (!runProgramLoop) break;
@@ -321,10 +321,10 @@ namespace theori
 
                     // render bottom up
                     for (int i = layerStartIndex; i < LayerCount; i++)
-                        layers[i].Render();
+                        layers[i].RenderInternal();
 
                     for (int i = 0; i < OverlayCount; i++)
-                        overlays[i].Render();
+                        overlays[i].RenderInternal();
 
                     Window.SwapBuffer();
                 }

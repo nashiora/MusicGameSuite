@@ -9,6 +9,7 @@ using OpenGL;
 
 using OpenRM;
 using OpenRM.Voltex;
+using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
@@ -24,6 +25,7 @@ namespace NeuroSonic.GamePlay
         {
             public OpenRM.Object Object;
             public float Glow;
+            public int GlowState;
         }
 
         //private const float PITCH_AMT = 15;
@@ -40,21 +42,19 @@ namespace NeuroSonic.GamePlay
         public Transform WorldTransform { get; private set; }
         public Transform CritLineTransform { get; private set; }
 
+        private readonly ClientResourceManager m_skin;
+
         private readonly Drawable3D m_highwayDrawable;
         private readonly Drawable3D[] m_keyBeamDrawables = new Drawable3D[6];
-        private readonly Drawable3D m_btChipDrawable, m_btHoldDrawable;
-        private readonly Drawable3D m_fxChipDrawable, m_fxHoldDrawable;
         private readonly Drawable3D m_lVolEntryDrawable, m_lVolExitDrawable;
         private readonly Drawable3D m_rVolEntryDrawable, m_rVolExitDrawable;
 
-        // vol segment pieces are separate, generate drawables for each segment because mesh :shrug:
-        private readonly Texture m_lVolTexture, m_rVolTexture;
-        private readonly Material m_lVolMaterial, m_rVolMaterial;
-        private readonly MaterialParams m_lVolParams, m_rVolParams;
+        private Vector3 m_lVolColor, m_rVolColor;
 
         private Dictionary<OpenRM.Object, ObjectRenderable3D>[] m_renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
         private readonly KeyBeamInfo[] m_keyBeamInfos = new KeyBeamInfo[6];
         private readonly GlowInfo[] m_glowInfos = new GlowInfo[8];
+        private readonly bool[] m_streamsActive = new bool[8].Fill(true);
 
         public time_t PlaybackPosition { get; set; }
 
@@ -79,31 +79,31 @@ namespace NeuroSonic.GamePlay
         const float SLAM_DUR_TICKS = 1 / 32.0f;
         time_t SlamDurationTime(OpenRM.Object obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
 
-        public HighwayView()
+        public HighwayView(ClientResourceManager skin)
         {
-            var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
-            var rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
-            var hiliteColor = new Vector3(1, 1, 0);
+            m_skin = skin;
+
+            m_lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
+            m_rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
 
             var highwayParams = new MaterialParams();
-            highwayParams["LeftColor"] = lVolColor;
-            highwayParams["RightColor"] = rVolColor;
+            highwayParams["LeftColor"] = m_lVolColor;
+            highwayParams["RightColor"] = m_rVolColor;
             highwayParams["Hidden"] = 0.0f;
 
-            var basicMaterial = new Material("basic");
-            var holdMaterial = new Material("hold_button");
-            var volMaterial = new Material("laser")
-            {
-                BlendMode = BlendMode.Additive,
-            };
+            var basicMaterial = m_skin.AquireMaterial("materials/basic");
+            var lVolMaterial = m_skin.AquireMaterial("materials/laser");
+            lVolMaterial.BlendMode = BlendMode.Additive;
+            var rVolMaterial = m_skin.AquireMaterial("materials/laser");
+            rVolMaterial.BlendMode = BlendMode.Additive;
 
-            var keyBeamTexture = Texture.FromFile2D($@".\skins\Default\textures\key_beam.png");
+            var keyBeamTexture = m_skin.AquireTexture("textures/key_beam");
             var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter);
 
             m_highwayDrawable = new Drawable3D()
             {
-                Texture = Texture.FromFile2D(@".\skins\Default\textures\highway.png"),
-                Material = new Material("highway"),
+                Texture = m_skin.AquireTexture("textures/highway"),
+                Material = m_skin.AquireMaterial("materials/highway"),
                 Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter),
                 Params = highwayParams,
             };
@@ -118,50 +118,25 @@ namespace NeuroSonic.GamePlay
                 };
             }
 
-            Drawable3D CreateDrawable3D(string texName, int width, bool isChip)
-            {
-                var texture = Texture.FromFile2D($@".\skins\Default\textures\{ texName }.png");
-
-                var mparams = new MaterialParams();
-                mparams["Color"] = new Vector4(1);
-                if (!isChip) mparams["Glow"] = 0.0f;
-
-                float aspect = texture.Height / (float)texture.Width;
-                float height = isChip ? width * aspect / 6 : 1;
-
-                return new Drawable3D()
-                {
-                    Texture = texture,
-                    Material = isChip ? basicMaterial : holdMaterial,
-                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, width / 6.0f, height, Anchor.BottomCenter),
-                    Params = mparams,
-                };
-            }
-            
-            m_btChipDrawable = CreateDrawable3D("bt_chip", 1, true);
-            m_btHoldDrawable = CreateDrawable3D("bt_hold", 1, false);
-            m_fxChipDrawable = CreateDrawable3D("fx_chip", 2, true);
-            m_fxHoldDrawable = CreateDrawable3D("fx_hold", 2, false);
-
             MaterialParams CreateVolumeParams(int lane)
             {
                 var volParams = new MaterialParams();
-                volParams["LaserColor"] = lane == 0 ? lVolColor : rVolColor;
+                volParams["LaserColor"] = lane == 0 ? m_lVolColor : m_rVolColor;
                 volParams["HiliteColor"] = new Vector3(1, 1, 0);
                 return volParams;
             }
 
-            void CreateVolDrawables(int lane, Vector3 color, ref Drawable3D entryDrawable, ref Drawable3D exitDrawable)
+            void CreateVolDrawables(int lane, ref Drawable3D entryDrawable, ref Drawable3D exitDrawable)
             {
                 // TODO(local): use the lane value!
-                var entryTexture = Texture.FromFile2D(@".\skins\Default\textures\laser_entry.png");
-                var exitTexture = Texture.FromFile2D(@".\skins\Default\textures\laser_exit.png");
+                var entryTexture = m_skin.AquireTexture("textures/laser_entry");
+                var exitTexture = m_skin.AquireTexture("textures/laser_exit");
 
                 entryDrawable = new Drawable3D()
                 {
                     Texture = entryTexture,
                     Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (entryTexture.Height / (float)entryTexture.Width) / 6.0f, Anchor.TopCenter),
-                    Material = volMaterial,
+                    Material = lane == 0 ? lVolMaterial : rVolMaterial,
                     Params = CreateVolumeParams(lane),
                 };
 
@@ -169,22 +144,13 @@ namespace NeuroSonic.GamePlay
                 {
                     Texture = exitTexture,
                     Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (entryTexture.Height / (float)entryTexture.Width) / 6.0f, Anchor.BottomCenter),
-                    Material = volMaterial,
+                    Material = lane == 0 ? lVolMaterial : rVolMaterial,
                     Params = CreateVolumeParams(lane),
                 };
             }
 
-            CreateVolDrawables(0, new Vector3(0, 0.5f, 1), ref m_lVolEntryDrawable, ref m_lVolExitDrawable);
-            CreateVolDrawables(1, new Vector3(1, 0, 0.5f), ref m_rVolEntryDrawable, ref m_rVolExitDrawable);
-
-            m_lVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
-            m_rVolTexture = Texture.FromFile2D(@".\skins\Default\textures\laser.png");
-
-            m_lVolMaterial = volMaterial;
-            m_rVolMaterial = volMaterial;
-
-            m_lVolParams = CreateVolumeParams(0);
-            m_rVolParams = CreateVolumeParams(1);
+            CreateVolDrawables(0, ref m_lVolEntryDrawable, ref m_lVolExitDrawable);
+            CreateVolDrawables(1, ref m_rVolEntryDrawable, ref m_rVolExitDrawable);
 
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
@@ -204,32 +170,25 @@ namespace NeuroSonic.GamePlay
 
             if (obj is ButtonObject bobj)
             {
-                ButtonRenderState3D br3d;
+                ObjectRenderable3D br3d;
                 if (obj.IsInstant)
-                    br3d = new ButtonRenderState3D(bobj, obj.Stream < 4 ? m_btChipDrawable : m_fxChipDrawable, 0);
+                    br3d = new ButtonChipRenderState3D(bobj, m_skin);
                 else
                 {
-                    Drawable3D template = obj.Stream < 4 ? m_btHoldDrawable : m_fxHoldDrawable;
-                    Drawable3D holdDrawable = new Drawable3D()
-                    {
-                        Texture = template.Texture,
-                        Mesh = template.Mesh,
-                        Material = template.Material,
-                        Params = template.Params.Copy(),
-                    };
-
                     float zDur = (float)(obj.AbsoluteDuration.Seconds / ViewDuration.Seconds);
-                    br3d = new ButtonRenderState3D(bobj, holdDrawable, zDur * LENGTH_BASE);
+                    br3d = new ButtonHoldRenderState3D(bobj, zDur * LENGTH_BASE, m_skin);
                 }
 
                 m_renderables[obj.Stream][obj] = br3d;
             }
             else if (obj is AnalogObject aobj)
             {
+                var color = obj.Stream == 6 ? m_lVolColor : m_rVolColor;
+
                 if (obj.IsInstant)
                 {
                     float zDur = (float)(SlamDurationTime(aobj).Seconds / ViewDuration.Seconds);
-                    m_renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE);
+                    m_renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE, color, m_skin);
                 }
                 else
                 {
@@ -238,7 +197,7 @@ namespace NeuroSonic.GamePlay
                         duration -= SlamDurationTime(aobj.PreviousConnected);
 
                     float zDur = (float)(duration.Seconds / ViewDuration.Seconds);
-                    m_renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE);
+                    m_renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE, color, m_skin);
                 }
             }
         }
@@ -255,11 +214,19 @@ namespace NeuroSonic.GamePlay
             m_keyBeamInfos[lane].Color = color;
         }
 
-        public void SetObjectGlow(OpenRM.Object targetObject, float glow)
+        public void SetStreamActive(int stream, bool active)
+        {
+            m_streamsActive[stream] = active;
+        }
+
+        public void SetObjectGlow(OpenRM.Object targetObject, float glow, int glowState)
         {
             ref GlowInfo glowInfo = ref m_glowInfos[targetObject.Stream];
             glowInfo.Object = targetObject;
             glowInfo.Glow = glow;
+            glowInfo.GlowState = glowState;
+
+            Logger.Log($"({ targetObject.Stream }) { glowState }");
         }
 
         public void Update()
@@ -414,11 +381,22 @@ namespace NeuroSonic.GamePlay
                             tDiff = Transform.Scale(widthMult, 1, 1 + distScaling);
                         }
 
-                        if (m_glowInfos[objr.Object.Stream].Object == objr.Object)
-                            objr.Drawable.Params["Glow"] = m_glowInfos[objr.Object.Stream].Glow;
+                        if (objr is ButtonHoldRenderState3D holdObj)
+                        {
+                            if (m_glowInfos[objr.Object.Stream].Object == objr.Object)
+                            {
+                                holdObj.Glow = m_glowInfos[objr.Object.Stream].Glow;
+                                holdObj.GlowState = m_glowInfos[objr.Object.Stream].GlowState;
+                            }
+                            else
+                            {
+                                holdObj.Glow = m_streamsActive[objr.Object.Stream] ? 0.0f : -0.5f;
+                                holdObj.GlowState = m_streamsActive[objr.Object.Stream] ? 1 : 0;
+                            }
+                        }
 
-                        Transform t = tDiff * objr.Transform * Transform.Translation(xOffs, 0, -z) * WorldTransform;
-                        objr.Drawable.DrawToQueue(queue, t);
+                        Transform t = tDiff * Transform.Translation(xOffs, 0, -z) * WorldTransform;
+                        objr.Render(queue, t);
                     }
                 }
 
@@ -437,12 +415,8 @@ namespace NeuroSonic.GamePlay
                         float z = LENGTH_BASE * (float)((position - PlaybackPosition) / ViewDuration);
 
                         Transform s = Transform.Scale(1, 1, 1 + HISCALE);
-                        Transform t = objr.Transform * Transform.Translation(0, 0, -z) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
-
-                        var volMaterial = i == 0 ? m_lVolMaterial : m_rVolMaterial;
-                        var volParams = i == 0 ? m_lVolParams : m_rVolParams;
-                        volParams["MainTexture"] = i == 0 ? m_lVolTexture : m_rVolTexture;
-                        queue.Draw(t, objr.Mesh, volMaterial, volParams);
+                        Transform t = Transform.Translation(0, 0, -z) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
+                        objr.Render(queue, t);
 
                         if (objr.Object.PreviousConnected == null)
                         {

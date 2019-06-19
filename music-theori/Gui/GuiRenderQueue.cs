@@ -5,18 +5,27 @@ using System.Numerics;
 using OpenGL;
 
 using theori.Graphics;
+using theori.Resources;
 
 namespace theori.Gui
 {
     public class GuiRenderQueue : RenderQueue
     {
+        private static readonly ClientResourceManager resourceManager;
+
+        static GuiRenderQueue()
+        {
+            resourceManager = new ClientResourceManager("", "materials/basic");
+            resourceManager.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
+        }
+
         private static Material m_textureMaterialBacking;
         private static Material TextureMaterial
         {
             get
             {
                 if (m_textureMaterialBacking == null)
-                    m_textureMaterialBacking = new Material("basic");
+                    m_textureMaterialBacking = resourceManager.AquireMaterial("materials/basic");
                 return m_textureMaterialBacking;
             }
         }
@@ -24,7 +33,7 @@ namespace theori.Gui
         private Stack<Rect> scissors = new Stack<Rect>();
         private Rect scissor = Rect.EmptyScissor;
 
-        private static readonly Mesh rectMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, Anchor.TopLeft);
+        private static readonly Mesh rectMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, theori.Anchor.TopLeft);
 
         public GuiRenderQueue(Vector2 viewportSize)
             : base(new RenderState

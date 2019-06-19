@@ -111,11 +111,10 @@ namespace theori.Graphics
 
         private uint textureID = 0;
 
-        public Material(string materialName)
+        public Material(string vertexShaderPath, string fragmentShaderPath, string geometryShaderPath = null)
         {
             pipeline = new ProgramPipeline();
 
-            const string SHADER_DIR = @".\skins\Default\shaders";
             void AddShader(string path, ShaderType type)
             {
                 string source = File.ReadAllText(path);
@@ -130,12 +129,34 @@ namespace theori.Graphics
                 AssignShader(program);
             }
             
-            AddShader(Path.Combine(SHADER_DIR, $"{ materialName }.vs"), ShaderType.Vertex);
-            AddShader(Path.Combine(SHADER_DIR, $"{ materialName }.fs"), ShaderType.Fragment);
+            AddShader(vertexShaderPath, ShaderType.Vertex);
+            AddShader(fragmentShaderPath, ShaderType.Fragment);
+            if (geometryShaderPath != null)
+                AddShader(geometryShaderPath, ShaderType.Geometry);
+        }
 
-            string gsPath = Path.Combine(SHADER_DIR, $"{ materialName }.gs");
-            if (File.Exists(gsPath))
-                AddShader(gsPath, ShaderType.Geometry);
+        public Material(Stream vertexShaderStream, Stream fragmentShaderStream, Stream geometryShaderStream = null)
+        {
+            pipeline = new ProgramPipeline();
+
+            void AddShader(Stream stream, ShaderType type)
+            {
+                string source = new StreamReader(stream).ReadToEnd();
+
+                var program = new ShaderProgram(type, source);
+                if (!program || !program.Linked)
+                {
+                    Logger.Log(program.InfoLog);
+                    Host.Quit(1);
+                }
+
+                AssignShader(program);
+            }
+
+            AddShader(vertexShaderStream, ShaderType.Vertex);
+            AddShader(fragmentShaderStream, ShaderType.Fragment);
+            if (geometryShaderStream != null)
+                AddShader(geometryShaderStream, ShaderType.Geometry);
         }
 
         private int GetShaderIndex(ShaderStage stage)
@@ -216,6 +237,7 @@ namespace theori.Graphics
 
                 switch (param.Type)
                 {
+                    case GLType.Int: BindAll(name, param.Get<int>()); break;
                     case GLType.Float: BindAll(name, param.Get<float>()); break;
                     case GLType.FloatMat4: BindAll(name, param.Get<Matrix4x4>()); break;
                     case GLType.FloatVec2: BindAll(name, param.Get<Vector2>()); break;

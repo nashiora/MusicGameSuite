@@ -15,6 +15,7 @@ using OpenRM.Voltex;
 using NeuroSonic.GamePlay.Scoring;
 using System.Collections.Generic;
 using NeuroSonic.IO;
+using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
@@ -29,22 +30,22 @@ namespace NeuroSonic.GamePlay
         ButtonsAndLasers = Buttons | Lasers,
     }
 
-    public sealed class GameLayer : Layer
+    public sealed class GameLayer : NscLayer
     {
         public override int TargetFrameRate => 288;
 
         public override bool BlocksParentLayer => true;
 
         private readonly AutoPlay m_autoPlay;
-        private readonly Controller m_controller;
 
         private bool AutoButtons => (m_autoPlay & AutoPlay.Buttons) != 0;
         private bool AutoLasers => (m_autoPlay & AutoPlay.Lasers) != 0;
 
+        private readonly ClientResourceManager m_skin;
+
         private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
 
-        private Panel m_foreUiRoot, m_backUiRoot;
         private CriticalLine m_critRoot;
         private ComboDisplay m_comboDisplay;
 
@@ -65,9 +66,13 @@ namespace NeuroSonic.GamePlay
 
         #endregion
 
-        internal GameLayer(AutoPlay autoPlay = AutoPlay.None)
+        internal GameLayer(ClientResourceManager skin, Chart chart, AudioTrack audio, AutoPlay autoPlay = AutoPlay.None)
         {
-            m_controller = Controller.Create();
+            m_skin = skin;
+
+            m_chart = chart;
+            m_audio = audio;
+
             m_autoPlay = autoPlay;
         }
 
@@ -78,18 +83,17 @@ namespace NeuroSonic.GamePlay
 
         public override void Init()
         {
-            m_controller.ButtonPressed = ControllerInputButtonPressed;
-            m_controller.ButtonReleased = ControllerInputButtonReleased;
-            m_controller.AxisChanged = ControllerInputAxisChanged;
+            base.Init();
 
-            m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
+            //m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
+            m_slamSample = m_skin.AquireAudioSample("audio/slam");
             m_slamSample.Channel = Host.Mixer.MasterChannel;
             m_slamSample.Volume = 0.5f * 0.7f;
 
-            m_highwayView = new HighwayView();
+            m_highwayView = new HighwayView(m_skin);
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
 
-            m_playback = new SlidingChartPlayback(null);
+            m_playback = new SlidingChartPlayback(m_chart);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
             {
                 if (dir == PlayDirection.Forward)
@@ -122,124 +126,69 @@ namespace NeuroSonic.GamePlay
 
             m_highwayView.ViewDuration = m_playback.LookAhead;
 
-            m_foreUiRoot = new Panel()
+            ForegroundGui = new Panel()
             {
                 Children = new GuiElement[]
                 {
-                    m_critRoot = new CriticalLine(),
-                    m_comboDisplay = new ComboDisplay()
+                    m_critRoot = new CriticalLine(m_skin),
+                    m_comboDisplay = new ComboDisplay(m_skin)
                     {
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(0.5f, 0.7f)
                     },
                 }
             };
-        }
 
-        internal void OpenChart()
-        {
-            if (RuntimeInfo.IsWindows)
+            m_judge = new MasterJudge(m_chart);
+            for (int i = 0; i < 6; i++)
             {
-                var dialog = new OpenFileDialogDesc("Open Chart",
-                                    new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
+                int stream = i;
 
-                var dialogResult = FileSystem.ShowOpenFileDialog(dialog);
-                if (dialogResult.DialogResult == DialogResult.OK)
-                {
-                    string kshChart = dialogResult.FilePath;
-
-                    string fileDir = Directory.GetParent(kshChart).FullName;
-                    var ksh = KShootMania.Chart.CreateFromFile(kshChart);
-
-                    string audioFileFx = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? "");
-                    string audioFileNoFx = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? "");
-
-                    string audioFile = audioFileNoFx;
-                    if (File.Exists(audioFileFx))
-                        audioFile = audioFileFx;
-
-                    if (!File.Exists(audioFile))
-                    {
-                        Logger.Log("Couldn't find audio file for chart.");
-                        return;
-                    }
-
-                    if (m_audio != null)
-                    {
-                        m_audioController.Stop();
-                        m_audioController.Dispose();
-                    }
-
-                    var audio = AudioTrack.FromFile(audioFile);
-                    audio.Channel = Host.Mixer.MasterChannel;
-                    audio.Volume = ksh.Metadata.MusicVolume / 100.0f;
-
-                    var chart = ksh.ToVoltex();
-
-                    m_chart = chart;
-                    m_audio = audio;
-
-                    // TODO(local): properly dispose of old stuffs
-                    m_playback.SetChart(chart);
-                    m_judge = new MasterJudge(chart);
-                    for (int i = 0; i < 6; i++)
-                    {
-                        int stream = i;
-
-                        var judge = (ButtonJudge)m_judge[i];
-                        //judge.JudgementOffset = 0.032;
-                        judge.JudgementOffset = Plugin.Config.GetInt(NscConfigKey.InputOffset) / 1000.0f;
-                        judge.AutoPlay = AutoButtons;
-                        judge.OnChipPressed += Judge_OnChipPressed;
-                        judge.OnTickProcessed += Judge_OnTickProcessed;
-                        judge.OnHoldPressed += Judge_OnHoldPressed;
-                        judge.OnHoldReleased += Judge_OnHoldReleased;
-                    }
-
-                    m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
-                    m_highwayView.Reset();
-
-                    m_audio.Volume = 0.8f;
-                    m_audio.Position = m_chart.Offset;
-                    m_audioController = new AudioEffectController(8, m_audio, true)
-                    {
-                        RemoveFromChannelOnFinish = true,
-                    };
-                    m_audioController.Finish += () =>
-                    {
-                        Logger.Log("track complete");
-                        Host.PopToParent(this);
-                    };
-
-                    time_t firstObjectTime = double.MaxValue;
-                    for (int s = 0; s < m_chart.StreamCount; s++)
-                        firstObjectTime = MathL.Min((double)firstObjectTime, m_chart.ObjectStreams[s].FirstObject?.AbsolutePosition.Seconds ?? double.MaxValue);
-
-                    m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 2);
-                    m_audioController.Play();
-                }
+                var judge = (ButtonJudge)m_judge[i];
+                //judge.JudgementOffset = 0.032;
+                judge.JudgementOffset = Plugin.Config.GetInt(NscConfigKey.InputOffset) / 1000.0f;
+                judge.AutoPlay = AutoButtons;
+                judge.OnChipPressed += Judge_OnChipPressed;
+                judge.OnTickProcessed += Judge_OnTickProcessed;
+                judge.OnHoldPressed += Judge_OnHoldPressed;
+                judge.OnHoldReleased += Judge_OnHoldReleased;
             }
 
-            // chart can never be null, sorry
-            if (m_chart == null) Host.PopToParent(this);
+            m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
+            m_highwayView.Reset();
+
+            m_audio.Volume = 0.8f;
+            m_audio.Position = m_chart.Offset;
+            m_audioController = new AudioEffectController(8, m_audio, true)
+            {
+                RemoveFromChannelOnFinish = true,
+            };
+            m_audioController.Finish += () =>
+            {
+                Logger.Log("track complete");
+                Host.PopToParent(this);
+            };
+
+            time_t firstObjectTime = double.MaxValue;
+            for (int s = 0; s < m_chart.StreamCount; s++)
+                firstObjectTime = MathL.Min((double)firstObjectTime, m_chart.ObjectStreams[s].FirstObject?.AbsolutePosition.Seconds ?? double.MaxValue);
+
+            m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 2);
+            m_audioController.Play();
         }
 
         public override void Destroy()
         {
+            base.Destroy();
+
             if (m_debugOverlay != null)
             {
                 Host.RemoveOverlay(m_debugOverlay);
                 m_debugOverlay = null;
             }
 
-            m_controller.ButtonPressed = null;
-            m_controller.ButtonReleased = null;
-            m_controller.AxisChanged = null;
-
             m_audioController?.Stop();
-
             m_audioController?.Dispose();
-            //m_highwayView?.Dispose();
         }
 
         public override void Suspended()
@@ -376,7 +325,7 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private void ControllerInputButtonPressed(ControllerInput input)
+        protected internal override bool ControllerButtonPressed(ControllerInput input)
         {
             switch (input)
             {
@@ -386,10 +335,14 @@ namespace NeuroSonic.GamePlay
                 case ControllerInput.BT3: UserInput_BtPress(3); break;
                 case ControllerInput.FX0: UserInput_BtPress(4); break;
                 case ControllerInput.FX1: UserInput_BtPress(5); break;
+
+                default: return false;
             }
+
+            return true;
         }
 
-        private void ControllerInputButtonReleased(ControllerInput input)
+        protected internal override bool ControllerButtonReleased(ControllerInput input)
         {
             switch (input)
             {
@@ -399,14 +352,21 @@ namespace NeuroSonic.GamePlay
                 case ControllerInput.BT3: UserInput_BtRelease(3); break;
                 case ControllerInput.FX0: UserInput_BtRelease(4); break;
                 case ControllerInput.FX1: UserInput_BtRelease(5); break;
+
+                default: return false;
             }
+
+            return true;
         }
 
-        private void ControllerInputAxisChanged(ControllerInput input, float delta)
+        protected internal override bool ControllerAxisChanged(ControllerInput input, float delta)
         {
             switch (input)
             {
+                default: return false;
             }
+
+            return true;
         }
 
         public override bool KeyPressed(KeyInfo key)
@@ -420,7 +380,7 @@ namespace NeuroSonic.GamePlay
                 }
                 else
                 {
-                    m_debugOverlay = new GameDebugOverlay(m_controller);
+                    m_debugOverlay = new GameDebugOverlay();
                     Host.AddOverlay(m_debugOverlay);
                 }
                 return true;
@@ -447,6 +407,7 @@ namespace NeuroSonic.GamePlay
             var result = (m_judge[streamIndex] as ButtonJudge).UserPressed(m_judge.Position);
             if (result == null)
                 m_highwayView.CreateKeyBeam(streamIndex, Vector3.One);
+            else m_debugOverlay?.AddTimingInfo(result.Value.Difference, result.Value.Kind);
             //else CreateKeyBeam(streamIndex, result.Value.Kind, result.Value.Difference < 0.0);
         }
 
@@ -476,7 +437,7 @@ namespace NeuroSonic.GamePlay
 
         public override void Update(float delta, float total)
         {
-            m_controller.Update();
+            base.Update(delta, total);
 
             time_t position = m_audio?.Position ?? 0;
 
@@ -527,14 +488,20 @@ namespace NeuroSonic.GamePlay
             for (int i = 0; i < 8; i++)
             {
                 var obj = m_activeObjects[i];
+                m_highwayView.SetStreamActive(i, m_streamHasActiveEffects[i]);
+
                 if (obj == null) continue;
 
-                float glow;
-                if (m_streamHasActiveEffects[i])
-                    glow = MathL.Cos(10 * MathL.TwoPi * (float)(position - obj.AbsolutePosition)) * 0.35f;
-                else glow = -0.5f;
+                float glow = -0.5f;
+                int glowState = 0;
 
-                m_highwayView.SetObjectGlow(obj, glow);
+                if (m_streamHasActiveEffects[i])
+                {
+                    glow = MathL.Cos(10 * MathL.TwoPi * (float)(position - obj.AbsolutePosition)) * 0.35f;
+                    glowState = 2 + (int)((position - obj.AbsolutePosition) / (1.0 / 20)) % 2;
+                }
+
+                m_highwayView.SetObjectGlow(obj, glow, glowState);
             }
             m_highwayView.Update();
 
@@ -576,9 +543,6 @@ namespace NeuroSonic.GamePlay
                 m_critRoot.Position = critRootPosition;
                 m_critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_highwayControl.CritLineEffectRoll * 25;
             }
-
-            m_foreUiRoot?.Update();
-            m_backUiRoot?.Update();
         }
 
         private void UpdateEffects()
@@ -653,27 +617,7 @@ namespace NeuroSonic.GamePlay
 
         public override void Render()
         {
-            void DrawUiRoot(Panel root)
-            {
-                if (root == null) return;
-
-                var viewportSize = new Vector2(Window.Width, Window.Height);
-                using (var grq = new GuiRenderQueue(viewportSize))
-                {
-                    root.Position = Vector2.Zero;
-                    root.RelativeSizeAxes = Axes.None;
-                    root.Size = viewportSize;
-                    root.Rotation = 0;
-                    root.Scale = Vector2.One;
-                    root.Origin = Vector2.Zero;
-
-                    root.Render(grq);
-                }
-            }
-
-            DrawUiRoot(m_backUiRoot);
             m_highwayView.Render();
-            DrawUiRoot(m_foreUiRoot);
         }
     }
 }

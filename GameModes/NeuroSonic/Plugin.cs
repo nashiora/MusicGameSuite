@@ -1,10 +1,11 @@
 ﻿using theori;
 
-using NeuroSonic.GamePlay;
 using NeuroSonic.Startup;
 using System.IO;
 using theori.IO;
 using theori.Configuration;
+using NeuroSonic.IO;
+using theori.Resources;
 
 namespace NeuroSonic
 {
@@ -17,6 +18,8 @@ namespace NeuroSonic
         public static NscConfig Config { get; private set; }
 
         public static Gamepad Gamepad { get; private set; }
+
+        public static ClientResourceManager DefaultSkin { get; private set; }
 
         /// <summary>
         /// Invoked when the plugin starts in Standalone.
@@ -33,7 +36,12 @@ namespace NeuroSonic
             // save the defaults on init
             else SaveNscConfig();
 
+            DefaultSkin = new ClientResourceManager("skins/Default", "materials/basic");
+            DefaultSkin.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
+            DefaultSkin.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Plugin).Assembly, "NeuroSonic.Resources"));
+
             Gamepad = Gamepad.Open(Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID));
+            Input.CreateController();
 
             // TODO(local): push the game loading layer, which creates the game layer
             //Host.PushLayer(new GameLayer(true));
@@ -45,13 +53,15 @@ namespace NeuroSonic
             SaveNscConfig();
         }
 
-        public static void SwitchGamepad(int newDeviceIndex)
+        public static void SwitchActiveGamepad(int newDeviceIndex)
         {
             if (newDeviceIndex == Gamepad.DeviceIndex) return;
             Gamepad.Close();
 
             Host.GameConfig.Set(GameConfigKey.Controller_DeviceID, newDeviceIndex);
             Gamepad = Gamepad.Open(newDeviceIndex);
+
+            Input.CreateController();
 
             SaveNscConfig();
         }

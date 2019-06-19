@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
+
 using CSCore;
 using CSCore.Codecs;
 using CSCore.Codecs.WAV;
+
 using theori.Audio.NVorbis;
 
 namespace theori.Audio

@@ -5,6 +5,7 @@ using OpenGL;
 using theori.Gui;
 using theori.Graphics;
 using System;
+using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
@@ -30,14 +31,14 @@ namespace NeuroSonic.GamePlay
         public float LeftCursorPosition { get => m_leftPos; set { m_leftPos = value; m_isDirty = true; } }
         public float RightCursorPosition { get => m_rightPos; set { m_rightPos = value; m_isDirty = true; } }
 
-        public CriticalLine()
+        public CriticalLine(ClientResourceManager skin)
         {
             var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
             var rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
 
-            var critTexture = Texture.FromFile2D(@".\skins\Default\textures\scorebar.png");
-            var capTexture = Texture.FromFile2D(@".\skins\Default\textures\critical_cap.png");
-            var cursorTexture = Texture.FromFile2D(@".\skins\Default\textures\cursor.png");
+            var critTexture = skin.AquireTexture("textures/scorebar");
+            var capTexture = skin.AquireTexture("textures/critical_cap");
+            var cursorTexture = skin.AquireTexture("textures/cursor");
 
             RelativeSizeAxes = Axes.X;
             Size = new Vector2(0.75f, 0);

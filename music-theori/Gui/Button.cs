@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Numerics;
 
+using theori.IO;
+
 namespace theori.Gui
 {
     public class Button : Panel

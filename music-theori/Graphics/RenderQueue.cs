@@ -73,8 +73,8 @@ namespace theori.Graphics
 					    {
 						    switch(activeBlendMode = mat.BlendMode)
 						    {
-						        case BlendMode.Normal:   GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA); break;
-						        case BlendMode.Additive: GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE); break;
+						        case BlendMode.Normal: GL.BlendFuncSeparate(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA, GL.GL_ONE, GL.GL_ONE); break;
+						        case BlendMode.Additive: GL.BlendFunc(GL.GL_ONE, GL.GL_ONE); break;
 						        case BlendMode.Multiply: GL.BlendFunc(GL.GL_SRC_ALPHA, GL.GL_SRC_COLOR); break;
 						    }
 					    }

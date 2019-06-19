@@ -66,6 +66,8 @@ namespace theori.Graphics
             SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLEBUFFERS, 1);
             SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_MULTISAMPLESAMPLES, 16);
 
+            SDL_GL_SetAttribute(SDL_GLattr.SDL_GL_STENCIL_SIZE, 2);
+
             var windowFlags = SDL_WindowFlags.SDL_WINDOW_OPENGL | SDL_WindowFlags.SDL_WINDOW_RESIZABLE | SDL_WindowFlags.SDL_WINDOW_SHOWN;
             if (Host.GameConfig.GetBool(Configuration.GameConfigKey.Maximized))
                 windowFlags |= SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;

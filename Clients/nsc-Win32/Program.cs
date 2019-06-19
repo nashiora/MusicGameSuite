@@ -13,10 +13,10 @@ namespace NeuroSonic.Win32
         [STAThread]
         static void Main(string[] args)
         {
-#if DEBUG || true
+#if DEBUG
             string cd = System.Reflection.Assembly.GetEntryAssembly().Location;
             while (cd != null && !Directory.Exists(Path.Combine(cd, "InstallDir")))
-                cd = Directory.GetParent(cd).FullName;
+                cd = Directory.GetParent(cd)?.FullName;
 
             if (cd != null && Directory.Exists(Path.Combine(cd, "InstallDir")))
                 Environment.CurrentDirectory = Path.Combine(cd, "InstallDir");

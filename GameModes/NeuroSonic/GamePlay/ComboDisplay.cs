@@ -4,6 +4,7 @@ using theori.Gui;
 using theori.Graphics;
 using System.Numerics;
 using OpenGL;
+using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
@@ -32,12 +33,12 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        public ComboDisplay()
+        public ComboDisplay(ClientResourceManager skin)
         {
             m_color = new Vector4(1, 1, 0.5f, 1);
 
             for (int i = 0; i < 10; i++)
-                m_digits[i] = Texture.FromFile2D($"skins/Default/textures/combo/{ i }.png");
+                m_digits[i] = skin.AquireTexture($"textures/combo/{ i }");
         }
 
         public override void Render(GuiRenderQueue rq)

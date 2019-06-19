@@ -41,7 +41,7 @@ namespace NeuroSonic.Startup
 
                         Color = new Vector4(0, 0, 0, 1),
                         Position = new Vector2(0.5f, 0.25f),
-                        TextAlignment = TextAlignment.MiddleCenter,
+                        TextAlignment = Anchor.MiddleCenter,
                     },
 
                     m_primaryLabel = new TextLabel(Font.Default16, "<?>")
@@ -50,7 +50,7 @@ namespace NeuroSonic.Startup
 
                         Color = new Vector4(0, 0, 0, 1),
                         Position = new Vector2(0.5f, 0.5f),
-                        TextAlignment = TextAlignment.MiddleCenter,
+                        TextAlignment = Anchor.MiddleCenter,
                     },
                 };
 
@@ -62,7 +62,7 @@ namespace NeuroSonic.Startup
 
                         Color = new Vector4(0, 0, 0, 1),
                         Position = new Vector2(0.5f, 0.75f),
-                        TextAlignment = TextAlignment.MiddleCenter,
+                        TextAlignment = Anchor.MiddleCenter,
                     });
                 }
             }
@@ -153,7 +153,7 @@ namespace NeuroSonic.Startup
             Bindable start, back, bt0, bt1, bt2, bt3, fx0, fx1;
 
             Panel container;
-            GuiRoot.AddChild(m_graphicPanel = new Panel()
+            ForegroundGui.AddChild(m_graphicPanel = new Panel()
             {
                 Children = new GuiElement[]
                 {
@@ -329,7 +329,7 @@ namespace NeuroSonic.Startup
             foreach (var binding in m_bindables)
                 UpdateBindableText(binding, m_bindingIndices[binding.Which]);
 
-            GuiRoot.AddChild(new Panel()
+            ForegroundGui.AddChild(new Panel()
             {
                 RelativeSizeAxes = Axes.X,
                 RelativePositionAxes = Axes.Both,
@@ -341,7 +341,7 @@ namespace NeuroSonic.Startup
                 {
                     new TextLabel(Font.Default16, "[Enter] Change Primary Binding")
                     {
-                        TextAlignment = TextAlignment.BottomLeft,
+                        TextAlignment = Anchor.BottomLeft,
                         Position = new Vector2(10, -40),
                     },
 
@@ -355,7 +355,7 @@ namespace NeuroSonic.Startup
                         {
                             new TextLabel(Font.Default16, "Change Secondary Binding [Control + Enter]")
                             {
-                                TextAlignment = TextAlignment.BottomRight,
+                                TextAlignment = Anchor.BottomRight,
                                 Position = new Vector2(-10, -40),
                             },
                         }

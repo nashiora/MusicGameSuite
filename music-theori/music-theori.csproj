@@ -155,12 +155,14 @@
     <Compile Include="Host.cs" />
     <Compile Include="IO\Gamepad.cs" />
     <Compile Include="IO\InputDevice.cs" />
-    <Compile Include="IResourceFactory.cs" />
-    <Compile Include="Keyboard.cs" />
-    <Compile Include="KeyboardData.cs" />
-    <Compile Include="LuaScript.cs" />
-    <Compile Include="Mouse.cs" />
-    <Compile Include="MouseData.cs" />
+    <Compile Include="IO\Keyboard.cs" />
+    <Compile Include="IO\KeyboardData.cs" />
+    <Compile Include="Resources\ClientResourceManager.cs" />
+    <Compile Include="Resources\ManifestResourceLoader.cs" />
+    <Compile Include="Resources\ResourceHandle.cs" />
+    <Compile Include="Scripting\LuaScript.cs" />
+    <Compile Include="IO\Mouse.cs" />
+    <Compile Include="IO\MouseData.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="Platform\IPlatform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -172,6 +174,10 @@
   <ItemGroup>
     <EmbeddedResource Include="NotoSansCJKjp-Regular.otf" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\materials\basic.fs" />
+    <EmbeddedResource Include="Resources\materials\basic.vs" />
+    <EmbeddedResource Include="Resources\materials\gui_texture.fs" />
+    <EmbeddedResource Include="Resources\materials\gui_texture.vs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Formats\ChartData\ChartData.csproj">
@@ -192,7 +198,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Scripting\" />
+    <Folder Include="Charting\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

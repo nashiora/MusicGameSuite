@@ -1,9 +1,6 @@
 ﻿using theori;
 
-using NeuroSonic.GamePlay;
-using theori.Gui;
-using theori.Graphics;
-using System.Numerics;
+using NeuroSonic.ChartSelect.Landscape;
 
 namespace NeuroSonic.Startup
 {
@@ -17,7 +14,6 @@ namespace NeuroSonic.Startup
             AddMenuItem(new MenuItem(NextOffset, "Input Binding Configuration", EnterBindingConfig));
             AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Free Play", EnterFreePlay));
-            AddMenuItem(new MenuItem(NextOffset, "Demo Mode", EnterDemoMode));
         }
 
         public override void Init()
@@ -40,19 +36,7 @@ namespace NeuroSonic.Startup
 
         private void EnterFreePlay()
         {
-            var gameLayer = new GameLayer(AutoPlay.None);
-            Host.PushLayer(gameLayer, _ => gameLayer.OpenChart());
-        }
-
-        private void EnterDemoMode()
-        {
-            var gameLayer = new GameLayer(AutoPlay.ButtonsAndLasers);
-            // TODO(local): add demo controller as new layer on top!
-            // Demo controller could also subclas or something, but I want to make sure
-            //  this kind of use-case works. An otherwise invisible layer controls the parent
-            //  layer silently, and is still handled properly as if it wasn't there c:
-            // NOT an overlay, though, overlays are special and will ofc work if considered.
-            Host.PushLayer(gameLayer, _ => gameLayer.OpenChart());
+            Host.PushLayer(new LandscapeChartSelectLayer(Plugin.DefaultSkin));
         }
     }
 }
