@@ -205,6 +205,8 @@ namespace NeuroSonic.GamePlay
         public void RenderableObjectDisappear(OpenRM.Object obj)
         {
             if (obj.Stream >= 8) return;
+
+            m_renderables[obj.Stream][obj].Destroy();
             m_renderables[obj.Stream].Remove(obj);
         }
 
@@ -225,8 +227,6 @@ namespace NeuroSonic.GamePlay
             glowInfo.Object = targetObject;
             glowInfo.Glow = glow;
             glowInfo.GlowState = glowState;
-
-            Logger.Log($"({ targetObject.Stream }) { glowState }");
         }
 
         public void Update()

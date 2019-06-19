@@ -34,7 +34,7 @@ namespace theori.Resources
             Assembly = assembly;
             Namespace = rootNamespace;
 
-#if DEBUG
+#if false && DEBUG
             foreach (string m in Assembly.GetManifestResourceNames())
                 Logger.Log($"Manifest resource found: { m }");
 #endif

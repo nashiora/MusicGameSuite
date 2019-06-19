@@ -159,7 +159,6 @@
     <Compile Include="IO\KeyboardData.cs" />
     <Compile Include="Resources\ClientResourceManager.cs" />
     <Compile Include="Resources\ManifestResourceLoader.cs" />
-    <Compile Include="Resources\ResourceHandle.cs" />
     <Compile Include="Scripting\LuaScript.cs" />
     <Compile Include="IO\Mouse.cs" />
     <Compile Include="IO\MouseData.cs" />
@@ -199,6 +198,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Charting\" />
+    <Folder Include="Logging\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

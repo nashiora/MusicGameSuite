@@ -63,7 +63,7 @@ namespace theori.Graphics
 
         public void Dispose()
         {
-            if (m_texture != null) m_texture.Delete();
+            if (m_texture != null) m_texture.Dispose();
             m_texture = null;
         }
 

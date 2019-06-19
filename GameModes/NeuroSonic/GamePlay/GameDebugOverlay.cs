@@ -8,6 +8,7 @@ using OpenRM;
 using theori;
 using theori.Graphics;
 using theori.Gui;
+using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
@@ -16,13 +17,13 @@ namespace NeuroSonic.GamePlay
         private ControllerVisualizer m_visualizer;
         private TimingBar m_timingBar;
 
-        internal GameDebugOverlay()
+        internal GameDebugOverlay(ClientResourceManager skin)
         {
             ForegroundGui = new Panel()
             {
                 Children = new GuiElement[]
                 {
-                    m_visualizer = new ControllerVisualizer(),
+                    m_visualizer = new ControllerVisualizer(skin),
                     m_timingBar = new TimingBar()
                     {
                         RelativePositionAxes = Axes.Both,
@@ -72,10 +73,10 @@ namespace NeuroSonic.GamePlay
                 }
             }
 
-            public ButtonSprite(string buttonName)
+            public ButtonSprite(ClientResourceManager skin, string buttonName)
             {
-                var itex = Texture.FromStream2D(typeof(ButtonSprite).Assembly.GetManifestResourceStream($"NeuroSonic.textures.debug_{buttonName}.png"));
-                var atex = Texture.FromStream2D(typeof(ButtonSprite).Assembly.GetManifestResourceStream($"NeuroSonic.textures.debug_{buttonName}_active.png"));
+                var itex = skin.AquireTexture($"textures/debug_{buttonName}");
+                var atex = skin.AquireTexture($"textures/debug_{buttonName}_active");
 
                 Children = new GuiElement[]
                 {
@@ -102,9 +103,9 @@ namespace NeuroSonic.GamePlay
         {
             private Sprite m_sprite;
 
-            public KnobSprite()
+            public KnobSprite(ClientResourceManager skin)
             {
-                var tex = Texture.FromStream2D(typeof(ButtonSprite).Assembly.GetManifestResourceStream($"NeuroSonic.textures.debug_vol.png"));
+                var tex = skin.AquireTexture("textures/debug_vol");
                 Children = new GuiElement[]
                 {
                     m_sprite = new Sprite(tex)
@@ -126,7 +127,7 @@ namespace NeuroSonic.GamePlay
         private readonly Dictionary<ControllerInput, ButtonSprite> m_bts = new Dictionary<ControllerInput, ButtonSprite>();
         private readonly Dictionary<ControllerInput, KnobSprite> m_knobs = new Dictionary<ControllerInput, KnobSprite>();
 
-        public ControllerVisualizer()
+        public ControllerVisualizer(ClientResourceManager skin)
         {
             Size = new Vector2(230, 120);
             Children = new GuiElement[]
@@ -138,61 +139,61 @@ namespace NeuroSonic.GamePlay
                     Size = Vector2.One,
                 },
 
-                m_bts[ControllerInput.Start] = new ButtonSprite("bt")
+                m_bts[ControllerInput.Start] = new ButtonSprite(skin, "bt")
                 {
                     Position = new Vector2(107, 10),
                     Size = new Vector2(16),
                 },
 
-                m_bts[ControllerInput.Back] = new ButtonSprite("bt")
+                m_bts[ControllerInput.Back] = new ButtonSprite(skin, "bt")
                 {
                     Position = new Vector2(107, 94),
                     Size = new Vector2(16),
                 },
 
-                m_bts[ControllerInput.BT0] = new ButtonSprite("bt")
+                m_bts[ControllerInput.BT0] = new ButtonSprite(skin, "bt")
                 {
                     Position = new Vector2(40, 50),
                     Size = new Vector2(30),
                 },
 
-                m_bts[ControllerInput.BT1] = new ButtonSprite("bt")
+                m_bts[ControllerInput.BT1] = new ButtonSprite(skin, "bt")
                 {
                     Position = new Vector2(80, 50),
                     Size = new Vector2(30),
                 },
 
-                m_bts[ControllerInput.BT2] = new ButtonSprite("bt")
+                m_bts[ControllerInput.BT2] = new ButtonSprite(skin, "bt")
                 {
                     Position = new Vector2(120, 50),
                     Size = new Vector2(30),
                 },
 
-                m_bts[ControllerInput.BT3] = new ButtonSprite("bt")
+                m_bts[ControllerInput.BT3] = new ButtonSprite(skin, "bt")
                 {
                     Position = new Vector2(160, 50),
                     Size = new Vector2(30),
                 },
 
-                m_bts[ControllerInput.FX0] = new ButtonSprite("fx")
+                m_bts[ControllerInput.FX0] = new ButtonSprite(skin, "fx")
                 {
                     Position = new Vector2(55, 90),
                     Size = new Vector2(30, 15),
                 },
 
-                m_bts[ControllerInput.FX1] = new ButtonSprite("fx")
+                m_bts[ControllerInput.FX1] = new ButtonSprite(skin, "fx")
                 {
                     Position = new Vector2(140, 90),
                     Size = new Vector2(30, 15),
                 },
 
-                m_knobs[ControllerInput.Laser0Axis] = new KnobSprite()
+                m_knobs[ControllerInput.Laser0Axis] = new KnobSprite(skin)
                 {
                     Position = new Vector2(20, 30),
                     Size = new Vector2(25),
                 },
 
-                m_knobs[ControllerInput.Laser1Axis] = new KnobSprite()
+                m_knobs[ControllerInput.Laser1Axis] = new KnobSprite(skin)
                 {
                     Position = new Vector2(210, 30),
                     Size = new Vector2(25),

@@ -380,7 +380,7 @@ namespace NeuroSonic.GamePlay
                 }
                 else
                 {
-                    m_debugOverlay = new GameDebugOverlay();
+                    m_debugOverlay = new GameDebugOverlay(m_skin);
                     Host.AddOverlay(m_debugOverlay);
                 }
                 return true;

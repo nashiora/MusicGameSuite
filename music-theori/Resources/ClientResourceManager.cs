@@ -10,11 +10,12 @@ using theori.Graphics;
 
 namespace theori.Resources
 {
-    public sealed class ClientResourceManager
+    public sealed class ClientResourceManager : Disposable
     {
         private readonly List<ManifestResourceLoader> m_resourceLoaders = new List<ManifestResourceLoader>();
 
-        private readonly Dictionary<string, IDisposable> m_resources = new Dictionary<string, IDisposable>();
+        //private readonly Dictionary<string, WeakReference<Disposable>> m_resources = new Dictionary<string, WeakReference<Disposable>>();
+        private readonly Dictionary<string, Disposable> m_resources = new Dictionary<string, Disposable>();
 
         public readonly string FileSearchDirectory;
         public readonly string FallbackMaterialName;
@@ -31,49 +32,25 @@ namespace theori.Resources
             m_resourceLoaders.Add(loader);
         }
 
-        public AudioTrack AquireAudioTrack(string resourcePath)
+        private T Aquire<T>(string resourcePath, Func<string, T> loader)
+            where T : Disposable
         {
-            if (!m_resources.TryGetValue(resourcePath, out IDisposable resource))
+            // read: if it doesn't yet exist or has already been disposed then recreate it
+            //if (!m_resources.TryGetValue(resourcePath, out var handle) || !handle.TryGetTarget(out var resource) || resource.IsDisposed)
+            if (!m_resources.TryGetValue(resourcePath, out var resource) || resource.IsDisposed)
             {
-                resource = LoadRawAudioTrack(resourcePath);
+                resource = loader(resourcePath);
+                //m_resources[resourcePath] = new WeakReference<Disposable>(resource);
                 m_resources[resourcePath] = resource;
             }
 
-            return resource as AudioTrack;
+            return resource as T;
         }
 
-        public AudioSample AquireAudioSample(string resourcePath)
-        {
-            if (!m_resources.TryGetValue(resourcePath, out IDisposable resource))
-            {
-                resource = LoadRawAudioSample(resourcePath);
-                m_resources[resourcePath] = resource;
-            }
-
-            return resource as AudioSample;
-        }
-
-        public Texture AquireTexture(string resourcePath)
-        {
-            if (!m_resources.TryGetValue(resourcePath, out IDisposable resource))
-            {
-                resource = LoadRawTexture(resourcePath);
-                m_resources[resourcePath] = resource;
-            }
-
-            return resource as Texture;
-        }
-
-        public Material AquireMaterial(string resourcePath)
-        {
-            if (!m_resources.TryGetValue(resourcePath, out IDisposable resource))
-            {
-                resource = LoadRawMaterial(resourcePath);
-                m_resources[resourcePath] = resource;
-            }
-
-            return resource as Material;
-        }
+        public AudioTrack AquireAudioTrack(string resourcePath) => Aquire(resourcePath, LoadRawAudioTrack);
+        public AudioSample AquireAudioSample(string resourcePath) => Aquire(resourcePath, LoadRawAudioSample);
+        public Texture AquireTexture(string resourcePath) => Aquire(resourcePath, LoadRawTexture);
+        public Material AquireMaterial(string resourcePath) => Aquire(resourcePath, LoadRawMaterial);
 
         public AudioTrack LoadRawAudioTrack(string resourcePath)
         {

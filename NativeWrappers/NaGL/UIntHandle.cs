@@ -2,43 +2,36 @@
 
 namespace OpenGL
 {
-    public abstract class UIntHandle : IDisposable
+    public abstract class UIntHandle : Disposable
     {
-        public static bool operator true (UIntHandle p) => p.handle != 0;
-        public static bool operator false(UIntHandle p) => p.handle == 0;
+        public static bool operator true (UIntHandle p) => p.Handle != 0;
+        public static bool operator false(UIntHandle p) => p.Handle == 0;
 
-        public static bool operator !(UIntHandle p) => p.handle == 0;
+        public static bool operator !(UIntHandle p) => p.Handle == 0;
 
-        private Action<uint> deleteHandle;
+        private Action<uint> m_deleteHandle;
 
-        private uint handle;
-        public bool IsValid => handle != 0;
-
-        internal uint Handle => handle;
+        public bool IsValid => Handle != 0;
+        internal uint Handle { get; private set; }
 
         protected UIntHandle(uint handle, Action<uint> deleteHandle)
         {
-            this.handle = handle;
-            this.deleteHandle = deleteHandle;
+            Handle = handle;
+            m_deleteHandle = deleteHandle;
         }
 
         protected UIntHandle(Func<uint> createHandle, Action<uint> deleteHandle)
         {
-            handle = createHandle();
-            this.deleteHandle = deleteHandle;
+            Handle = createHandle();
+            m_deleteHandle = deleteHandle;
         }
 
-        protected void Invalidate()
+        protected void Invalidate() => Handle = 0;
+
+        protected override void DisposeManaged()
         {
-            handle = 0;
+            if (Handle != 0) m_deleteHandle(Handle);
+            Handle = 0;
         }
-
-        public virtual void Delete()
-        {
-            if (handle != 0) deleteHandle(handle);
-            handle = 0;
-        }
-
-        void IDisposable.Dispose() => Delete();
     }
 }

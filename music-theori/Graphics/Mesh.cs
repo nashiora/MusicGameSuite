@@ -9,7 +9,7 @@ using static OpenGL.GL;
 
 namespace theori.Graphics
 {
-    public class Mesh : IDisposable
+    public class Mesh : Disposable
     {
         public static Mesh CreatePlane(Vector3 axis0, Vector3 axis1, float size0 = 1, float size1 = 1, Anchor anchor = Anchor.Center)
         {
@@ -145,35 +145,11 @@ namespace theori.Graphics
             DrawElements((uint)PrimitiveType, indexCount, (uint)IndexType, IntPtr.Zero);
         }
 
-        #region IDisposable Support
-        private bool isDisposed = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
+        protected override void DisposeManaged()
         {
-            if (!isDisposed)
-            {
-                if (disposing)
-                {
-                }
-                
-                vertexBuffer.Delete();
-                indexBuffer.Delete();
-                vao.Delete();
-
-                isDisposed = true;
-            }
+            vertexBuffer.Dispose();
+            indexBuffer.Dispose();
+            vao.Dispose();
         }
-
-        ~Mesh()
-        {
-            //Dispose(false);
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-        #endregion
     }
 }

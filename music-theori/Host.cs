@@ -357,13 +357,12 @@ namespace theori
 
         public static void Quit(int code = 0)
         {
-            OnUserQuit?.Invoke();
-
             SaveConfig();
 
             //Gamepad.Destroy();
             Window.Destroy();
 
+            OnUserQuit?.Invoke();
             Environment.Exit(code);
         }
 

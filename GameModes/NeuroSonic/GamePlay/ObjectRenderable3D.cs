@@ -10,7 +10,7 @@ using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
-    internal abstract class ObjectRenderable3D// : Disposable
+    internal abstract class ObjectRenderable3D
     {
         public readonly OpenRM.Object Object;
 
@@ -19,6 +19,7 @@ namespace NeuroSonic.GamePlay
             Object = obj;
         }
 
+        public abstract void Destroy();
         public abstract void Render(RenderQueue rq, Transform world);
     }
 
@@ -63,6 +64,10 @@ namespace NeuroSonic.GamePlay
             m_transform = Transform.Scale(m_width, 1, 1);
         }
 
+        public override void Destroy()
+        {
+        }
+
         public override void Render(RenderQueue rq, Transform world)
         {
             m_drawable.DrawToQueue(rq, m_transform * world);
@@ -104,7 +109,7 @@ namespace NeuroSonic.GamePlay
             get => m_glowState;
             set
             {
-                //if (value == m_glowState) return;
+                if (value == m_glowState) return;
 
                 m_glowState = value;
                 foreach (var d in m_drawables)
@@ -160,6 +165,10 @@ namespace NeuroSonic.GamePlay
             m_entryTransform = Transform.Scale(m_width, 1, ENTRY_LENGTH);
             m_holdTransform = Transform.Scale(m_width, 1, len - EXIT_LENGTH - ENTRY_LENGTH) * Transform.Translation(0, 0, -ENTRY_LENGTH);
             m_exitTransform = Transform.Scale(m_width, 1, EXIT_LENGTH) * Transform.Translation(0, 0, -len + EXIT_LENGTH);
+        }
+
+        public override void Destroy()
+        {
         }
 
         public override void Render(RenderQueue rq, Transform world)
@@ -243,6 +252,11 @@ namespace NeuroSonic.GamePlay
             m_drawable.Params["HiliteColor"] = new Vector3(1, 1, 0);
         }
 
+        public override void Destroy()
+        {
+            m_drawable.Mesh.Dispose();
+        }
+
         public override void Render(RenderQueue rq, Transform world)
         {
             m_drawable.DrawToQueue(rq, m_transform * world);
@@ -298,6 +312,11 @@ namespace NeuroSonic.GamePlay
 
             m_drawable.Params["LaserColor"] = color;
             m_drawable.Params["HiliteColor"] = new Vector3(1, 1, 0);
+        }
+
+        public override void Destroy()
+        {
+            m_drawable.Mesh.Dispose();
         }
 
         public override void Render(RenderQueue rq, Transform world)
