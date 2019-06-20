@@ -23,6 +23,12 @@ namespace OpenRM.Voltex
         public float Value;
     }
 
+    public class EffectKindEvent : Event
+    {
+        public int EffectIndex;
+        public EffectDef Effect;
+    }
+
     public class LaserFilterKindEvent : Event
     {
         public LaserIndex LaserIndex;

@@ -1,45 +1,102 @@
-06/20/2019 02:18:21 [Verbose]: OpenGL Version: 3.3.0 NVIDIA 419.35
-06/20/2019 02:18:21 [Verbose]: OpenGL Shading Language Version: 3.30 NVIDIA via Cg compiler
-06/20/2019 02:18:21 [Verbose]: OpenGL Renderer: GeForce GTX 1070/PCIe/SSE2
-06/20/2019 02:18:21 [Verbose]: OpenGL Vendor: NVIDIA Corporation
-06/20/2019 02:18:21 [Verbose]: Opened joystick 1 (YuanCon) with 16 buttons and 2 axes.
-06/20/2019 02:18:21 [Verbose]: Joystick Added: Device [0] "XInput Controller #1"
-06/20/2019 02:18:21 [Verbose]: Joystick Added: Device [1] "YuanCon"
-06/20/2019 02:18:21 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:21 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:21 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:21 [Verbose]: Uniform [0, loc=0, FloatVec4] = Color
-06/20/2019 02:18:21 [Verbose]: Uniform [1, loc=1, Sampler2D] = MainTexture
-06/20/2019 02:18:26 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:26 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:26 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:26 [Verbose]: Uniform [0, loc=0, FloatVec4] = Color
-06/20/2019 02:18:26 [Verbose]: Uniform [1, loc=1, Sampler2D] = MainTexture
-06/20/2019 02:18:26 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:26 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:26 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:26 [Verbose]: Uniform [0, loc=0, Int] = GlowState
-06/20/2019 02:18:26 [Verbose]: Uniform [1, loc=1, FloatVec3] = LaserColor
-06/20/2019 02:18:26 [Verbose]: Uniform [2, loc=2, Sampler2D] = MainTexture
-06/20/2019 02:18:26 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:26 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:26 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:26 [Verbose]: Uniform [0, loc=0, FloatVec3] = HiliteColor
-06/20/2019 02:18:26 [Verbose]: Uniform [1, loc=1, FloatVec3] = LaserColor
-06/20/2019 02:18:26 [Verbose]: Uniform [2, loc=2, Sampler2D] = MainTexture
-06/20/2019 02:18:27 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:27 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:27 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:27 [Verbose]: Uniform [0, loc=0, Float] = Hidden
-06/20/2019 02:18:27 [Verbose]: Uniform [1, loc=1, FloatVec3] = LeftColor
-06/20/2019 02:18:27 [Verbose]: Uniform [2, loc=2, Sampler2D] = MainTexture
-06/20/2019 02:18:27 [Verbose]: Uniform [3, loc=3, FloatVec3] = RightColor
-06/20/2019 02:18:28 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:28 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:28 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:28 [Verbose]: Uniform [0, loc=0, Sampler2D] = MainTexture
-06/20/2019 02:18:30 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
-06/20/2019 02:18:30 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
-06/20/2019 02:18:30 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
-06/20/2019 02:18:30 [Verbose]: Uniform [0, loc=0, Int] = GlowState
-06/20/2019 02:18:30 [Verbose]: Uniform [1, loc=1, Sampler2D] = MainTexture
+06/20/2019 21:29:31 [Verbose]: OpenGL Version: 3.3.0 NVIDIA 419.35
+06/20/2019 21:29:31 [Verbose]: OpenGL Shading Language Version: 3.30 NVIDIA via Cg compiler
+06/20/2019 21:29:31 [Verbose]: OpenGL Renderer: GeForce GTX 1070/PCIe/SSE2
+06/20/2019 21:29:31 [Verbose]: OpenGL Vendor: NVIDIA Corporation
+06/20/2019 21:29:31 [Verbose]: Opened joystick 1 (YuanCon) with 16 buttons and 2 axes.
+06/20/2019 21:29:31 [Verbose]: Joystick Added: Device [0] "XInput Controller #1"
+06/20/2019 21:29:31 [Verbose]: Joystick Added: Device [1] "YuanCon"
+06/20/2019 21:29:31 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
+06/20/2019 21:29:31 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
+06/20/2019 21:29:31 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
+06/20/2019 21:29:31 [Verbose]: Uniform [0, loc=0, FloatVec4] = Color
+06/20/2019 21:29:31 [Verbose]: Uniform [1, loc=1, Sampler2D] = MainTexture
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_fx "#Re-"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Retrigger
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: updateTrigger = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_fx "#Re+"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Retrigger
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: updateTrigger = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "WBIC"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: BitCrusher
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: reduction = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "RE8"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Retrigger
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: updateTrigger = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "RE12"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Retrigger
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: updateTrigger = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "RE16"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Retrigger
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: updateTrigger = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "GA8"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Gate
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "GA12"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Gate
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "GA16"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: Gate
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: rate = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "PITC"
+06/20/2019 21:29:34 [Verbose]: ksh fx type: PitchShift
+06/20/2019 21:29:34 [Verbose]:   ksh fx param: pitch = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:34 [Verbose]: >> ksh #define_filter "TSTP"
+06/20/2019 21:29:35 [Verbose]: ksh fx type: TapeStop
+06/20/2019 21:29:35 [Verbose]:   ksh fx param: trigger = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:35 [Verbose]:   ksh fx param: speed = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:35 [Verbose]: >> ksh #define_filter "ECH4"
+06/20/2019 21:29:35 [Verbose]: ksh fx type: Echo
+06/20/2019 21:29:35 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:35 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:35 [Verbose]: >> ksh #define_filter "ECH8"
+06/20/2019 21:29:35 [Verbose]: ksh fx type: Echo
+06/20/2019 21:29:35 [Verbose]:   ksh fx param: waveLength = OpenRM.Audio.Effects.EffectParamX
+06/20/2019 21:29:35 [Verbose]:   ksh fx param: mix = OpenRM.Audio.Effects.EffectParamF
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, FloatVec4] = Color
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, Sampler2D] = MainTexture
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, Int] = GlowState
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatVec3] = LaserColor
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, Sampler2D] = MainTexture
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, FloatVec3] = HiliteColor
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatVec3] = LaserColor
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, Sampler2D] = MainTexture
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
+06/20/2019 21:29:35 [Verbose]: Uniform [0, loc=0, Float] = Hidden
+06/20/2019 21:29:35 [Verbose]: Uniform [1, loc=1, FloatVec3] = LeftColor
+06/20/2019 21:29:35 [Verbose]: Uniform [2, loc=2, Sampler2D] = MainTexture
+06/20/2019 21:29:35 [Verbose]: Uniform [3, loc=3, FloatVec3] = RightColor
+06/20/2019 21:29:39 [Verbose]: Uniform [0, loc=0, FloatMat4] = Camera
+06/20/2019 21:29:39 [Verbose]: Uniform [1, loc=1, FloatMat4] = Projection
+06/20/2019 21:29:39 [Verbose]: Uniform [2, loc=2, FloatMat4] = World
+06/20/2019 21:29:39 [Verbose]: Uniform [0, loc=0, Int] = GlowState
+06/20/2019 21:29:39 [Verbose]: Uniform [1, loc=1, Sampler2D] = MainTexture

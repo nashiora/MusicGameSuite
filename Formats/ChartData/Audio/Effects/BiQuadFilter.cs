@@ -49,7 +49,7 @@ namespace OpenRM.Audio.Effects
 			        za[c, 0] = filtered;
 
                     //sample = filtered;
-                    buffer[offset + i * 2 + c] = filtered;
+                    buffer[offset + i * 2 + c] = MathL.Lerp(src, filtered, Mix);
                 }
             }
         }
@@ -130,9 +130,9 @@ namespace OpenRM.Audio.Effects
 
         public override Dsp CreateEffectDsp(int sampleRate) => new BiQuadFilter(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect, alpha);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is BiQuadFilter filter)
             {
                 switch (Type)

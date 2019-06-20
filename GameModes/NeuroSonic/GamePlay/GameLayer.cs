@@ -60,6 +60,10 @@ namespace NeuroSonic.GamePlay
         private readonly OpenRM.Object[] m_activeObjects = new OpenRM.Object[8];
         private readonly bool[] m_streamHasActiveEffects = new bool[8].Fill(true);
 
+        private readonly EffectDef[] m_currentEffects = new EffectDef[8];
+
+        private time_t CurrentQuarterNodeDuration => m_chart.ControlPoints.MostRecent(m_audioController.Position).QuarterNoteDuration;
+
         #region Debug Overlay
 
         private GameDebugOverlay m_debugOverlay;
@@ -222,7 +226,7 @@ namespace NeuroSonic.GamePlay
 
                 if (aobj.PreviousConnected == null)
                 {
-                    if (!AreLasersActive) m_audioController.SetEffect(6, currentLaserEffectDef, BASE_LASER_MIX);
+                    if (!AreLasersActive) m_audioController.SetEffect(6, CurrentQuarterNodeDuration, currentLaserEffectDef, BASE_LASER_MIX);
                     currentActiveLasers[obj.Stream - 6] = true;
                 }
 
@@ -230,9 +234,8 @@ namespace NeuroSonic.GamePlay
             }
             else if (obj is ButtonObject bobj)
             {
-                if (bobj.HasEffect)
-                    m_audioController.SetEffect(obj.Stream, bobj.Effect);
-                else m_audioController.RemoveEffect(obj.Stream);
+                //if (bobj.HasEffect) m_audioController.SetEffect(obj.Stream, CurrentQuarterNodeDuration, bobj.Effect);
+                //else m_audioController.RemoveEffect(obj.Stream);
 
                 // NOTE(local): can move this out for analog as well, but it doesn't matter RN
                 if (!bobj.IsInstant)
@@ -255,7 +258,7 @@ namespace NeuroSonic.GamePlay
             }
             if (obj is ButtonObject bobj)
             {
-                m_audioController.RemoveEffect(obj.Stream);
+                //m_audioController.RemoveEffect(obj.Stream);
 
                 // guard in case the Begin function already overwrote us
                 if (m_activeObjects[obj.Stream] == obj)
@@ -301,13 +304,22 @@ namespace NeuroSonic.GamePlay
             {
                 switch (evt)
                 {
+                    case EffectKindEvent effectKind:
+                    {
+                        var effect = m_currentEffects[effectKind.EffectIndex] = effectKind.Effect;
+                        if (effect == null)
+                            m_audioController.RemoveEffect(effectKind.EffectIndex);
+                        else m_audioController.SetEffect(effectKind.EffectIndex, CurrentQuarterNodeDuration, effect, 1.0f);
+                    }
+                    break;
+
                     case LaserApplicationEvent app: m_highwayControl.LaserApplication = app.Application; break;
 
                     // TODO(local): left/right lasers separate + allow both independent if needed
                     case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
                     case LaserFilterKindEvent filterKind:
                     {
-                        m_audioController.SetEffect(6, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6));
+                        m_audioController.SetEffect(6, CurrentQuarterNodeDuration, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6));
                     }
                     break;
 
@@ -482,7 +494,12 @@ namespace NeuroSonic.GamePlay
             m_highwayView.PlaybackPosition = position;
 
             for (int i = 0; i < 8; i++)
-                m_audioController.SetEffectActive(i, m_streamHasActiveEffects[i]);
+            {
+                bool active = m_streamHasActiveEffects[i] && m_activeObjects[i] != null;
+                if (i == 6)
+                    active |= m_streamHasActiveEffects[i + 1] && m_activeObjects[i + 1] != null;
+                m_audioController.SetEffectActive(i, active);
+            }
 
             UpdateEffects();
             m_audioController.EffectsActive = true;
@@ -563,7 +580,7 @@ namespace NeuroSonic.GamePlay
 
         private bool AreLasersActive => currentActiveLasers[0] || currentActiveLasers[1];
 
-        private const float BASE_LASER_MIX = 0.7f;
+        private const float BASE_LASER_MIX = 0.8f;
         private float laserGain = 0.5f;
 
         private float GetTempRollValue(time_t position, int stream, out float valueMult, bool oneMinus = false)
@@ -608,15 +625,29 @@ namespace NeuroSonic.GamePlay
                 alpha = currentActiveLaserAlphas[0];
             else alpha = currentActiveLaserAlphas[1];
 
-            m_audioController.UpdateEffect(6, alpha);
+            m_audioController.UpdateEffect(6, CurrentQuarterNodeDuration, alpha);
 
-            float mix = BASE_LASER_MIX * laserGain;
-            if (currentLaserEffectDef != null && currentLaserEffectDef.Type == EffectType.PeakingFilter)
+            float mix = 1.0f;
+            if (currentLaserEffectDef != null)
             {
-                if (alpha < 0.1f)
-                    mix *= alpha / 0.1f;
-                else if (alpha > 0.8f)
-                    mix *= 1 - (alpha - 0.8f) / 0.2f;
+                if (currentLaserEffectDef.Type == EffectType.PeakingFilter)
+                {
+                    mix = BASE_LASER_MIX * laserGain;
+                    if (alpha < 0.1f)
+                        mix *= alpha / 0.1f;
+                    else if (alpha > 0.8f)
+                        mix *= 1 - (alpha - 0.8f) / 0.2f;
+                }
+                else
+                {
+                    switch (currentLaserEffectDef.Type)
+                    {
+                        case EffectType.HighPassFilter:
+                        case EffectType.LowPassFilter:
+                            mix = laserGain;
+                            break;
+                    }
+                }
             }
 
             m_audioController.SetEffectMix(6, mix);

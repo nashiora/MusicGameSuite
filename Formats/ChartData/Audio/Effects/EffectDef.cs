@@ -23,7 +23,7 @@ namespace OpenRM.Audio.Effects
             var laserEasingCurve = new CubicBezier(Ease.InExpo);
             var lpfEasingCurve = new CubicBezier(Ease.OutCubic);
 
-            const float DEF_FILTER_GAIN = 0.0f;
+            const float DEF_FILTER_GAIN = 1.0f;
 
             switch (type)
             {
@@ -54,32 +54,8 @@ namespace OpenRM.Audio.Effects
                     
                 case EffectType.BitCrush:
                 {
-                    var reduction = new EffectParamF(0, 45, laserEasingCurve);
+                    var reduction = new EffectParamF(0, 45 / 44100.0f, laserEasingCurve);
                     return new BitCrusherEffectDef(1.0f, reduction);
-                }
-                    
-                case EffectType.Gate:
-                {
-                    float gating = 0.7f;
-                    float duration = 0.125f;
-
-                    return new GateEffectDef(1.0f, gating, duration);
-                }
-                    
-                case EffectType.Retrigger:
-                {
-                    float gating = 0.7f;
-                    float duration = 0.125f;
-
-                    return new RetriggerEffectDef(1.0f, gating, duration);
-                }
-                    
-                case EffectType.SideChain:
-                {
-                    float amount = 1.0f;
-                    float duration = 0.5f;
-
-                    return new SideChainEffectDef(1.0f, amount, duration);
                 }
 
                 default: throw new NotImplementedException(type.ToString());
@@ -96,7 +72,7 @@ namespace OpenRM.Audio.Effects
         }
 
         public abstract Dsp CreateEffectDsp(int sampleRate);
-        public virtual void ApplyToDsp(Dsp effect, float alpha = 0)
+        public virtual void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
             effect.Mix = Mix.Sample(alpha);
         }

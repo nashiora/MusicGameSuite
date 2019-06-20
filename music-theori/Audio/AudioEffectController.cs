@@ -49,21 +49,19 @@ namespace theori.Audio
         }
         #endif
 
-        private readonly EffectDef[] effectDefs;
+        private readonly EffectDef[] m_effectDefs;
+        private readonly float[] m_effectParameters;
+        private readonly float[] m_effectMixes;
         private readonly bool[] m_effectsActive;
-        private readonly Dsp[] dsps;
-
-        public EffectDef this[int i]
-        {
-            get => effectDefs[i];
-            set => SetEffect(i, value);
-        }
+        private readonly Dsp[] m_dsps;
 
         public AudioEffectController(int effectCount, AudioTrack track, bool ownsTrack = true)
         {
-            effectDefs = new EffectDef[effectCount];
+            m_effectDefs = new EffectDef[effectCount];
+            m_effectParameters = new float[effectCount];
+            m_effectMixes = new float[effectCount].Fill(1.0f);
             m_effectsActive = new bool[effectCount].Fill(true);
-            dsps = new Dsp[effectCount];
+            m_dsps = new Dsp[effectCount];
 
             Track = track;
             OwnsTrack = ownsTrack;
@@ -74,17 +72,17 @@ namespace theori.Audio
 
         public void RemoveEffect(int i)
         {
-            var f = effectDefs[i];
+            var f = m_effectDefs[i];
             if (f == null)
                 return;
             
-            effectDefs[i] = null;
-            dsps[i] = null;
+            m_effectDefs[i] = null;
+            m_dsps[i] = null;
         }
 
-        public void SetEffect(int i, EffectDef f, float mix = 1)
+        public void SetEffect(int i, time_t qnDur, EffectDef f, float mix = 1)
         {
-            if (f == effectDefs[i])
+            if (f == m_effectDefs[i])
                 return;
             if (f == null)
             {
@@ -94,31 +92,36 @@ namespace theori.Audio
 
             RemoveEffect(i);
 
-            effectDefs[i] = f;
-            dsps[i] = f.CreateEffectDsp(SampleRate);
+            m_effectDefs[i] = f;
+            m_effectMixes[i] = mix;
 
-            SetEffectMix(i, mix);
-            UpdateEffect(i);
+            m_dsps[i] = f.CreateEffectDsp(SampleRate);
+            UpdateEffect(i, qnDur, 0);
         }
 
-        public void UpdateEffect(int i, float alpha = 0)
+        public void UpdateEffect(int i, time_t qnDur, float alpha)
         {
-            var f = effectDefs[i];
+            alpha = MathL.Clamp(alpha, 0, 1);
+            m_effectParameters[i] = alpha;
+
+            var f = m_effectDefs[i];
             if (f == null)
                 return;
 
-            alpha = MathL.Clamp(alpha, 0, 1);
-            f.ApplyToDsp(dsps[i], alpha);
+            f.ApplyToDsp(m_dsps[i], qnDur, alpha);
+            m_dsps[i].Mix = m_effectMixes[i] * m_effectDefs[i].Mix.Sample(m_effectParameters[i]);
         }
 
         public void SetEffectMix(int i, float mix)
         {
-            var dsp = dsps[i];
+            mix = MathL.Clamp(mix, 0, 1);
+            m_effectMixes[i] = mix;
+
+            var dsp = m_dsps[i];
             if (dsp == null)
                 return;
 
-            mix = MathL.Clamp(mix, 0, 1);
-            dsp.Mix = mix;
+            dsp.Mix = mix * m_effectDefs[i].Mix.Sample(m_effectParameters[i]);
         }
 
         public void SetEffectActive(int i, bool active)
@@ -126,49 +129,44 @@ namespace theori.Audio
             m_effectsActive[i] = active;
         }
 
-        public float GetEffectMix(int i) => dsps[i]?.Mix ?? 0;
+        public float GetEffectMix(int i) => m_effectMixes[i];
 
         public void Play() => Track.Play();
         public void Stop() => Track.Stop();
 
-        private float[] copyBuffer = new float[1024];
-        private float[] dummyBuffer = new float[1024];
+        private float[] m_copyBuffer = new float[1024];
+        private float[] m_dummyBuffer = new float[1024];
 
         public override int Read(float[] buffer, int offset, int count)
         {
             // NOTE(local): make sure this doesn't give out garbage?
-            if (count > copyBuffer.Length)
+            if (count > m_copyBuffer.Length)
             {
-                copyBuffer = new float[count];
-                dummyBuffer = new float[count];
+                m_copyBuffer = new float[count];
+                m_dummyBuffer = new float[count];
             }
 
             int result = Track.Read(buffer, offset, count);
-            Array.Copy(buffer, offset, copyBuffer, 0, result);
-            Array.Copy(buffer, offset, dummyBuffer, 0, result);
+            Array.Copy(buffer, offset, m_copyBuffer, 0, result);
+            Array.Copy(buffer, offset, m_dummyBuffer, 0, result);
 
             //foreach (var effect in dsps)
-            for (int fxi = 0; fxi < dsps.Length; fxi++)
+            for (int fxi = 0; fxi < m_dsps.Length; fxi++)
             {
-                var effect = dsps[fxi];
+                var effect = m_dsps[fxi];
                 if (effect == null)
                     continue;
 
-                var dataBuffer = m_effectsActive[fxi] ? copyBuffer : dummyBuffer;
+                var dataBuffer = m_effectsActive[fxi] ? m_copyBuffer : m_dummyBuffer;
                 effect.Process(dataBuffer, offset, result);
 
                 // Always process the effects to keep timing, but don't always mix them in.
                 if (EffectsActive && m_effectsActive[fxi])
                 {
-                    float mix = effect.Mix;
                     for (int i = 0; i < result; i++)
-                    {
-                        float original = buffer[offset + i];
-                        float processed = dataBuffer[i];
-                        buffer[offset + i] = original + (processed - original) * mix;
-                    }
+                        buffer[offset + i] = dataBuffer[i];
                 
-                    Array.Copy(buffer, offset, copyBuffer, 0, result);
+                    Array.Copy(buffer, offset, m_copyBuffer, 0, result);
                 }
             }
 

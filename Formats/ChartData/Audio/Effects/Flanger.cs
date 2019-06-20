@@ -61,10 +61,8 @@ namespace OpenRM.Audio.Effects
 		        m_sampleBuffer[m_bufferOffset + 1] = buffer[i*2+1];
 
 		        // Apply delay
-		        buffer[i * 2] = (m_sampleBuffer[samplePos] + buffer[i*2]) * 0.5f * Mix +
-			        buffer[i * 2] * (1 - Mix);
-		        buffer[i * 2 + 1] = (m_sampleBuffer[samplePos+1] + buffer[i*2+1]) * 0.5f * Mix +
-			        buffer[i * 2+1] * (1 - Mix);
+		        buffer[i * 2] = MathL.Lerp(buffer[i * 2], (m_sampleBuffer[samplePos] + buffer[i * 2]) * 0.5f, Mix);
+		        buffer[i * 2 + 1] = MathL.Lerp(buffer[i * 2 + 1], (m_sampleBuffer[samplePos + 1] + buffer[i * 2 + 1]) * 0.5f, Mix);
 
 		        m_bufferOffset += 2;
 		        if(m_bufferOffset >= m_bufferLength)
@@ -87,9 +85,9 @@ namespace OpenRM.Audio.Effects
 
         public override Dsp CreateEffectDsp(int sampleRate) => new Flanger(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect, alpha);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is Flanger flanger)
             {
                 flanger.SetDelay(Delay.Sample(alpha));

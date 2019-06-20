@@ -19,6 +19,7 @@ namespace OpenRM.Audio.Effects
             : base(sampleRate)
         {
             filter = new BiQuadFilter(sampleRate);
+            filter.Mix = 1.0f;
         }
         
         public void SetPeriod(double period)
@@ -38,14 +39,17 @@ namespace OpenRM.Audio.Effects
 		        filter.SetLowPass(q, freq);
 
 		        float[] s = { buffer[i * 2], buffer[i * 2 + 1] };
-		        filter.Process(buffer, i * 2, 2);
+		        filter.Process(s, 0, 2);
 
 		        // Apply slight mixing
-		        float mix = 0.85f;
-		        buffer[i * 2 + 0] = buffer[i * 2 + 0] * mix + s[0] * (1.0f - mix);
-		        buffer[i * 2 + 1] = buffer[i * 2 + 1] * mix + s[1] * (1.0f - mix);
+		        float addMix = 0.85f;
+                //buffer[i * 2 + 0] = buffer[i * 2 + 0] * addMix + s[0] * (1.0f - addMix);
+                //buffer[i * 2 + 1] = buffer[i * 2 + 1] * addMix + s[1] * (1.0f - addMix);
 
-		        m_currentSample++;
+                buffer[i * 2 + 0] = MathL.Lerp(buffer[i * 2 + 0], s[0], Mix * addMix);
+                buffer[i * 2 + 1] = MathL.Lerp(buffer[i * 2 + 1], s[1], Mix * addMix);
+
+                m_currentSample++;
 		        m_currentSample %= m_length;
 	        }
         }
@@ -63,12 +67,12 @@ namespace OpenRM.Audio.Effects
 
         public override Dsp CreateEffectDsp(int sampleRate) => new Wobble(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect, alpha);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is Wobble wobble)
             {
-                wobble.SetPeriod(Period.Sample(alpha));
+                wobble.SetPeriod(Period.Sample(alpha) * qnDur.Seconds * 4);
             }
         }
     }

@@ -134,7 +134,7 @@ namespace NeuroSonic.GamePlay.Scoring
                     {
                         if (tick.Position == tick.AssociatedObject.AbsolutePosition)
                             OnHoldPressed?.Invoke(position, tick.AssociatedObject);
-                        else OnHoldReleased?.Invoke(position, tick.AssociatedObject);
+                        //else OnHoldReleased?.Invoke(position, tick.AssociatedObject);
                     }
                     else if (tick.IsHold)
                     {

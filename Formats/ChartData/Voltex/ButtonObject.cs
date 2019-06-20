@@ -1,6 +1,4 @@
-﻿using OpenRM.Audio.Effects;
-
-namespace OpenRM.Voltex
+﻿namespace OpenRM.Voltex
 {
     public sealed class ButtonObject : Object
     {
@@ -11,9 +9,7 @@ namespace OpenRM.Voltex
         public bool IsHold => !IsInstant;
 
         public bool HasSample => Sample != null;
-        public bool HasEffect => Effect != null;
 
-        public EffectDef Effect { get; set; }
         private string Sample { get; set; }
     }
 }

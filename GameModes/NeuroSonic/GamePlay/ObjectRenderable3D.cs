@@ -34,20 +34,12 @@ namespace NeuroSonic.GamePlay
         public float Glow
         {
             get => m_glow;
-            set
-            {
-                m_glow = value;
-                SetGlow(value);
-            }
+            set => SetGlow(m_glow = value);
         }
         public int GlowState
         {
             get => m_glowState;
-            set
-            {
-                m_glowState = value;
-                SetGlowState(value);
-            }
+            set => SetGlowState(m_glowState = value);
         }
 
         protected abstract void SetGlow(float glow);

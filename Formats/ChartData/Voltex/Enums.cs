@@ -23,9 +23,10 @@
         /// Spin, Swing, Wobble
         /// </summary>
         HighwayEffect,
-        
+
         LaserParams,
         LaserApplicationKind,
+        EffectKind,
         LaserFilterGain,
         LaserFilterKind,
         SlamVolume,
@@ -85,6 +86,7 @@
         
         public const int LaserParams = (int)EnumStreamIndex.LaserParams;
         public const int LaserApplicationKind = (int)EnumStreamIndex.LaserApplicationKind;
+        public const int EffectKind = (int)EnumStreamIndex.EffectKind;
         public const int LaserFilterGain = (int)EnumStreamIndex.LaserFilterKind;
         public const int LaserFilterKind = (int)EnumStreamIndex.LaserFilterGain;
         public const int SlamVolume = (int)EnumStreamIndex.SlamVolume;

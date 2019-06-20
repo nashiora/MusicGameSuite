@@ -22,18 +22,6 @@ namespace OpenRM.Audio.Effects
         private float[] retriggerBuffer = new float[0];
         private int currentSample = 0;
         private int currentLoop = 0;
-        private float oneMinusMix = 0.0f;
-        private float mix = 1.0f;
-
-        public new float Mix
-        {
-            get { return mix; }
-            set
-            {
-                mix = value;
-                oneMinusMix = 1.0f - mix;
-            }
-        }
 
         public Retrigger(int sampleRate)
             : base(sampleRate)
@@ -69,8 +57,8 @@ namespace OpenRM.Audio.Effects
                 }
 
                 // Sample from buffer
-                buffer[offset + i * 2] = retriggerBuffer[currentSample * 2] * Mix + buffer[offset + i * 2] * oneMinusMix;
-                buffer[offset + i * 2 + 1] = retriggerBuffer[currentSample * 2 + 1] * Mix + buffer[offset + i * 2+1] * oneMinusMix;
+                buffer[offset + i * 2] = MathL.Lerp(buffer[offset + i * 2], retriggerBuffer[currentSample * 2], Mix);
+                buffer[offset + i * 2 + 1] = MathL.Lerp(buffer[offset + i * 2 + 1], retriggerBuffer[currentSample * 2 + 1], Mix);
 		
                 // Increase index
                 currentSample++;
@@ -103,13 +91,14 @@ namespace OpenRM.Audio.Effects
         
         public override Dsp CreateEffectDsp(int sampleRate) => new Retrigger(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is Retrigger retrigger)
             {
                 retrigger.Mix = Mix.Sample(alpha);
                 retrigger.Gating = Gating.Sample(alpha);
-                retrigger.Duration = GateDuration.Sample(alpha);
+                retrigger.Duration = GateDuration.Sample(alpha) * qnDur.Seconds * 4;
             }
         }
     }

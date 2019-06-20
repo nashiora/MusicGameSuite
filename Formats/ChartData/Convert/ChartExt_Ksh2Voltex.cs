@@ -13,8 +13,6 @@ namespace OpenRM.Convert
         {
             public tick_t StartPosition;
 
-            public EffectDef EffectDef;
-
             public byte SampleIndex = 0xFF;
             public bool UsingSample = false;
 
@@ -71,80 +69,19 @@ namespace OpenRM.Convert
                 
                 var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
                 laserFilter.LaserIndex = LaserIndex.Both;
-                laserFilter.FilterEffect = ParseFilterType(ksh.Metadata.FilterType);
+                laserFilter.FilterEffect = ksh.FilterDefines[ksh.Metadata.FilterType];
 
                 var slamVoume = voltex[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
                 slamVoume.Volume = ksh.Metadata.SlamVolume / 100.0f;
             }
 
             var lastCp = voltex.ControlPoints.Root;
-            int lastTsBlock = 0;
 
             var buttonStates = new TempButtonState[6];
             var laserStates = new TempLaserState[2];
 
-            var currentFx = new EffectDef[6];
+            //var currentFx = new EffectDef[6];
             bool[] laserIsExtended = new bool[2] { false, false };
-            
-            EffectDef ParseFilterType(string str)
-            {
-                switch (str)
-                {
-                    case "hpf1":
-                    case "HighPass": return EffectDef.GetDefault(EffectType.HighPassFilter);
-                        
-                    case "lpf1":
-                    case "LowPass": return EffectDef.GetDefault(EffectType.LowPassFilter);
-                        
-                    case "peak":
-                    case "Peaking": return EffectDef.GetDefault(EffectType.PeakingFilter);
-
-                    case "bitc": case "fx;bitc":
-                    case "BitCrusher": return EffectDef.GetDefault(EffectType.BitCrush);
-                        
-                    default:
-                    {
-                        Logger.Log($"KSH2VOLTEX: Unrecognized filter type { str }");
-                        if (ksh.FilterDefines.TryGetValue(str, out var def))
-                        {
-                            Logger.Log("KSH2VOLTEX: Temporarily ignoring effect defines");
-                        }
-                        return null;
-                    }
-                }
-            }
-            
-            EffectDef CreateFx(string fx)
-            {
-                if (!ksh.FxDefines.ContainsKey(fx))
-                    return null;
-
-                var def = ksh.FxDefines[fx];
-                switch (def.EffectName)
-                {
-                    case "Retrigger": return new RetriggerEffectDef(1, 0.7f,
-                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
-
-                    case "Gate": return new GateEffectDef(1, 0.7f,
-                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
-
-                    case "BitCrusher": return new BitCrusherEffectDef(1, def["reduction"].Number);
-
-                    case "SideChain": return new SideChainEffectDef(1, 1.0f,
-                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["period"].Number);
-
-                    case "Wobble": return new WobbleEffectDef(1,
-                        (float)lastCp.QuarterNoteDuration.Seconds * 4 * def["waveLength"].Number);
-
-                    case "TapeStop": return new TapeStopEffectDef(1, 16.0f / MathL.Max(def["speed"].Number, 1));
-
-                    case "Flanger": return new FlangerEffectDef(1.0f);
-
-                    case "Phaser": return new PhaserEffectDef(0.5f);
-
-                    default: return null;
-                }
-            }
 
             foreach (var tickRef in ksh)
             {
@@ -188,15 +125,22 @@ namespace OpenRM.Convert
                         //case "fx-l": currentFx[4] = ParseFxAndParams(setting.Value.ToString()); break;
                         //case "fx-r": currentFx[5] = ParseFxAndParams(setting.Value.ToString()); break;
 
-                        case "fx-l": currentFx[4] = CreateFx(setting.Value.ToString()); break;
-                        case "fx-r": currentFx[5] = CreateFx(setting.Value.ToString()); break;
+                        case "fx-l":
+                        case "fx-r":
+                        {
+                            var effectEvent = voltex[StreamIndex.EffectKind].Add<EffectKindEvent>(chartPos);
+                            effectEvent.EffectIndex = key == "fx-l" ? 4 : 5;
+                            effectEvent.Effect = (string)setting.Value.Value == "" ? null : ksh.FxDefines[setting.Value.ToString()];
+                        } break;
 
                         case "fx-l_param1":
                         {
+                            Logger.Log($"KSH2VOLTEX: skipping fx-l_param1.");
                         } break;
 
                         case "fx-r_param1":
                         {
+                            Logger.Log($"KSH2VOLTEX: skipping fx-r_param1.");
                         } break;
 
                         case "pfiltergain":
@@ -210,7 +154,7 @@ namespace OpenRM.Convert
                         {
                             var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
                             laserFilter.LaserIndex = LaserIndex.Both;
-                            laserFilter.FilterEffect = ParseFilterType(setting.Value.ToString());
+                            laserFilter.FilterEffect = (string)setting.Value.Value == "" ? null : ksh.FilterDefines[setting.Value.ToString()];
                         } break;
 
                         case "chokkakuvol":
@@ -298,8 +242,6 @@ namespace OpenRM.Convert
 
                         var startPos = state.StartPosition;
                         var button = voltex[b].Add<ButtonObject>(startPos, endPos - startPos);
-                        //System.Diagnostics.Trace.WriteLine($"{ endPos } - { startPos } = { endPos - startPos }");
-                        button.Effect = state.EffectDef;
                     }
 
                     switch (data.State)
@@ -321,12 +263,7 @@ namespace OpenRM.Convert
                         case KShootMania.ButtonState.Hold:
                         {
                             if (buttonStates[b] == null)
-                            {
-                                buttonStates[b] = new TempButtonState(chartPos)
-                                {
-                                    EffectDef = currentFx[b],
-                                };
-                            }
+                                buttonStates[b] = new TempButtonState(chartPos);
                         } break;
                     }
                 }

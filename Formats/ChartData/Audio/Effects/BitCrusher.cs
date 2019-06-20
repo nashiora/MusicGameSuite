@@ -1,20 +1,21 @@
-﻿namespace OpenRM.Audio.Effects
+﻿using System;
+
+namespace OpenRM.Audio.Effects
 {
     public sealed class BitCrusher : Dsp
     {
         private double samplePosition;
+        private double sampleScale;
 
         private float sampleLeft;
         private float sampleRight;
 
-        /// <summary>
-        /// Make larger than 1 to stretch out samples across a longer period of samples
-        /// </summary>
-        public double Reduction = 4;
+        public double Reduction = 4 / 44100.0f;
 
-        public BitCrusher()
-            : base(0)
+        public BitCrusher(int sampleRate)
+            : base(sampleRate)
         {
+            sampleScale = sampleRate / 44100.0f;
         }
 
         protected override void ProcessImpl(float[] buffer, int offset, int count)
@@ -23,16 +24,16 @@
 
             for(int i = 0; i < numSamples; i++)
             {
-                samplePosition += 1.0;
-                if(samplePosition > Reduction)
+                samplePosition += 1.0 / SampleRate;
+                if(samplePosition > Reduction * sampleScale)
                 {
                     sampleLeft = buffer[offset + i * 2];
                     sampleRight = buffer[offset + i * 2 + 1];
-                    samplePosition -= Reduction;
+                    samplePosition -= Reduction * sampleScale;
                 }
 
-                buffer[offset + i * 2] = sampleLeft;
-                buffer[offset + i * 2 + 1] = sampleRight;
+                buffer[offset + i * 2] = MathL.Lerp(buffer[offset + i * 2], sampleLeft, Mix);
+                buffer[offset + i * 2 + 1] = MathL.Lerp(buffer[offset + i * 2 + 1], sampleRight, Mix);
             }
         }
     }
@@ -47,11 +48,11 @@
             Reduction = reduction;
         }
         
-        public override Dsp CreateEffectDsp(int sampleRate = 0) => new BitCrusher();
+        public override Dsp CreateEffectDsp(int sampleRate = 0) => new BitCrusher(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect, alpha);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is BitCrusher bitCrusher)
             {
                 bitCrusher.Reduction = Reduction.Sample(alpha);

@@ -2,6 +2,11 @@
 
 namespace OpenRM.Audio.Effects
 {
+    // TODO(local): SHOULD THE TAPE STOP USE MIX???
+    // TODO(local): SHOULD THE TAPE STOP USE MIX???
+    // TODO(local): SHOULD THE TAPE STOP USE MIX???
+    // TODO(local): SHOULD THE TAPE STOP USE MIX???
+    // TODO(local): SHOULD THE TAPE STOP USE MIX???
     public class TapeStop : Dsp
     {
         private double duration = 5;
@@ -74,9 +79,9 @@ namespace OpenRM.Audio.Effects
 
         public override Dsp CreateEffectDsp(int sampleRate) => new TapeStop(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect, alpha);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is TapeStop ts)
             {
                 ts.Duration = Duration.Sample(alpha);

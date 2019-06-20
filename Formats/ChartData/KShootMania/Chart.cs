@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using OpenRM.Audio.Effects;
 
 namespace KShootMania
 {
@@ -168,48 +169,6 @@ namespace KShootMania
         public Tick Tick;
     }
 
-    public enum ParamKind
-    {
-        Numeric,
-        String
-    }
-
-    // TODO(local): make the param value more useful and not shitty
-    public struct ParamValue
-    {
-        public readonly ParamKind Kind;
-
-        public readonly float Number;
-        public readonly string String;
-
-        public ParamValue(float num)
-        {
-            Kind = ParamKind.Numeric;
-            Number = num;
-            String = "";
-        }
-
-        public ParamValue(string str)
-        {
-            Kind = ParamKind.String;
-            Number = 0;
-            String = str;
-        }
-
-        public override string ToString() => Kind == ParamKind.Numeric ? Number.ToString() : String;
-    }
-
-    public class EffectDefinition
-    {
-        public string EffectName;
-        public readonly Dictionary<string, ParamValue> Parameters = new Dictionary<string, ParamValue>();
-
-        public ParamValue this[string key]
-        {
-            get => Parameters[key];
-        }
-    }
-
     /// <summary>
     /// Contains all relevant data for a single chart.
     /// </summary>
@@ -230,7 +189,7 @@ namespace KShootMania
                 Metadata = ChartMetadata.Create(reader)
             };
             
-            void TryAddBuiltInFx(string effect)
+            void TryAddBuiltInFx(string effect, float bpm)
             {
                 string effectName = effect;
                 if (effect.TrySplit(';', out string _name, out string paramList))
@@ -241,120 +200,87 @@ namespace KShootMania
                     return;
 
                 string[] pars = paramList.Split(';');
+                float unit = 1.0f; //4 * (60.0f / bpm);
 
-                EffectDefinition def = null;
+                EffectDef def = null;
                 switch (effectName)
                 {
                     case "BitCrusher":
                     {
                         float reduction = 4;
                         if (pars.Length > 0) reduction = float.Parse(pars[0]);
-
-                        def = new EffectDefinition() { EffectName = effectName };
-                        def.Parameters["reduction"] = new ParamValue(reduction);
+                        def = new BitCrusherEffectDef(1.0f, reduction / 44100.0f);
                     } break;
 
                     case "Retrigger":
                     {
                         int step = 8;
                         if (pars.Length > 0) step = int.Parse(pars[0]);
-
-                        def = new EffectDefinition() { EffectName = effectName };
-                        def.Parameters["waveLength"] = new ParamValue(1.0f / step);
+                        def = new RetriggerEffectDef(1.0f, 0.7f, unit / step);
                     } break;
 
                     case "Gate":
                     {
                         int step = 8;
                         if (pars.Length > 0) step = int.Parse(pars[0]);
-
-                        def = new EffectDefinition() { EffectName = effectName };
-                        def.Parameters["waveLength"] = new ParamValue(1.0f / step);
+                        def = new GateEffectDef(1.0f, 0.7f, unit / step);
                     } break;
                     
                     case "SideChain":
                     {
                         int step = 4;
-
-                        def = new EffectDefinition() { EffectName = effectName };
-                        def.Parameters["period"] = new ParamValue(1.0f / step);
+                        def = new SideChainEffectDef(1.0f, 1.0f, unit / step);
                     } break;
                     
                     case "Wobble":
                     {
                         int step = 12;
-
-                        def = new EffectDefinition() { EffectName = effectName };
-                        def.Parameters["waveLength"] = new ParamValue(1.0f / step);
+                        if (pars.Length > 0) step = int.Parse(pars[0]);
+                        def = new WobbleEffectDef(1.0f, unit / step);
                     } break;
 
                     case "TapeStop":
                     {
                         int speed = 50;
                         if (pars.Length > 0) speed = int.Parse(pars[0]);
-
-                        def = new EffectDefinition() { EffectName = effectName };
-                        def.Parameters["speed"] = new ParamValue(speed);
+                        def = new TapeStopEffectDef(1.0f, 16.0f / MathL.Max(speed, 1));
                     } break;
 
                     case "Flanger":
                     {
-                        def = new EffectDefinition() { EffectName = effectName };
+                        def = new FlangerEffectDef(1.0f);
                     } break;
 
                     case "Phaser":
                     {
-                        def = new EffectDefinition() { EffectName = effectName };
-                    } break;
-                        
-                    default:
-                    {
-                        Logger.Log($"Unrecognized fx type { effectName }");
+                        def = new PhaserEffectDef(1.0f);
                     } break;
                 }
 
-                if (def != null)
-                    chart.FxDefines[effect] = def;
+                if (def != null) chart.FxDefines[effect] = def;
             }
             
             void TryAddBuiltInFilter(string effectName)
             {
-                EffectDefinition def = null;
+                EffectDef def = null;
                 switch (effectName)
                 {
-                    case "hpf1":
-                    {
-                        def = new EffectDefinition() { EffectName = "HighPass" };
-                    } break;
-
-                    case "lpf1":
-                    {
-                        def = new EffectDefinition() { EffectName = "LowPass" };
-                    } break;
-
-                    case "peak":
-                    {
-                        def = new EffectDefinition() { EffectName = "Peaking" };
-                    } break;
-
+                    case "hpf1": def = EffectDef.GetDefault(EffectType.HighPassFilter); break;
+                    case "lpf1": def = EffectDef.GetDefault(EffectType.LowPassFilter); break;
+                    case "peak": def = EffectDef.GetDefault(EffectType.PeakingFilter); break;
                     case "fx;bitc":
-                    case "bitc":
-                    {
-                        def = new EffectDefinition() { EffectName = "BitCrusher" };
-                    } break;
-                        
-                    default:
-                    {
-                        Logger.Log($"Unrecognized filter type { effectName }");
-                    } break;
+                    case "bitc": def = EffectDef.GetDefault(EffectType.BitCrush); break;
                 }
 
-                if (def != null)
-                    chart.FilterDefines[effectName] = def;
+                if (def != null) chart.FilterDefines[effectName] = def;
             }
+
+            TryAddBuiltInFilter(chart.Metadata.FilterType);
 
             var block = new Block();
             var tick = new Tick();
+
+            float mrBpm = 120.0f;
 
             string line;
             while ((line = reader.ReadLine()) != null)
@@ -365,53 +291,198 @@ namespace KShootMania
 
                 if (line[0] == '#')
                 {
-                    if (!line.TrySplit(' ', out string defKind, out string defKey, out string args))
+                    Dictionary<string, EffectParam> GetParameterList(string args, out string typeName)
+                    {
+                        var result = new Dictionary<string, EffectParam>();
+                        typeName = null;
+
+                        foreach (string a in args.Split(';'))
+                        {
+                            if (!a.TrySplit('=', out string k, out string v))
+                                continue;
+
+                            k = k.Trim();
+                            v = v.Trim();
+
+                            if (k == "type")
+                            {
+                                Logger.Log($"ksh fx type: { v }");
+                                typeName = v;
+                            }
+                            else
+                            {
+                                // NOTE(local): We aren't worried about on/off state for now, if ever
+                                if (v.Contains('>')) v = v.Substring(v.IndexOf('>') + 1).Trim();
+                                bool isRange = v.TrySplit('-', out string v0, out string v1);
+
+                                // TODO(local): this will ONLY allow ranges of the same type, so 0.5-1/8 is illegal (but are these really ever used?)
+                                // (kinda makes sense for Hz-kHz but uh shh)
+                                EffectParam pv;
+                                if (v.Contains("on") || v.Contains("off"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(v0.Contains("on") ? 1 : 0,
+                                            v1.Contains("on") ? 1 : 0,
+                                            (l, r, t) => MathL.RoundToInt(MathL.Lerp(l, r, t)));
+                                    else pv = new EffectParamF(v.Contains("on") ? 1 : 0);
+                                }
+                                else if (v.Contains('/'))
+                                {
+                                    if (isRange)
+                                    {
+                                        pv = new EffectParamX(
+                                            int.Parse(v0.Substring(v0.IndexOf('/') + 1)),
+                                            int.Parse(v1.Substring(v1.IndexOf('/') + 1)));
+                                    }
+                                    else pv = new EffectParamX(int.Parse(v.Substring(v.IndexOf('/') + 1)));
+                                }
+                                else if (v.Contains('%'))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf('%'))) / 100.0f,
+                                            int.Parse(v1.Substring(0, v1.IndexOf('%'))) / 100.0f);
+                                    else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf('%'))) / 100.0f);
+                                }
+                                else if (v.Contains("samples"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("samples"))) / 44100.0f,
+                                            int.Parse(v1.Substring(0, v1.IndexOf("samples"))) / 44100.0f);
+                                    else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("samples"))) / 44100.0f);
+                                }
+                                else if (v.Contains("ms"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("ms"))) / 1000.0f,
+                                            int.Parse(v1.Substring(0, v1.IndexOf("ms"))) / 1000.0f);
+                                    else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("ms"))) / 1000.0f);
+                                }
+                                else if (v.Contains("s"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("s"))) / 1000.0f,
+                                            int.Parse(v1.Substring(0, v1.IndexOf("s"))) / 1000.0f);
+                                    else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("s"))) / 1000.0f);
+                                }
+                                else if (v.Contains("kHz"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(float.Parse(v0.Substring(0, v0.IndexOf("kHz"))) * 1000.0f,
+                                            float.Parse(v1.Substring(0, v1.IndexOf("kHz"))) * 1000.0f);
+                                    else pv = new EffectParamF(float.Parse(v.Substring(0, v.IndexOf("kHz"))) * 1000.0f);
+                                }
+                                else if (v.Contains("Hz"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(float.Parse(v0.Substring(0, v0.IndexOf("Hz"))),
+                                            float.Parse(v1.Substring(0, v1.IndexOf("Hz"))));
+                                    else pv = new EffectParamF(float.Parse(v.Substring(0, v.IndexOf("Hz"))));
+                                }
+                                else if (v.Contains("dB"))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(float.Parse(v0.Substring(0, v0.IndexOf("dB"))),
+                                            float.Parse(v1.Substring(0, v1.IndexOf("dB"))));
+                                    else pv = new EffectParamF(float.Parse(v.Substring(0, v.IndexOf("dB"))));
+                                }
+                                else if (float.TryParse(isRange ? v0 : v, out float floatValue))
+                                {
+                                    if (isRange)
+                                        pv = new EffectParamF(floatValue, float.Parse(v1));
+                                    else pv = new EffectParamF(floatValue);
+                                }
+                                else pv = new EffectParamS(v);
+
+                                Logger.Log($"  ksh fx param: { k } = { pv }");
+                                result[k] = pv;
+                            }
+                        }
+                        return result;
+                    }
+
+                    if (!line.TrySplit(' ', out string defKind, out string defKey, out string argList))
                         continue;
 
-                    var def = new EffectDefinition();
-                    foreach (string a in args.Split(';'))
+                    EffectDef def = null;
+                    Logger.Log($">> ksh { defKind } \"{ defKey }\"");
+
+                    var pars = GetParameterList(argList, out string effectType);
+                    T GetEffectParam<T>(string parsKey, T parsDef) where T : EffectParam
                     {
-                        if (!a.TrySplit('=', out string k, out string v))
-                            continue;
-
-                        k = k.Trim();
-                        v = v.Trim();
-
-                        if (k == "type")
+                        if (pars.TryGetValue(parsKey, out var parsValue) && parsValue is T valueT)
+                            return valueT;
+                        return parsDef;
+                    }
+                    switch (effectType)
+                    {
+                        case "Retrigger":
                         {
-                            Logger.Log($"ksh fx type: { v }");
-                            def.EffectName = v;
-                        }
-                        else
-                        {
-                            ParamValue pv;
-                            if (v.Contains("on"))
-                                pv = new ParamValue(1);
-                            else if (v.Contains("off"))
-                                pv = new ParamValue(0);
-                            else if (v.Contains('/'))
-                                pv = new ParamValue(1.0f / int.Parse(v.Substring(v.IndexOf('/') + 1)));
-                            else if (v.Contains('%'))
-                                pv = new ParamValue(1.0f / int.Parse(v.Substring(0, v.IndexOf('%'))));
-                            else if (v.Contains("samples"))
-                                pv = new ParamValue(int.Parse(v.Substring(0, v.IndexOf("samples"))) / 41000.0f);
-                            else if (v.Contains("ms"))
-                                pv = new ParamValue(int.Parse(v.Substring(0, v.IndexOf("ms"))) / 1000.0f);
-                            else if (v.Contains("s"))
-                                pv = new ParamValue(int.Parse(v.Substring(0, v.IndexOf("s"))) / 1000.0f);
-                            else if (v.Contains("kHz"))
-                                pv = new ParamValue(float.Parse(v.Substring(0, v.IndexOf("kHz"))) * 1000.0f);
-                            else if (v.Contains("Hz"))
-                                pv = new ParamValue(float.Parse(v.Substring(0, v.IndexOf("Hz"))));
-                            else if (v.Contains("dB"))
-                                pv = new ParamValue(float.Parse(v.Substring(0, v.IndexOf("dB"))));
-                            else if (float.TryParse(v, out float result))
-                                pv = new ParamValue(result);
-                            else pv = new ParamValue(v);
+                            // TODO(local): updateTrigger, the system doesn't support it yet
+                            def = new RetriggerEffectDef(
+                                GetEffectParam<EffectParamF>("mix", 1.0f),
+                                GetEffectParam<EffectParamF>("rate", 0.7f),
+                                GetEffectParam<EffectParamF>("waveLength", 0.25f)
+                                );
+                        } break;
 
-                            Logger.Log($"  ksh fx param: { k } = { pv }");
-                            def.Parameters[k] = pv;
+                        case "Gate":
+                        {
+                            def = new GateEffectDef(
+                                GetEffectParam<EffectParamF>("mix", 1.0f),
+                                GetEffectParam<EffectParamF>("rate", 0.7f),
+                                GetEffectParam<EffectParamF>("waveLength", 0.25f)
+                                );
                         }
+                        break;
+
+                        case "Flanger":
+                        {
+                            def = new FlangerEffectDef(GetEffectParam<EffectParamF>("mix", 1.0f));
+                        }
+                        break;
+
+                        case "BitCrusher":
+                        {
+                            def = new BitCrusherEffectDef(
+                                GetEffectParam<EffectParamF>("mix", 1.0f),
+                                GetEffectParam<EffectParamF>("reduction", 4.0f / 44100.0f)
+                                );
+                        }
+                        break;
+
+                        case "Phaser":
+                        {
+                            def = new PhaserEffectDef(GetEffectParam<EffectParamF>("mix", 0.5f));
+                        }
+                        break;
+
+                        case "Wobble":
+                        {
+                            def = new WobbleEffectDef(
+                                GetEffectParam<EffectParamF>("mix", 1.0f),
+                                GetEffectParam<EffectParamF>("waveLength", 1.0f / 12)
+                                );
+                        }
+                        break;
+
+                        case "TapeStop":
+                        {
+                            def = new TapeStopEffectDef(
+                                GetEffectParam<EffectParamF>("mix", 1.0f),
+                                GetEffectParam<EffectParamF>("speed", 50.0f)
+                                );
+                        }
+                        break;
+
+                        case "SideChain":
+                        {
+                            def = new SideChainEffectDef(
+                                GetEffectParam<EffectParamF>("mix", 1.0f),
+                                1.0f,
+                                GetEffectParam<EffectParamF>("waveLength", 50.0f)
+                                );
+                        }
+                        break;
                     }
                     
                     if (defKind == "#define_fx")
@@ -421,14 +492,16 @@ namespace KShootMania
                 }
                 if (line.TrySplit('=', out string key, out string value))
                 {
-                    tick.Settings.Add(new TickSetting(key, value));
+                    if (key == "t") mrBpm = float.Parse(value);
                     // defined fx should probably be named different than the defaults,
                     //  so it's like slightly safe to assume that failing to create
                     //  a built-in definition from this for either means its a defined effect?
                     if (key == "fx-l" || key == "fx-r")
-                        TryAddBuiltInFx(value);
+                        TryAddBuiltInFx(value, mrBpm);
                     else if (key == "filtertype")
                         TryAddBuiltInFilter(value);
+
+                    tick.Settings.Add(new TickSetting(key, value));
                 }
                 if (line == SEP)
                 {
@@ -550,8 +623,8 @@ namespace KShootMania
         private List<Block> m_blocks = new List<Block>();
         public Tick this[int block, int tick] => m_blocks[block][tick];
 
-        public readonly Dictionary<string, EffectDefinition> FxDefines = new Dictionary<string, EffectDefinition>();
-        public readonly Dictionary<string, EffectDefinition> FilterDefines = new Dictionary<string, EffectDefinition>();
+        public readonly Dictionary<string, EffectDef> FxDefines = new Dictionary<string, EffectDef>();
+        public readonly Dictionary<string, EffectDef> FilterDefines = new Dictionary<string, EffectDef>();
         
         public int BlockCount => m_blocks.Count;
 

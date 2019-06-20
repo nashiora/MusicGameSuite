@@ -31,7 +31,7 @@ namespace OpenRM.Audio.Effects
                 if(r < fadeIn)
                     r = 1.0f - r / fadeIn;
                 else r = Curve.Sample((r - fadeIn) / (1.0f - fadeIn));
-                float sampleGain = 1.0f - Amount * (1.0f - r);
+                float sampleGain = 1.0f - Amount * (1.0f - r) * Mix;
                 buffer[offset + i * 2 + 0] *= sampleGain;
                 buffer[offset + i * 2 + 1] *= sampleGain;
 
@@ -56,13 +56,13 @@ namespace OpenRM.Audio.Effects
 
         public override Dsp CreateEffectDsp(int sampleRate) => new SideChain(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is SideChain sc)
             {
                 sc.Amount = Amount.Sample(alpha);
-                sc.Duration = Duration.Sample(alpha);
+                sc.Duration = Duration.Sample(alpha) * qnDur.Seconds * 4;
             }
         }
     }

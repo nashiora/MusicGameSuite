@@ -83,7 +83,11 @@ namespace NeuroSonic.ChartSelect
 
                         var chart = ksh.ToVoltex();
 
-                        var game = new GameLayer(m_skin, chart, audio);
+                        AutoPlay autoPlay = AutoPlay.None;
+                        if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
+                            autoPlay = AutoPlay.ButtonsAndLasers;
+
+                        var game = new GameLayer(m_skin, chart, audio, autoPlay);
                         Host.PushLayer(game);
                     }
                 } break;

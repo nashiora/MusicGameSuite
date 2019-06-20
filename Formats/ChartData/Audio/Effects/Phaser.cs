@@ -85,7 +85,7 @@ namespace OpenRM.Audio.Effects
                     feedbackBuffer[c] = filtered;
 
                     // Final sample
-                    buffer[offset + i * 2 + c] = buffer[offset + i * 2 + c] + filtered;
+                    buffer[offset + i * 2 + c] = buffer[offset + i * 2 + c] + filtered * Mix;
                 }
 
                 time += sampleStep;
@@ -120,9 +120,9 @@ namespace OpenRM.Audio.Effects
 
         public override Dsp CreateEffectDsp(int sampleRate) => new Phaser(sampleRate);
 
-        public override void ApplyToDsp(Dsp effect, float alpha = 0)
+        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
-            base.ApplyToDsp(effect, alpha);
+            base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is Phaser p)
             {
             }
