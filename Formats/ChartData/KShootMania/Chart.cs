@@ -257,7 +257,11 @@ namespace KShootMania
                     } break;
                 }
 
-                if (def != null) chart.FxDefines[effect] = def;
+                chart.FxDefines[effect] = def;
+                if (def == null)
+                {
+                    Logger.Log($"KSH2VOLTEX: Failed to create effect info from { effect }");
+                }
             }
             
             void TryAddBuiltInFilter(string effectName)
@@ -272,7 +276,11 @@ namespace KShootMania
                     case "bitc": def = EffectDef.GetDefault(EffectType.BitCrush); break;
                 }
 
-                if (def != null) chart.FilterDefines[effectName] = def;
+                chart.FilterDefines[effectName] = def;
+                if (def == null)
+                {
+                    Logger.Log($"KSH2VOLTEX: Failed to create effect info from { effectName }");
+                }
             }
 
             TryAddBuiltInFilter(chart.Metadata.FilterType);

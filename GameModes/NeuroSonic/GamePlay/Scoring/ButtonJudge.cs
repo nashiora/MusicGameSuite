@@ -28,10 +28,10 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public const int TOTAL_MISS_MILLIS = 144 * 2;
         public const int TOTAL_NEAR_MILLIS = 108 * 2;
-        public const int TOTAL_CRIT_MILLIS = 36 * 2;
-        public const int TOTAL_PERF_MILLIS = 18 * 2;
+        public const int TOTAL_CRIT_MILLIS = 42 * 2;
+        public const int TOTAL_PERF_MILLIS = 21 * 2;
 
-        public const int TOTAL_HOLD_MILLIS = 36 * 2;
+        public const int TOTAL_HOLD_MILLIS = 21 * 2;
 
         private const double MISS_RADIUS = (TOTAL_MISS_MILLIS / 2) / 1000.0;
         private const double NEAR_RADIUS = (TOTAL_NEAR_MILLIS / 2) / 1000.0;
@@ -44,6 +44,7 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private bool m_userHeld = false;
         private time_t m_userWhen = 0.0;
+        private OpenRM.Object m_lastPressedObject;
 
         private readonly List<Tick> m_ticks = new List<Tick>();
 
@@ -75,6 +76,7 @@ namespace NeuroSonic.GamePlay.Scoring
             if (tick.IsHold)
             {
                 OnHoldPressed?.Invoke(timeStamp, tick.AssociatedObject);
+                m_lastPressedObject = tick.AssociatedObject;
                 return null;
             }
             else OnChipPressed?.Invoke(timeStamp, tick.AssociatedObject);
@@ -104,8 +106,10 @@ namespace NeuroSonic.GamePlay.Scoring
         {
             m_userHeld = false;
 
-            if (m_ticks.Count > 0 && m_ticks[0].IsHold)
+            if (m_ticks.Count > 0 && m_ticks[0].IsHold && m_lastPressedObject == m_ticks[0].AssociatedObject)
+            {
                 OnHoldReleased?.Invoke(timeStamp, m_ticks[0].AssociatedObject);
+            }
         }
 
         protected override void AdvancePosition(time_t position)
@@ -202,7 +206,8 @@ namespace NeuroSonic.GamePlay.Scoring
 
         protected override void ObjectExitedJudgement(OpenRM.Object obj)
         {
-            //Logger.Log($"Button [{ StreamIndex }] left window @ { obj.AbsoluteEndPosition } / { CurrentPosition }");
+            if (m_lastPressedObject == obj)
+                m_lastPressedObject = null;
         }
     }
 }
