@@ -14,10 +14,9 @@ uniform int GlowState;
 
 void main()
 {	
-	float x = float(GlowState) * 0.25;
-
-	vec3 s = texture(MainTexture, vec2(frag_TexCoord.x * 0.25 + x, frag_TexCoord.y)).rgb;
-	vec3 color = mix(s.g * LaserColor, vec3(1), s.r);
+	vec4 overlay = texture(MainTexture, vec2(frag_TexCoord.x * 0.5, frag_TexCoord.y));
+	vec3 s = texture(MainTexture, vec2(0.5 + frag_TexCoord.x * 0.5, frag_TexCoord.y)).rgb;
+	vec3 color = overlay.rgb * overlay.a + mix(s.g * LaserColor, HiliteColor, s.r) * (1 - overlay.a);
 
 	target = vec4(color, 1);
 }

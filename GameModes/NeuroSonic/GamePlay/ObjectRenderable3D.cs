@@ -1,10 +1,8 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 
 using theori;
 using theori.Graphics;
 
-using OpenRM;
 using System.Diagnostics;
 using theori.Resources;
 
@@ -21,6 +19,39 @@ namespace NeuroSonic.GamePlay
 
         public abstract void Destroy();
         public abstract void Render(RenderQueue rq, Transform world);
+    }
+
+    internal abstract class GlowingRenderState3D : ObjectRenderable3D
+    {
+        private float m_glow = -1.0f;
+        private int m_glowState = -1;
+
+        protected GlowingRenderState3D(OpenRM.Object obj)
+            : base(obj)
+        {
+        }
+
+        public float Glow
+        {
+            get => m_glow;
+            set
+            {
+                m_glow = value;
+                SetGlow(value);
+            }
+        }
+        public int GlowState
+        {
+            get => m_glowState;
+            set
+            {
+                m_glowState = value;
+                SetGlowState(value);
+            }
+        }
+
+        protected abstract void SetGlow(float glow);
+        protected abstract void SetGlowState(int glow);
     }
 
     internal class ButtonChipRenderState3D : ObjectRenderable3D
@@ -74,7 +105,7 @@ namespace NeuroSonic.GamePlay
         }
     }
 
-    internal class ButtonHoldRenderState3D : ObjectRenderable3D
+    internal class ButtonHoldRenderState3D : GlowingRenderState3D
     {
         private const float ENTRY_LENGTH = 0.1f;
         private const float EXIT_LENGTH = ENTRY_LENGTH * 0.5f;
@@ -88,34 +119,6 @@ namespace NeuroSonic.GamePlay
         private Transform m_holdTransform = Transform.Identity;
 
         private int m_width = 1;
-
-        private float m_glow = -1.0f;
-        private int m_glowState = -1;
-
-        public float Glow
-        {
-            get => m_glow;
-            set
-            {
-                if (value == m_glow) return;
-
-                m_glow = value;
-                foreach (var d in m_drawables)
-                    d.Params["Glow"] = value;
-            }
-        }
-        public int GlowState
-        {
-            get => m_glowState;
-            set
-            {
-                if (value == m_glowState) return;
-
-                m_glowState = value;
-                foreach (var d in m_drawables)
-                    d.Params["GlowState"] = value;
-            }
-        }
 
         private readonly Drawable3D[] m_drawables;
 
@@ -157,14 +160,26 @@ namespace NeuroSonic.GamePlay
                 },
             };
 
-            Glow = 1.0f;
-            GlowState = 1;
-
             m_drawables[1].Params["Color"] = Vector4.One;
 
             m_entryTransform = Transform.Scale(m_width, 1, ENTRY_LENGTH);
             m_holdTransform = Transform.Scale(m_width, 1, len - EXIT_LENGTH - ENTRY_LENGTH) * Transform.Translation(0, 0, -ENTRY_LENGTH);
             m_exitTransform = Transform.Scale(m_width, 1, EXIT_LENGTH) * Transform.Translation(0, 0, -len + EXIT_LENGTH);
+
+            Glow = 0.0f;
+            GlowState = 1;
+        }
+
+        protected override void SetGlow(float glow)
+        {
+            foreach (var d in m_drawables)
+                d.Params["GlowState"] = glow;
+        }
+
+        protected override void SetGlowState(int glowState)
+        {
+            foreach (var d in m_drawables)
+                d.Params["GlowState"] = glowState;
         }
 
         public override void Destroy()
@@ -179,7 +194,7 @@ namespace NeuroSonic.GamePlay
         }
     }
 
-    internal class SlamRenderState3D : ObjectRenderable3D
+    internal class SlamRenderState3D : GlowingRenderState3D
     {
         public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
         
@@ -250,6 +265,19 @@ namespace NeuroSonic.GamePlay
 
             m_drawable.Params["LaserColor"] = color;
             m_drawable.Params["HiliteColor"] = new Vector3(1, 1, 0);
+
+            Glow = 0.0f;
+            GlowState = 1;
+        }
+
+        protected override void SetGlow(float glow)
+        {
+            m_drawable.Params["GlowState"] = glow;
+        }
+
+        protected override void SetGlowState(int glowState)
+        {
+            m_drawable.Params["GlowState"] = glowState;
         }
 
         public override void Destroy()
@@ -263,7 +291,7 @@ namespace NeuroSonic.GamePlay
         }
     }
 
-    internal class LaserRenderState3D : ObjectRenderable3D
+    internal class LaserRenderState3D : GlowingRenderState3D
     {
         public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
         
@@ -312,6 +340,19 @@ namespace NeuroSonic.GamePlay
 
             m_drawable.Params["LaserColor"] = color;
             m_drawable.Params["HiliteColor"] = new Vector3(1, 1, 0);
+
+            Glow = 0.0f;
+            GlowState = 1;
+        }
+
+        protected override void SetGlow(float glow)
+        {
+            m_drawable.Params["GlowState"] = glow;
+        }
+
+        protected override void SetGlowState(int glowState)
+        {
+            m_drawable.Params["GlowState"] = glowState;
         }
 
         public override void Destroy()

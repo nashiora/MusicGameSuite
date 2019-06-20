@@ -225,6 +225,8 @@ namespace NeuroSonic.GamePlay
                     if (!AreLasersActive) m_audioController.SetEffect(6, currentLaserEffectDef, BASE_LASER_MIX);
                     currentActiveLasers[obj.Stream - 6] = true;
                 }
+
+                m_activeObjects[obj.Stream] = aobj.Head;
             }
             else if (obj is ButtonObject bobj)
             {
@@ -246,6 +248,9 @@ namespace NeuroSonic.GamePlay
                 {
                     currentActiveLasers[obj.Stream - 6] = false;
                     if (!AreLasersActive) m_audioController.RemoveEffect(6);
+
+                    if (m_activeObjects[obj.Stream] == aobj.Head)
+                        m_activeObjects[obj.Stream] = null;
                 }
             }
             if (obj is ButtonObject bobj)
@@ -260,7 +265,7 @@ namespace NeuroSonic.GamePlay
 
         private void Judge_OnTickProcessed(OpenRM.Object obj, time_t position, JudgeResult result)
         {
-            Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
+            //Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
 
             if (result.Kind == JudgeKind.Miss || result.Kind == JudgeKind.Bad)
                 m_comboDisplay.Combo = 0;
@@ -488,7 +493,9 @@ namespace NeuroSonic.GamePlay
             for (int i = 0; i < 8; i++)
             {
                 var obj = m_activeObjects[i];
+
                 m_highwayView.SetStreamActive(i, m_streamHasActiveEffects[i]);
+                m_debugOverlay?.SetStreamActive(i, m_streamHasActiveEffects[i]);
 
                 if (obj == null) continue;
 
@@ -497,8 +504,8 @@ namespace NeuroSonic.GamePlay
 
                 if (m_streamHasActiveEffects[i])
                 {
-                    glow = MathL.Cos(10 * MathL.TwoPi * (float)(position - obj.AbsolutePosition)) * 0.35f;
-                    glowState = 2 + (int)((position - obj.AbsolutePosition) / (1.0 / 20)) % 2;
+                    glow = MathL.Cos(10 * MathL.TwoPi * (float)position) * 0.35f;
+                    glowState = 2 + MathL.FloorToInt(position.Seconds * 20) % 2;
                 }
 
                 m_highwayView.SetObjectGlow(obj, glow, glowState);

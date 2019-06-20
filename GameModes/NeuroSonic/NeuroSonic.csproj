@@ -112,6 +112,7 @@
     <EmbeddedResource Include="Resources\audio\sample_kick.ogg" />
     <EmbeddedResource Include="Resources\audio\sample_snare.ogg" />
     <EmbeddedResource Include="Resources\audio\sample_snare_lo.ogg" />
+    <EmbeddedResource Include="Resources\materials\laser_entry.fs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\textures\bt_chip.png" />

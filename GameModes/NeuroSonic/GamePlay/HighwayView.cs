@@ -92,10 +92,10 @@ namespace NeuroSonic.GamePlay
             highwayParams["Hidden"] = 0.0f;
 
             var basicMaterial = m_skin.AquireMaterial("materials/basic");
-            var lVolMaterial = m_skin.AquireMaterial("materials/laser");
-            lVolMaterial.BlendMode = BlendMode.Additive;
-            var rVolMaterial = m_skin.AquireMaterial("materials/laser");
-            rVolMaterial.BlendMode = BlendMode.Additive;
+            var volMaterial = m_skin.AquireMaterial("materials/laser");
+            volMaterial.BlendMode = BlendMode.Additive;
+            var volEntryMaterial = m_skin.AquireMaterial("materials/laser_entry");
+            volEntryMaterial.BlendMode = BlendMode.Additive;
 
             var keyBeamTexture = m_skin.AquireTexture("textures/key_beam");
             var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter);
@@ -135,16 +135,16 @@ namespace NeuroSonic.GamePlay
                 entryDrawable = new Drawable3D()
                 {
                     Texture = entryTexture,
-                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (entryTexture.Height / (float)entryTexture.Width) / 6.0f, Anchor.TopCenter),
-                    Material = lane == 0 ? lVolMaterial : rVolMaterial,
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, 1.0f, Anchor.TopCenter),
+                    Material = volEntryMaterial,
                     Params = CreateVolumeParams(lane),
                 };
 
                 exitDrawable = new Drawable3D()
                 {
                     Texture = exitTexture,
-                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, (entryTexture.Height / (float)entryTexture.Width) / 6.0f, Anchor.BottomCenter),
-                    Material = lane == 0 ? lVolMaterial : rVolMaterial,
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, 1.0f, Anchor.BottomCenter),
+                    Material = volMaterial,
                     Params = CreateVolumeParams(lane),
                 };
             }
@@ -381,17 +381,17 @@ namespace NeuroSonic.GamePlay
                             tDiff = Transform.Scale(widthMult, 1, 1 + distScaling);
                         }
 
-                        if (objr is ButtonHoldRenderState3D holdObj)
+                        if (objr is GlowingRenderState3D glowObj)
                         {
                             if (m_glowInfos[objr.Object.Stream].Object == objr.Object)
                             {
-                                holdObj.Glow = m_glowInfos[objr.Object.Stream].Glow;
-                                holdObj.GlowState = m_glowInfos[objr.Object.Stream].GlowState;
+                                glowObj.Glow = m_glowInfos[objr.Object.Stream].Glow;
+                                glowObj.GlowState = m_glowInfos[objr.Object.Stream].GlowState;
                             }
                             else
                             {
-                                holdObj.Glow = m_streamsActive[objr.Object.Stream] ? 0.0f : -0.5f;
-                                holdObj.GlowState = m_streamsActive[objr.Object.Stream] ? 1 : 0;
+                                glowObj.Glow = m_streamsActive[objr.Object.Stream] ? 0.0f : -0.5f;
+                                glowObj.GlowState = m_streamsActive[objr.Object.Stream] ? 1 : 0;
                             }
                         }
 
@@ -407,6 +407,18 @@ namespace NeuroSonic.GamePlay
                     foreach (var objr in m_renderables[i + 6].Values)
                     {
                         var analog = objr.Object as AnalogObject;
+                        var glowObj = objr as GlowingRenderState3D;
+
+                        if (m_glowInfos[analog.Stream].Object == analog.Head)
+                        {
+                            glowObj.Glow = m_glowInfos[analog.Stream].Glow;
+                            glowObj.GlowState = m_glowInfos[analog.Stream].GlowState;
+                        }
+                        else
+                        {
+                            glowObj.Glow = m_streamsActive[analog.Stream] ? 0.0f : -0.5f;
+                            glowObj.GlowState = m_streamsActive[analog.Stream] ? 1 : 0;
+                        }
 
                         time_t position = objr.Object.AbsolutePosition;
                         if (objr.Object.PreviousConnected != null && objr.Object.Previous.IsInstant)

@@ -17,6 +17,8 @@ namespace NeuroSonic.GamePlay
         private ControllerVisualizer m_visualizer;
         private TimingBar m_timingBar;
 
+        private readonly List<Sprite> m_streamActiveIndicators = new List<Sprite>();
+
         internal GameDebugOverlay(ClientResourceManager skin)
         {
             ForegroundGui = new Panel()
@@ -34,11 +36,34 @@ namespace NeuroSonic.GamePlay
                     },
                 }
             };
+
+            var spriteContainer = new Panel()
+            {
+                RelativePositionAxes = Axes.X,
+                Position = new Vector2(0.5f, 0),
+            };
+            ForegroundGui.AddChild(spriteContainer);
+
+            for (int i = 0; i < 8; i++)
+            {
+                var sprite = new Sprite(null)
+                {
+                    Position = new Vector2(-4 * 50 - 5 + i * 50, 0),
+                    Size = new Vector2(40),
+                };
+                spriteContainer.AddChild(sprite);
+                m_streamActiveIndicators.Add(sprite);
+            }
         }
 
         public void AddTimingInfo(time_t timingDelta, JudgeKind kind)
         {
             m_timingBar.AddTimingInfo(timingDelta, kind);
+        }
+
+        public void SetStreamActive(int stream, bool active)
+        {
+            m_streamActiveIndicators[stream].Color = active ? new Vector4(0, 1, 1, 1) : Vector4.One;
         }
 
         public override void Init()
