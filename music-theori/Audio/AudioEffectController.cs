@@ -134,11 +134,13 @@ namespace theori.Audio
         public void Play() => Track.Play();
         public void Stop() => Track.Stop();
 
-        private float[] m_copyBuffer = new float[1024];
-        private float[] m_dummyBuffer = new float[1024];
+        private float[] m_copyBuffer = new float[2048];
+        private float[] m_dummyBuffer = new float[2048];
 
         public override int Read(float[] buffer, int offset, int count)
         {
+            int result = Track.Read(buffer, offset, count);
+
             // NOTE(local): make sure this doesn't give out garbage?
             if (count > m_copyBuffer.Length)
             {
@@ -146,7 +148,6 @@ namespace theori.Audio
                 m_dummyBuffer = new float[count];
             }
 
-            int result = Track.Read(buffer, offset, count);
             Array.Copy(buffer, offset, m_copyBuffer, 0, result);
             Array.Copy(buffer, offset, m_dummyBuffer, 0, result);
 
@@ -158,17 +159,14 @@ namespace theori.Audio
                     continue;
 
                 var dataBuffer = m_effectsActive[fxi] ? m_copyBuffer : m_dummyBuffer;
-                effect.Process(dataBuffer, offset, result);
+                effect.Process(dataBuffer, 0, result);
 
                 // Always process the effects to keep timing, but don't always mix them in.
-                if (EffectsActive && m_effectsActive[fxi])
-                {
-                    for (int i = 0; i < result; i++)
-                        buffer[offset + i] = dataBuffer[i];
-                
-                    Array.Copy(buffer, offset, m_copyBuffer, 0, result);
-                }
+                if (EffectsActive && m_effectsActive[fxi]) Array.Copy(dataBuffer, 0, buffer, offset, result);
             }
+
+            for (int i = offset; i < offset + count; i++)
+                buffer[i] = MathL.Clamp(buffer[i] * Volume, -1, 1);
 
             return result;
         }

@@ -11,7 +11,7 @@
 	        Set(GameConfigKey.Fullscreen, false);
             Set(GameConfigKey.FullscreenMonitorIndex, 0);
             Set(GameConfigKey.Maximized, false);
-            Set(GameConfigKey.MasterVolume, 1.0f);
+            Set(GameConfigKey.MasterVolume, 0.65f);
 	        Set(GameConfigKey.ScreenX, -1);
 	        Set(GameConfigKey.ScreenY, -1);
 	        Set(GameConfigKey.VSync, 0);

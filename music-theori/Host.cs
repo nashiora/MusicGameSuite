@@ -209,7 +209,7 @@ namespace theori
             CodecFactory.Instance.Register("ogg-vorbis", new CodecFactoryEntry(s => new NVorbisSource(s).ToWaveSource(), ".ogg"));
 
             Mixer = new Mixer(2);
-            Mixer.MasterChannel.Volume = 0.7f;
+            Mixer.MasterChannel.Volume = GameConfig.GetFloat(GameConfigKey.MasterVolume);
 
             return true;
         }

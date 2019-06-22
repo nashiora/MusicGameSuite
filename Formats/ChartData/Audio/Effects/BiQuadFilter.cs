@@ -30,8 +30,7 @@ namespace OpenRM.Audio.Effects
             {
                 for (uint c = 0; c < 2; c++)
                 {
-                    ref float sample = ref buffer[offset + i * 2 + c];
-                    float src = sample;
+                    float src = buffer[offset + i * 2 + c];
 
                     float filtered =
 				        (b0 / a0) * src +
