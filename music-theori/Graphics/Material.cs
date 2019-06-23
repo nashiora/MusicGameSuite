@@ -301,7 +301,7 @@ namespace theori.Graphics
             }
         }
 
-        protected override void DisposeUnmanaged()
+        protected override void DisposeManaged()
         {
             for (int i = 0; i < 3; i++)
                 shaders[i]?.Dispose();

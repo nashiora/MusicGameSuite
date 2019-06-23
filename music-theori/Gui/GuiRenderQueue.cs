@@ -15,8 +15,10 @@ namespace theori.Gui
 
         static GuiRenderQueue()
         {
-            resourceManager = new ClientResourceManager("", "materials/basic");
-            resourceManager.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
+            var resourceLocator = new ClientResourceLocator("", "materials/basic");
+            resourceLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
+
+            resourceManager = new ClientResourceManager(resourceLocator);
         }
 
         private static Material m_textureMaterialBacking;

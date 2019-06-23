@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using System.Threading.Tasks;
 using theori.Graphics;
 using theori.Gui;
 using theori.IO;
+using theori.Resources;
 
 namespace theori
 {
@@ -82,15 +84,22 @@ namespace theori
         /// </summary>
         public virtual void ClientSizeChanged(int width, int height) { }
 
+        public virtual bool AsyncLoad() { return true; }
+        public virtual bool AsyncFinalize() { return true; }
+
         public abstract void Init();
         public abstract void Destroy();
+
         public abstract void Suspended();
         public abstract void Resumed();
+
         public virtual bool KeyPressed(KeyInfo info) => false;
         public virtual bool KeyReleased(KeyInfo info) => false;
+
         public virtual bool ButtonPressed(ButtonInfo info) => false;
         public virtual bool ButtonReleased(ButtonInfo info) => false;
         public virtual bool AxisChanged(AnalogInfo info) => false;
+
         public abstract void Update(float delta, float total);
         public abstract void Render();
     }
@@ -101,5 +110,74 @@ namespace theori
 
         public sealed override void Suspended() { }
         public sealed override void Resumed() { }
+    }
+
+    public class GenericTransitionLayer : Layer
+    {
+        private readonly Layer m_nextLayer;
+
+        private Task<bool> m_asyncLoadTask;
+
+        private readonly BasicSpriteRenderer m_renderer;
+
+        public GenericTransitionLayer(Layer nextLayer, ClientResourceLocator locator)
+        {
+            m_nextLayer = nextLayer;
+
+            if (locator == null)
+            {
+                locator = new ClientResourceLocator(null, "materials/basic");
+                locator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(GetType().Assembly, "theori.Resources"));
+            }
+            m_renderer = new BasicSpriteRenderer(locator, new Vector2(Window.Width, Window.Height));
+        }
+
+        public override void Destroy()
+        {
+            m_asyncLoadTask = null;
+            m_renderer.Dispose();
+        }
+
+        public override void Init()
+        {
+            m_asyncLoadTask = Task.Run(() => m_nextLayer.AsyncLoad());
+        }
+
+        public override void Suspended()
+        {
+        }
+
+        public override void Resumed()
+        {
+        }
+
+        public override void Update(float delta, float total)
+        {
+            if (m_asyncLoadTask == null) return;
+            if (m_asyncLoadTask.IsCompleted)
+            {
+                if (m_asyncLoadTask.Result)
+                {
+                    if (m_nextLayer.AsyncFinalize())
+                    {
+                        Host.AddLayerAbove(this, m_nextLayer);
+                    }
+                }
+
+                Host.RemoveLayer(this);
+                return;
+            }
+        }
+
+        public override void Render()
+        {
+            m_renderer.BeginFrame();
+            m_renderer.Translate(-50, -50);
+            m_renderer.Rotate(Time.Total * 180);
+            m_renderer.Translate(Window.Width / 2.0f, Window.Height / 2.0f);
+            m_renderer.FillRect(0, 0, 100, 100);
+            m_renderer.Flush();
+            m_renderer.EndFrame();
+        }
     }
 }

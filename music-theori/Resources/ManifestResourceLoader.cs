@@ -48,7 +48,7 @@ namespace theori.Resources
             return info != null;
         }
 
-        public Stream GetResourceStream(string resourcePath)
+        public Stream OpenResourceStream(string resourcePath)
         {
             if (IsDisposed) throw new ObjectDisposedException(nameof(ManifestResourceLoader));
             return Assembly.GetManifestResourceStream(ResourcePathToManifestLocation(resourcePath, Namespace));

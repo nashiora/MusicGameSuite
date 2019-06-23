@@ -16,6 +16,7 @@ using CSCore;
 using CSCore.Codecs;
 
 using OpenGL;
+using theori.Scripting;
 
 namespace theori
 {
@@ -90,6 +91,40 @@ namespace theori
             postInit?.Invoke(layer);
         }
 
+        public static void AddLayerAbove(Layer aboveThis, Layer layer)
+        {
+            if (layer.lifetimeState != Layer.LayerLifetimeState.Uninitialized)
+            {
+                throw new Exception("Layer has already been in the layer stack. Cannot re-initialize.");
+            }
+
+            if (!layers.Contains(aboveThis))
+            {
+                throw new Exception("Cannot add a layer above one which is not in the layer stack.");
+            }
+
+            int index = layers.IndexOf(aboveThis);
+            layers.Insert(index + 1, layer);
+
+            if (layer.BlocksParentLayer)
+            {
+                for (int i = index; i >= 0; i--)
+                {
+                    var nextLayer = layers[i];
+                    nextLayer.Suspend();
+
+                    if (nextLayer.BlocksParentLayer)
+                    {
+                        // if it blocks the previous layers then this has happened already for higher layers.
+                        break;
+                    }
+                }
+            }
+
+            layer.Init();
+            layer.lifetimeState = Layer.LayerLifetimeState.Alive;
+        }
+
         /// <summary>
         /// Removes the topmost layer from the layer stack and destroys it.
         /// </summary>
@@ -101,7 +136,11 @@ namespace theori
             layer.Destroy();
             layer.lifetimeState = Layer.LayerLifetimeState.Destroyed;
 
-            if (LayerCount == 0) return;
+            if (LayerCount == 0)
+            {
+                runProgramLoop = false;
+                return;
+            }
 
             if (layer.BlocksParentLayer)
             {
@@ -119,9 +158,41 @@ namespace theori
                 for (int i = startIndex; i < LayerCount; i++)
                     layers[i].Resume();
             }
+        }
+
+        public static void RemoveLayer(Layer layer)
+        {
+            int index = layers.IndexOf(layer);
+            layers.RemoveAt(index);
+
+            layer.Destroy();
+            layer.lifetimeState = Layer.LayerLifetimeState.Destroyed;
 
             if (LayerCount == 0)
+            {
                 runProgramLoop = false;
+                return;
+            }
+
+            if (!layer.IsSuspended)
+            {
+                if (layer.BlocksParentLayer)
+                {
+                    int startIndex = index - 1;
+                    for (; startIndex >= 0; startIndex--)
+                    {
+                        if (layers[startIndex].BlocksParentLayer)
+                        {
+                            // if it blocks the previous layers then this will happen later for higher layers.
+                            break;
+                        }
+                    }
+
+                    // resume layers bottom to top
+                    for (int i = startIndex; i < LayerCount; i++)
+                        layers[i].Resume();
+                }
+            }
         }
 
         public static void PopToParent(Layer firstChild)
@@ -175,6 +246,7 @@ namespace theori
             Logger.Log($"Window VSync: { Window.VSync }");
             InitGraphicsPipeline();
             InitAudioSystem();
+            InitScriptingSystem();
         }
 
         public static bool InitGameConfig()
@@ -211,6 +283,12 @@ namespace theori
             Mixer = new Mixer(2);
             Mixer.MasterChannel.Volume = GameConfig.GetFloat(GameConfigKey.MasterVolume);
 
+            return true;
+        }
+
+        public static bool InitScriptingSystem()
+        {
+            LuaScript.RegisterType<BasicSpriteRenderer>();
             return true;
         }
 

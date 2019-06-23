@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace OpenGL
 {
@@ -22,6 +23,8 @@ namespace OpenGL
             return texture;
         }
 
+        public static Texture CreateUninitialized2D() => new Texture(0, TextureTarget.Texture2D);
+
         static Texture()
         {
             Empty = new Texture();
@@ -41,10 +44,24 @@ namespace OpenGL
         public void Lock() { Locked = true; }
         public bool Locked { get; private set; }
 
+        private Texture(uint handle, TextureTarget target = TextureTarget.Texture2D)
+            : base(handle, GL.DeleteTexture)
+        {
+            Target = target;
+        }
+
         public Texture(TextureTarget target = TextureTarget.Texture2D)
             : base(GL.GenTexture, GL.DeleteTexture)
         {
             Target = target;
+            SetParams();
+        }
+
+        public void GenerateHandle()
+        {
+            if (Handle != 0) return;
+
+            Handle = GL.GenTexture();
             SetParams();
         }
 
@@ -90,7 +107,7 @@ namespace OpenGL
             GL.TexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, Width, Height, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, pixels);
         }
 
-        private void Load2DFromBitmap(Bitmap bmp)
+        public void Create2DFromBitmap(Bitmap bmp)
         {
             if (Locked) throw new Exception("Cannot direcly modify a locked texture.");
 
@@ -123,13 +140,13 @@ namespace OpenGL
         public void Load2DFromStream(Stream stream)
         {
             using (var bmp = new Bitmap(Image.FromStream(stream)))
-                Load2DFromBitmap(bmp);
+                Create2DFromBitmap(bmp);
         }
 
         public void Load2DFromFile(string fileName)
         {
             using (var bmp = new Bitmap(Image.FromFile(fileName)))
-                Load2DFromBitmap(bmp);
+                Create2DFromBitmap(bmp);
         }
 
         public void SetData2D(int width, int height, byte[] pixelData)

@@ -5,8 +5,8 @@ namespace NeuroSonic.ChartSelect.Landscape
 {
     public sealed class LandscapeChartSelectLayer : ChartSelectLayer
     {
-        public LandscapeChartSelectLayer(ClientResourceManager skin)
-            : base(skin)
+        public LandscapeChartSelectLayer(ClientResourceLocator locator)
+            : base(locator)
         {
         }
     }

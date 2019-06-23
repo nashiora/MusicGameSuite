@@ -31,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -113,6 +114,7 @@
     <EmbeddedResource Include="Resources\audio\sample_snare.ogg" />
     <EmbeddedResource Include="Resources\audio\sample_snare_lo.ogg" />
     <EmbeddedResource Include="Resources\materials\laser_entry.fs" />
+    <EmbeddedResource Include="Resources\scripts\chart_select\main.lua" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\textures\bt_chip.png" />
@@ -143,8 +145,6 @@
     <EmbeddedResource Include="Resources\textures\fx_hold_entry.png" />
     <EmbeddedResource Include="Resources\textures\fx_hold_exit.png" />
     <EmbeddedResource Include="Resources\textures\highway.png" />
-    <EmbeddedResource Include="Resources\textures\highway_simple.png" />
-    <EmbeddedResource Include="Resources\textures\inf.png" />
     <EmbeddedResource Include="Resources\textures\key_beam.png" />
     <EmbeddedResource Include="Resources\textures\laser.png" />
     <EmbeddedResource Include="Resources\textures\laser_entry.png" />

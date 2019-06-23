@@ -79,7 +79,7 @@ namespace NeuroSonic.GamePlay
 
             m_drawable = new Drawable3D()
             {
-                Texture = skin.AquireTexture(textureName),
+                Texture = skin.GetTexture(textureName),
                 Material = skin.AquireMaterial("materials/chip"),
                 Mesh = chipMesh,
             };
@@ -132,21 +132,21 @@ namespace NeuroSonic.GamePlay
             {
                 new Drawable3D()
                 {
-                    Texture = skin.AquireTexture(holdTextureName),
+                    Texture = skin.GetTexture(holdTextureName),
                     Material = skin.AquireMaterial("materials/hold"),
                     Mesh = holdMesh,
                 },
 
                 new Drawable3D()
                 {
-                    Texture = skin.AquireTexture(holdTextureName + "_entry"),
+                    Texture = skin.GetTexture(holdTextureName + "_entry"),
                     Material = skin.AquireMaterial("materials/basic"),
                     Mesh = holdMesh,
                 },
 
                 new Drawable3D()
                 {
-                    Texture = skin.AquireTexture(holdTextureName + "_exit"),
+                    Texture = skin.GetTexture(holdTextureName + "_exit"),
                     Material = skin.AquireMaterial("materials/hold"),
                     Mesh = holdMesh,
                 },
@@ -188,6 +188,8 @@ namespace NeuroSonic.GamePlay
 
     internal class SlamRenderState3D : GlowingRenderState3D
     {
+        private const float LASER_WIDTH = 2.0f;
+
         public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
         
         private Transform m_transform = Transform.Identity;
@@ -199,23 +201,27 @@ namespace NeuroSonic.GamePlay
             Debug.Assert(obj.IsInstant, "Analog for slam render state wasn't a slam");
             
             float range = 5 / 6.0f * (obj.RangeExtended ? 2 : 1);
-
+            
             m_transform = Transform.Scale(1, 1, len);
             var mesh = new Mesh();
 
-            const float W = 1 / 6.0f;
-            
-            float il = range * (obj.InitialValue - 0.5f) - W / 2;
-            float ir = range * (obj.InitialValue - 0.5f) + W / 2;
-            
-            float fl = range * (obj.FinalValue - 0.5f) - W / 2;
-            float fr = range * (obj.FinalValue - 0.5f) + W / 2;
+            const float W = LASER_WIDTH / 6.0f;
+
+            float il  = range * (obj.InitialValue - 0.5f) - W / 2;
+            float ilh = range * (obj.InitialValue - 0.5f) - W / 4;
+            float ir  = range * (obj.InitialValue - 0.5f) + W / 2;
+            float irh = range * (obj.InitialValue - 0.5f) + W / 4;
+
+            float fl  = range * (obj.FinalValue - 0.5f) - W / 2;
+            float flh = range * (obj.FinalValue - 0.5f) - W / 4;
+            float fr  = range * (obj.FinalValue - 0.5f) + W / 2;
+            float frh = range * (obj.FinalValue - 0.5f) + W / 4;
 
             if (obj.InitialValue < obj.FinalValue)
             {
+
+#if false
                 ushort[] indices = new ushort[] { 0, 1, 2, 1, 5, 2, 2, 5, 4, 3, 4, 5 };
-                mesh.SetIndices(indices);
-            
                 VertexP3T2[] vertices = new VertexP3T2[6]
                 {
                     new VertexP3T2(new Vector3(il, 0, 0), new Vector2(0, 1)),
@@ -226,13 +232,45 @@ namespace NeuroSonic.GamePlay
                     new VertexP3T2(new Vector3(fr, 0, 0), new Vector2(1, 1)),
                     new VertexP3T2(new Vector3(fl, 0, -1), new Vector2(0, 1)),
                 };
+#else
+                ushort[] indices = new ushort[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
+                VertexP3T2[] vertices = new VertexP3T2[]
+                {
+                    new VertexP3T2(new Vector3(il , 0,  0.0f), new Vector2(0.00f, 0.875f)),
+                    new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(0.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(irh, 0,  0.0f), new Vector2(0.75f, 0.875f)),
+
+                    new VertexP3T2(new Vector3(ir , 0,  0.5f), new Vector2(1.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(0.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(0.00f, 0.000f)),
+
+
+                    new VertexP3T2(new Vector3(ir , 0,  0.5f), new Vector2(1.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(0.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fl , 0, -1.5f), new Vector2(0.00f, 0.000f)),
+
+                    new VertexP3T2(new Vector3(ir , 0,  0.5f), new Vector2(1.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fl , 0, -1.5f), new Vector2(0.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(1.00f, 0.000f)),
+
+
+                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(1.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fl , 0, -1.5f), new Vector2(0.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(1.00f, 0.500f)),
+
+                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(1.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(flh, 0, -1.0f), new Vector2(0.25f, 0.125f)),
+                    new VertexP3T2(new Vector3(fr , 0, -1.0f), new Vector2(1.00f, 0.125f)),
+                };
+#endif
+
+                mesh.SetIndices(indices);
                 mesh.SetVertices(vertices);
             }
             else
             {
+#if false
                 ushort[] indices = new ushort[] { 0, 1, 2, 4, 1, 0, 4, 0, 5, 3, 4, 5 };
-                mesh.SetIndices(indices);
-            
                 VertexP3T2[] vertices = new VertexP3T2[6]
                 {
                     new VertexP3T2(new Vector3(il, 0, 0), new Vector2(0, 1)),
@@ -243,12 +281,45 @@ namespace NeuroSonic.GamePlay
                     new VertexP3T2(new Vector3(fr, 0, -1), new Vector2(1, 0)),
                     new VertexP3T2(new Vector3(fl, 0, 0), new Vector2(0, 1)),
                 };
+#else
+                ushort[] indices = new ushort[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
+                VertexP3T2[] vertices = new VertexP3T2[]
+                {
+                    new VertexP3T2(new Vector3(il , 0,  0.5f), new Vector2(0.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(1.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(1.00f, 0.500f)),
+
+                    new VertexP3T2(new Vector3(ilh, 0,  0.0f), new Vector2(0.25f, 0.875f)),
+                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(1.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(ir , 0,  0.0f), new Vector2(1.00f, 0.875f)),
+
+
+                    new VertexP3T2(new Vector3(il , 0,  0.5f), new Vector2(0.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fr , 0, -1.5f), new Vector2(1.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(1.00f, 1.000f)),
+
+                    new VertexP3T2(new Vector3(il , 0,  0.5f), new Vector2(0.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(0.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(fr , 0, -1.5f), new Vector2(1.00f, 0.000f)),
+
+
+                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(0.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(fr , 0, -1.5f), new Vector2(1.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(0.00f, 1.000f)),
+
+                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(0.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(fl , 0, -1.0f), new Vector2(0.00f, 0.125f)),
+                    new VertexP3T2(new Vector3(frh, 0, -1.0f), new Vector2(0.75f, 0.125f)),
+                };
+#endif
+
+                mesh.SetIndices(indices);
                 mesh.SetVertices(vertices);
             }
 
             m_drawable = new Drawable3D()
             {
-                Texture = skin.AquireTexture("textures/laser"),
+                Texture = skin.GetTexture("textures/laser"),
                 Material = skin.AquireMaterial("materials/laser"),
                 Mesh = mesh,
             };
@@ -285,6 +356,8 @@ namespace NeuroSonic.GamePlay
 
     internal class LaserRenderState3D : GlowingRenderState3D
     {
+        private const float LASER_WIDTH = 2.0f;
+
         public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
         
         private Transform m_transform = Transform.Identity;
@@ -298,7 +371,7 @@ namespace NeuroSonic.GamePlay
             m_transform = Transform.Scale(1, 1, len);
             var mesh = new Mesh();
 
-            const float W = 1 / 6.0f;
+            const float W = LASER_WIDTH / 6.0f;
 
             ushort[] indices = new ushort[] { 0, 1, 2, 0, 2, 3, };
             mesh.SetIndices(indices);
@@ -323,7 +396,7 @@ namespace NeuroSonic.GamePlay
 
             m_drawable = new Drawable3D()
             {
-                Texture = skin.AquireTexture("textures/laser"),
+                Texture = skin.GetTexture("textures/laser"),
                 Material = skin.AquireMaterial("materials/laser"),
                 Mesh = mesh,
             };

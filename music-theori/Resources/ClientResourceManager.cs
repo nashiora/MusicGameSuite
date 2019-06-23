@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-
+using System.Drawing;
+using System.Threading.Tasks;
 using OpenGL;
 
 using theori.Audio;
@@ -11,24 +11,118 @@ namespace theori.Resources
 {
     public sealed class ClientResourceManager : Disposable
     {
-        private readonly List<ManifestResourceLoader> m_resourceLoaders = new List<ManifestResourceLoader>();
-
-        //private readonly Dictionary<string, WeakReference<Disposable>> m_resources = new Dictionary<string, WeakReference<Disposable>>();
-        private readonly Dictionary<string, Disposable> m_resources = new Dictionary<string, Disposable>();
-
-        public readonly string FileSearchDirectory;
-        public readonly string FallbackMaterialName;
-
-        public ClientResourceManager(string fileSearchDirectory, string fallbackMaterialName)
+        abstract class AsyncResourceLoader
         {
-            FileSearchDirectory = fileSearchDirectory;
-            FallbackMaterialName = fallbackMaterialName;
+            protected readonly ClientResourceManager m_resourceManager;
+            protected readonly string m_resourcePath;
+
+            protected AsyncResourceLoader(ClientResourceManager resourceManager, string resourcePath)
+            {
+                m_resourceManager = resourceManager;
+                m_resourcePath = resourcePath;
+            }
+
+            /// <summary>
+            /// Started in a separate thread to load the necessary data
+            /// </summary>
+            public abstract bool Load();
+            /// <summary>
+            /// Started on the main thread to finalize the loaded data
+            /// </summary>
+            /// <returns></returns>
+            public abstract bool Finalize();
         }
 
-        public void AddManifestResourceLoader(ManifestResourceLoader loader)
+        sealed class AsyncTextureLoader : AsyncResourceLoader
         {
-            if (m_resourceLoaders.Contains(loader)) return;
-            m_resourceLoaders.Add(loader);
+            private readonly Texture m_resultTexture;
+            private Bitmap m_bitmap;
+
+            public AsyncTextureLoader(ClientResourceManager resourceManager, string resourcePath, Texture resultTexture)
+                : base(resourceManager, resourcePath)
+            {
+                m_resultTexture = resultTexture;
+            }
+
+            public override bool Load()
+            {
+                var textureStream = m_resourceManager.m_locator.OpenTextureStream(m_resourcePath, out string fileExtension);
+                if (textureStream == null)
+                    return false;
+
+                using (textureStream)
+                    m_bitmap = new Bitmap(Image.FromStream(textureStream));
+                return true;
+            }
+
+            public override bool Finalize()
+            {
+                m_resultTexture.GenerateHandle();
+                m_resultTexture.Create2DFromBitmap(m_bitmap);
+
+                m_resourceManager.m_resources[m_resourcePath] = m_resultTexture;
+
+                m_bitmap.Dispose();
+                return true;
+            }
+        }
+
+        private readonly ClientResourceLocator m_locator;
+
+        private readonly List<AsyncResourceLoader> m_loaders = new List<AsyncResourceLoader>();
+        private readonly Dictionary<string, Disposable> m_resources = new Dictionary<string, Disposable>();
+
+        public ClientResourceManager(ClientResourceLocator locator)
+        {
+            m_locator = locator;
+        }
+
+        protected override void DisposeManaged()
+        {
+            foreach (var resource in m_resources.Values)
+                resource.Dispose();
+            m_resources.Clear();
+        }
+
+        public Texture QueueTextureLoad(string resourcePath)
+        {
+            var resultTexture = Texture.CreateUninitialized2D();
+            m_loaders.Add(new AsyncTextureLoader(this, resourcePath, resultTexture));
+            return resultTexture;
+        }
+
+        public bool LoadAll()
+        {
+            bool success = true;
+            foreach (var loader in m_loaders)
+            {
+                if (!loader.Load())
+                {
+                    success = false;
+                }
+            }
+            return success;
+        }
+
+        public bool FinalizeLoad()
+        {
+            bool success = true;
+            foreach (var loader in m_loaders)
+            {
+                if (!loader.Finalize())
+                {
+                    success = false;
+                }
+            }
+            m_loaders.Clear();
+            return success;
+        }
+
+        public Texture GetTexture(string resourcePath)
+        {
+            if (!m_resources.TryGetValue(resourcePath, out var resource) || resource.IsDisposed)
+                return null;
+            return resource as Texture;
         }
 
         private T Aquire<T>(string resourcePath, Func<string, T> loader)
@@ -53,160 +147,47 @@ namespace theori.Resources
 
         public AudioTrack LoadRawAudioTrack(string resourcePath)
         {
-            string[] exts = { ".ogg", ".wav" };
+            var audioStream = m_locator.OpenAudioStream(resourcePath, out string fileExtension);
+            if (audioStream == null)
+                throw new ArgumentException($"Could not find the specified audio track resource \"{ resourcePath }\".", nameof(resourcePath));
 
-            if (FileSearchDirectory != null)
-            {
-                foreach (var ext in exts)
-                {
-                    string fsResourcePath = Path.Combine(FileSearchDirectory, resourcePath + ext);
-                    if (File.Exists(fsResourcePath))
-                        return AudioTrack.FromFile(fsResourcePath);
-                }
-            }
-
-            // first loader with the path loads it
-            foreach (var loader in m_resourceLoaders)
-            {
-                foreach (var ext in exts)
-                {
-                    string manifestResourcePath = resourcePath + ext;
-                    if (loader.ContainsResource(manifestResourcePath))
-                    {
-                        using (var stream = loader.GetResourceStream(manifestResourcePath))
-                            return AudioTrack.FromStream(ext, stream);
-                    }
-                }
-            }
-
-            throw new ArgumentException("Could not find the specified audio track resource.", nameof(resourcePath));
+            // audio tracks own their stream
+            return AudioTrack.FromStream(fileExtension, audioStream);
         }
 
         public AudioSample LoadRawAudioSample(string resourcePath)
         {
-            string[] exts = { ".ogg", ".wav" };
+            var audioStream = m_locator.OpenAudioStream(resourcePath, out string fileExtension);
+            if (audioStream == null)
+                throw new ArgumentException($"Could not find the specified audio sample resource \"{ resourcePath }\".", nameof(resourcePath));
 
-            if (FileSearchDirectory != null)
-            {
-                foreach (var ext in exts)
-                {
-                    string fsResourcePath = Path.Combine(FileSearchDirectory, resourcePath + ext);
-                    if (File.Exists(fsResourcePath))
-                        return AudioSample.FromFile(fsResourcePath);
-                }
-            }
-
-            // first loader with the path loads it
-            foreach (var loader in m_resourceLoaders)
-            {
-                foreach (var ext in exts)
-                {
-                    string manifestResourcePath = resourcePath + ext;
-                    if (loader.ContainsResource(manifestResourcePath))
-                        return AudioSample.FromStream(ext, loader.GetResourceStream(manifestResourcePath));
-                }
-            }
-
-            throw new ArgumentException("Could not find the specified audio sample resource.", nameof(resourcePath));
+            // audio samples own their stream
+            return AudioSample.FromStream(fileExtension, audioStream);
         }
 
         public Texture LoadRawTexture(string resourcePath)
         {
-            string[] exts = { ".png" };
+            var textureStream = m_locator.OpenTextureStream(resourcePath, out string fileExtension);
+            if (textureStream == null)
+                throw new ArgumentException($"Could not find the specified texture resource \"{ resourcePath }\".", nameof(resourcePath));
 
-            if (FileSearchDirectory != null)
-            {
-                foreach (var ext in exts)
-                {
-                    string fsResourcePath = Path.Combine(FileSearchDirectory, resourcePath + ext);
-                    if (File.Exists(fsResourcePath))
-                        return Texture.FromFile2D(fsResourcePath);
-                }
-            }
-
-            // first loader with the path loads it
-            foreach (var loader in m_resourceLoaders)
-            {
-                foreach (var ext in exts)
-                {
-                    string manifestResourcePath = resourcePath + ext;
-                    if (loader.ContainsResource(manifestResourcePath))
-                    {
-                        using (var stream = loader.GetResourceStream(manifestResourcePath))
-                            return Texture.FromStream2D(stream);
-                    }
-                }
-            }
-
-            throw new ArgumentException("Could not find the specified texture resource.", nameof(resourcePath));
+            // textures do NOT own their stream
+            using (textureStream)
+                return Texture.FromStream2D(textureStream);
         }
 
         public Material LoadRawMaterial(string resourcePath)
         {
-            (int ResourceIndex, string ResourcePath) LocateShaderResource(string ext, out bool isFallback)
+            // materials do NOT own their stream
+            using (var vertexStream = m_locator.OpenShaderStream(resourcePath, ".vs", out bool missingVertex))
+            using (var fragmentStream = m_locator.OpenShaderStream(resourcePath, ".fs", out bool missingFragment))
+            using (var geometryStream = m_locator.OpenShaderStream(resourcePath, ".gs", out bool missingGeometry))
             {
-                isFallback = false;
+                if ((missingVertex || vertexStream == null) && (missingFragment || fragmentStream == null))
+                    throw new ArgumentException($"Could not find the specified material resource \"{ resourcePath }\".", nameof(resourcePath));
 
-                // search for the right one first
-                if (FileSearchDirectory != null)
-                {
-                    string fsPath = Path.Combine(FileSearchDirectory, resourcePath) + ext;
-                    if (File.Exists(fsPath))
-                        return (-1, fsPath);
-                }
-
-                for (int i = 0; i < m_resourceLoaders.Count; i++)
-                {
-                    var loader = m_resourceLoaders[i];
-
-                    string loaderPath = resourcePath + ext;
-                    if (loader.ContainsResource(loaderPath))
-                        return (i, loaderPath);
-                }
-
-                // then search for the fallback
-                isFallback = true;
-
-                if (FileSearchDirectory != null)
-                {
-                    string correct = Path.Combine(FileSearchDirectory, FallbackMaterialName) + ext;
-                    if (File.Exists(correct))
-                        return (-1, correct);
-                }
-
-                for (int i = 0; i < m_resourceLoaders.Count; i++)
-                {
-                    var loader = m_resourceLoaders[i];
-
-                    string loaderPath = FallbackMaterialName + ext;
-                    if (loader.ContainsResource(loaderPath))
-                        return (i, loaderPath);
-                }
-
-                //Debug.Assert(false, $"Unable to locate correct or fallback shader for { resourcePath }{ ext } (with fallback name { FallbackMaterialName })");
-                return (-1, null);
-            }
-
-            Stream OpenStreamForShader((int Index, string Path) resourceInfo)
-            {
-                if (resourceInfo.Path == null) return null;
-
-                if (resourceInfo.Index == -1)
-                    return File.OpenRead(resourceInfo.Path);
-                else return m_resourceLoaders[resourceInfo.Index].GetResourceStream(resourceInfo.Path);
-            }
-
-            (int, string) vertexLocation = LocateShaderResource(".vs", out bool missingVertex);
-            (int, string) fragmentLocation = LocateShaderResource(".fs", out bool missingFragment);
-            (int, string) geometryLocation = LocateShaderResource(".gs", out bool missingGeometry);
-
-            if (missingVertex && missingFragment)
-                throw new ArgumentException("Could not find the specified material resource.", nameof(resourcePath));
-
-            using (var vertexStream = OpenStreamForShader(vertexLocation))
-            using (var fragmentStream = OpenStreamForShader(fragmentLocation))
-            using (var geometryStream = OpenStreamForShader(geometryLocation))
                 return new Material(vertexStream, fragmentStream, geometryStream);
+            }
         }
     }
 }

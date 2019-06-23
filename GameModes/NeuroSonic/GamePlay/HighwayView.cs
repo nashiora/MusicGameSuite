@@ -44,10 +44,17 @@ namespace NeuroSonic.GamePlay
 
         private readonly ClientResourceManager m_skin;
 
-        private readonly Drawable3D m_highwayDrawable;
-        private readonly Drawable3D[] m_keyBeamDrawables = new Drawable3D[6];
-        private readonly Drawable3D m_lVolEntryDrawable, m_lVolExitDrawable;
-        private readonly Drawable3D m_rVolEntryDrawable, m_rVolExitDrawable;
+        private Texture highwayTexture, keyBeamTexture;
+        private Texture entryTexture, exitTexture;
+
+        private Texture btChipTexture, fxChipTexture, btChipSampleTexture, fxChipSampleTexture;
+        private Texture btHoldTexture, fxHoldTexture, btHoldEntryTexture, fxHoldEntryTexture, btHoldExitTexture, fxHoldExitTexture;
+        private Texture laserTexture;
+
+        private Drawable3D m_highwayDrawable;
+        private Drawable3D[] m_keyBeamDrawables = new Drawable3D[6];
+        private Drawable3D m_lVolEntryDrawable, m_lVolExitDrawable;
+        private Drawable3D m_rVolEntryDrawable, m_rVolExitDrawable;
 
         private Vector3 m_lVolColor, m_rVolColor;
 
@@ -86,24 +93,59 @@ namespace NeuroSonic.GamePlay
             m_lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
             m_rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
 
+            Camera = new BasicCamera();
+            Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
+            
+            m_renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
+        }
+
+        public bool AsyncLoad()
+        {
+            btChipTexture = m_skin.QueueTextureLoad("textures/bt_chip");
+            btChipSampleTexture = m_skin.QueueTextureLoad("textures/bt_chip_sample");
+            btHoldTexture = m_skin.QueueTextureLoad("textures/bt_hold");
+            btHoldEntryTexture = m_skin.QueueTextureLoad("textures/bt_hold_entry");
+            btHoldExitTexture = m_skin.QueueTextureLoad("textures/bt_hold_exit");
+
+            fxChipTexture = m_skin.QueueTextureLoad("textures/fx_chip");
+            fxChipSampleTexture = m_skin.QueueTextureLoad("textures/fx_chip_sample");
+            fxHoldTexture = m_skin.QueueTextureLoad("textures/fx_hold");
+            fxHoldEntryTexture = m_skin.QueueTextureLoad("textures/fx_hold_entry");
+            fxHoldExitTexture = m_skin.QueueTextureLoad("textures/fx_hold_exit");
+
+            laserTexture = m_skin.QueueTextureLoad("textures/laser");
+
+            highwayTexture = m_skin.QueueTextureLoad("textures/highway");
+            keyBeamTexture = m_skin.QueueTextureLoad("textures/key_beam");
+            entryTexture = m_skin.QueueTextureLoad("textures/laser_entry");
+            exitTexture = m_skin.QueueTextureLoad("textures/laser_exit");
+
+            if (!m_skin.LoadAll())
+                return false;
+
+            return true;
+        }
+
+        public bool AsyncFinalize()
+        {
             var highwayParams = new MaterialParams();
             highwayParams["LeftColor"] = m_lVolColor;
             highwayParams["RightColor"] = m_rVolColor;
             highwayParams["Hidden"] = 0.0f;
 
             var basicMaterial = m_skin.AquireMaterial("materials/basic");
+            var highwayMaterial = m_skin.AquireMaterial("materials/highway");
             var volMaterial = m_skin.AquireMaterial("materials/laser");
             volMaterial.BlendMode = BlendMode.Additive;
             var volEntryMaterial = m_skin.AquireMaterial("materials/laser_entry");
             volEntryMaterial.BlendMode = BlendMode.Additive;
 
-            var keyBeamTexture = m_skin.AquireTexture("textures/key_beam");
             var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter);
 
             m_highwayDrawable = new Drawable3D()
             {
-                Texture = m_skin.AquireTexture("textures/highway"),
-                Material = m_skin.AquireMaterial("materials/highway"),
+                Texture = highwayTexture,
+                Material = highwayMaterial,
                 Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter),
                 Params = highwayParams,
             };
@@ -128,14 +170,10 @@ namespace NeuroSonic.GamePlay
 
             void CreateVolDrawables(int lane, ref Drawable3D entryDrawable, ref Drawable3D exitDrawable)
             {
-                // TODO(local): use the lane value!
-                var entryTexture = m_skin.AquireTexture("textures/laser_entry");
-                var exitTexture = m_skin.AquireTexture("textures/laser_exit");
-
                 entryDrawable = new Drawable3D()
                 {
                     Texture = entryTexture,
-                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, 1.0f, Anchor.TopCenter),
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 2 / 6.0f, 1.0f, Anchor.TopCenter),
                     Material = volEntryMaterial,
                     Params = CreateVolumeParams(lane),
                 };
@@ -143,7 +181,7 @@ namespace NeuroSonic.GamePlay
                 exitDrawable = new Drawable3D()
                 {
                     Texture = exitTexture,
-                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1 / 6.0f, 1.0f, Anchor.BottomCenter),
+                    Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 2 / 6.0f, 1.0f, Anchor.BottomCenter),
                     Material = volMaterial,
                     Params = CreateVolumeParams(lane),
                 };
@@ -152,10 +190,7 @@ namespace NeuroSonic.GamePlay
             CreateVolDrawables(0, ref m_lVolEntryDrawable, ref m_lVolExitDrawable);
             CreateVolDrawables(1, ref m_rVolEntryDrawable, ref m_rVolExitDrawable);
 
-            Camera = new BasicCamera();
-            Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
-            
-            m_renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
+            return true;
         }
 
         public void Reset()

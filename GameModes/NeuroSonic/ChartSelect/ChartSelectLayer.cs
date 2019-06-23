@@ -13,11 +13,11 @@ namespace NeuroSonic.ChartSelect
 {
     public abstract class ChartSelectLayer : NscLayer
     {
-        protected readonly ClientResourceManager m_skin;
+        protected readonly ClientResourceLocator m_locator;
 
-        public ChartSelectLayer(ClientResourceManager skin)
+        public ChartSelectLayer(ClientResourceLocator locator)
         {
-            m_skin = skin;
+            m_locator = locator;
         }
 
         public override void Init()
@@ -87,8 +87,8 @@ namespace NeuroSonic.ChartSelect
                         if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
                             autoPlay = AutoPlay.ButtonsAndLasers;
 
-                        var game = new GameLayer(m_skin, chart, audio, autoPlay);
-                        Host.PushLayer(game);
+                        var game = new GameLayer(m_locator, chart, audio, autoPlay);
+                        Host.PushLayer(new GenericTransitionLayer(game, m_locator));
                     }
                 } break;
 

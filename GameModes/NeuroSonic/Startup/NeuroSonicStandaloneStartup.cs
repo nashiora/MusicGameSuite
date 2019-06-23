@@ -1,12 +1,19 @@
 ﻿using theori;
 
 using NeuroSonic.ChartSelect.Landscape;
+using theori.Graphics;
+using System.Numerics;
+using theori.Scripting;
+using MoonSharp.Interpreter;
 
 namespace NeuroSonic.Startup
 {
     public class NeuroSonicStandaloneStartup : BaseMenuLayer
     {
         protected override string Title => "NeuroSonic - Main Menu";
+
+        private BasicSpriteRenderer m_renderer;
+        private LuaScript m_script;
 
         protected override void GenerateMenuItems()
         {
@@ -19,6 +26,14 @@ namespace NeuroSonic.Startup
         public override void Init()
         {
             base.Init();
+
+            m_script = new LuaScript();
+
+            m_renderer = new BasicSpriteRenderer(Plugin.DefaultResourceLocator, new Vector2(Window.Width, Window.Height));
+            m_script["gfx"] = m_renderer;
+
+            //m_script.DoString("function Draw() gfx.SetColor(255, 0, 255); gfx.FillRect(10, 10, 100, 100); end");
+            m_script.LoadFile(Plugin.DefaultResourceLocator.OpenFileStream("scripts/chart_select/main.lua"));
         }
 
         private void EnterInputMethod()
@@ -36,7 +51,22 @@ namespace NeuroSonic.Startup
 
         private void EnterFreePlay()
         {
-            Host.PushLayer(new LandscapeChartSelectLayer(Plugin.DefaultSkin));
+            Host.PushLayer(new LandscapeChartSelectLayer(Plugin.DefaultResourceLocator));
+        }
+
+        public override void Update(float delta, float total)
+        {
+            base.Update(delta, total);
+            m_script.Call("Update", delta);
+        }
+
+        public override void Render()
+        {
+            base.Render();
+            m_renderer.BeginFrame();
+            m_script.Call("Draw");
+            m_renderer.Flush();
+            m_renderer.EndFrame();
         }
     }
 }

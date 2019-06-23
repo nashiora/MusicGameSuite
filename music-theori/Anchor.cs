@@ -12,9 +12,9 @@ namespace theori
         Middle = 0x02,
         Bottom = 0x04,
 
-        Left = 0x08,
-        Center = 0x10,
-        Right = 0x20,
+        Left = 0x10,
+        Center = 0x20,
+        Right = 0x40,
 
         TopLeft = Top | Left,
         TopCenter = Top | Center,

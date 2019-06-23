@@ -19,7 +19,7 @@ namespace NeuroSonic
 
         public static Gamepad Gamepad { get; private set; }
 
-        public static ClientResourceManager DefaultSkin { get; private set; }
+        public static ClientResourceLocator DefaultResourceLocator { get; private set; }
 
         /// <summary>
         /// Invoked when the plugin starts in Standalone.
@@ -36,9 +36,9 @@ namespace NeuroSonic
             // save the defaults on init
             else SaveNscConfig();
 
-            DefaultSkin = new ClientResourceManager("skins/Default", "materials/basic");
-            DefaultSkin.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
-            DefaultSkin.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Plugin).Assembly, "NeuroSonic.Resources"));
+            DefaultResourceLocator = new ClientResourceLocator("skins/Default", "materials/basic");
+            DefaultResourceLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
+            DefaultResourceLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Plugin).Assembly, "NeuroSonic.Resources"));
 
             Gamepad = Gamepad.Open(Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID));
             Input.CreateController();

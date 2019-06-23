@@ -4,6 +4,8 @@ namespace OpenGL
 {
     public abstract class UIntHandle : Disposable
     {
+        protected override bool SuppressFinalize => true;
+
         public static bool operator true (UIntHandle p) => p.Handle != 0;
         public static bool operator false(UIntHandle p) => p.Handle == 0;
 
@@ -12,7 +14,7 @@ namespace OpenGL
         private Action<uint> m_deleteHandle;
 
         public bool IsValid => Handle != 0;
-        internal uint Handle { get; private set; }
+        public uint Handle { get; protected set; }
 
         protected UIntHandle(uint handle, Action<uint> deleteHandle)
         {

@@ -16,6 +16,7 @@ using NeuroSonic.GamePlay.Scoring;
 using System.Collections.Generic;
 using NeuroSonic.IO;
 using theori.Resources;
+using OpenGL;
 
 namespace NeuroSonic.GamePlay
 {
@@ -41,7 +42,8 @@ namespace NeuroSonic.GamePlay
         private bool AutoButtons => (m_autoPlay & AutoPlay.Buttons) != 0;
         private bool AutoLasers => (m_autoPlay & AutoPlay.Lasers) != 0;
 
-        private readonly ClientResourceManager m_skin;
+        private readonly ClientResourceLocator m_locator;
+        private readonly ClientResourceManager m_loader;
 
         private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
@@ -70,14 +72,62 @@ namespace NeuroSonic.GamePlay
 
         #endregion
 
-        internal GameLayer(ClientResourceManager skin, Chart chart, AudioTrack audio, AutoPlay autoPlay = AutoPlay.None)
+        internal GameLayer(ClientResourceLocator resourceLocator, Chart chart, AudioTrack audio, AutoPlay autoPlay = AutoPlay.None)
         {
-            m_skin = skin;
+            m_locator = resourceLocator;
+            m_loader = new ClientResourceManager(resourceLocator);
 
             m_chart = chart;
             m_audio = audio;
 
             m_autoPlay = autoPlay;
+
+            m_highwayView = new HighwayView(m_loader);
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+
+            m_loader.Dispose();
+
+            if (m_debugOverlay != null)
+            {
+                Host.RemoveOverlay(m_debugOverlay);
+                m_debugOverlay = null;
+            }
+
+            m_audioController?.Stop();
+            m_audioController?.Dispose();
+        }
+
+        private Texture m_testTexture;
+
+        public override bool AsyncLoad()
+        {
+            m_testTexture = m_loader.QueueTextureLoad("textures/highway");
+
+            if (!m_highwayView.AsyncLoad())
+                return false;
+
+            if (!m_loader.LoadAll())
+                return false;
+
+            m_slamSample = m_loader.AquireAudioSample("audio/slam");
+            m_slamSample.Channel = Host.Mixer.MasterChannel;
+
+            return true;
+        }
+
+        public override bool AsyncFinalize()
+        {
+            if (!m_highwayView.AsyncFinalize())
+                return false;
+
+            if (!m_loader.FinalizeLoad())
+                return false;
+
+            return true;
         }
 
         public override void ClientSizeChanged(int width, int height)
@@ -89,12 +139,6 @@ namespace NeuroSonic.GamePlay
         {
             base.Init();
 
-            //m_slamSample = AudioSample.FromFile(@"skins\Default\audio\slam.wav");
-            m_slamSample = m_skin.AquireAudioSample("audio/slam");
-            m_slamSample.Channel = Host.Mixer.MasterChannel;
-            m_slamSample.Volume = 0.5f * 0.7f;
-
-            m_highwayView = new HighwayView(m_skin);
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
 
             m_playback = new SlidingChartPlayback(m_chart);
@@ -134,8 +178,8 @@ namespace NeuroSonic.GamePlay
             {
                 Children = new GuiElement[]
                 {
-                    m_critRoot = new CriticalLine(m_skin),
-                    m_comboDisplay = new ComboDisplay(m_skin)
+                    m_critRoot = new CriticalLine(m_loader),
+                    m_comboDisplay = new ComboDisplay(m_loader)
                     {
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(0.5f, 0.7f)
@@ -179,20 +223,6 @@ namespace NeuroSonic.GamePlay
 
             m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 2);
             m_audioController.Play();
-        }
-
-        public override void Destroy()
-        {
-            base.Destroy();
-
-            if (m_debugOverlay != null)
-            {
-                Host.RemoveOverlay(m_debugOverlay);
-                m_debugOverlay = null;
-            }
-
-            m_audioController?.Stop();
-            m_audioController?.Dispose();
         }
 
         public override void Suspended()
@@ -330,7 +360,7 @@ namespace NeuroSonic.GamePlay
                     }
                     break;
 
-                    case SlamVolumeEvent pars: m_slamSample.Volume = pars.Volume * 0.7f; break;
+                    case SlamVolumeEvent pars: m_slamSample.Volume = pars.Volume; break;
                 }
             }
 
@@ -397,7 +427,7 @@ namespace NeuroSonic.GamePlay
                 }
                 else
                 {
-                    m_debugOverlay = new GameDebugOverlay(m_skin);
+                    m_debugOverlay = new GameDebugOverlay(m_loader);
                     Host.AddOverlay(m_debugOverlay);
                 }
                 return true;

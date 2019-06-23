@@ -95,6 +95,9 @@ namespace NeuroSonic.Win32
             if (!Host.InitAudioSystem())
                 ;
 
+            if (!Host.InitScriptingSystem())
+                ;
+
             Host.OnUserQuit += TempFileWriter.Flush;
             Host.StartStandalone(NeuroSonicDescription.Instance, args);
 #if !DEBUG

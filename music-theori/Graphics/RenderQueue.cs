@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
 using OpenGL;
 
 namespace theori.Graphics
 {
-    public class RenderQueue : IDisposable
+    public class RenderQueue : Disposable
     {
         protected readonly RenderState state;
         protected readonly List<SimpleDrawCall> orderedCommands = new List<SimpleDrawCall>(50);
@@ -156,7 +154,7 @@ namespace theori.Graphics
             orderedCommands.Add(sdc);
         }
 
-        void IDisposable.Dispose()
+        protected override void DisposeManaged()
         {
             Process(true);
         }
