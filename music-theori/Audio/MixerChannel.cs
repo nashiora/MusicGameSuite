@@ -18,7 +18,7 @@ namespace theori.Audio
         public override int Channels { get; }
         public override int SampleRate { get; }
 
-        public bool DivideResult { get; set; } = true;
+        public bool DivideResult { get; set; } = false;
 
         public WaveFormat WaveFormat { get; }
 
