@@ -151,7 +151,6 @@ namespace theori.Audio
             Array.Copy(buffer, offset, m_copyBuffer, 0, result);
             Array.Copy(buffer, offset, m_dummyBuffer, 0, result);
 
-            //foreach (var effect in dsps)
             for (int fxi = 0; fxi < m_dsps.Length; fxi++)
             {
                 var effect = m_dsps[fxi];
@@ -166,7 +165,7 @@ namespace theori.Audio
             }
 
             for (int i = offset; i < offset + count; i++)
-                buffer[i] = MathL.Clamp(buffer[i] * Volume, -1, 1);
+                buffer[i] = buffer[i] * Volume;
 
             return result;
         }

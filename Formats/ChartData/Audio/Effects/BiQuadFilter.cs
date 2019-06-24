@@ -48,7 +48,7 @@ namespace OpenRM.Audio.Effects
 			        za[c, 0] = filtered;
 
                     //sample = filtered;
-                    buffer[offset + i * 2 + c] = MathL.Lerp(src, filtered, Mix);
+                    buffer[offset + i * 2 + c] = src * (1 - Mix) + filtered * Mix;
                 }
             }
         }

@@ -18,7 +18,7 @@ namespace theori.Audio
         public override int Channels { get; }
         public override int SampleRate { get; }
 
-        public bool DivideResult { get; set; } = false;
+        public bool DivideResult { get; set; } = true;
 
         public WaveFormat WaveFormat { get; }
 
@@ -73,6 +73,7 @@ namespace theori.Audio
 
                     for (int m = sources.Count - 1; m >=0; m--)
                     {
+                        if (m >= sources.Count) continue;
                         var source = sources[m];
 
                         int read = source.Read(mixerBuffer, 0, count);
