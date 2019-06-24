@@ -80,7 +80,7 @@ namespace NeuroSonic.GamePlay
             m_drawable = new Drawable3D()
             {
                 Texture = skin.GetTexture(textureName),
-                Material = skin.AquireMaterial("materials/chip"),
+                Material = skin.GetMaterial("materials/chip"),
                 Mesh = chipMesh,
             };
 
@@ -133,21 +133,21 @@ namespace NeuroSonic.GamePlay
                 new Drawable3D()
                 {
                     Texture = skin.GetTexture(holdTextureName),
-                    Material = skin.AquireMaterial("materials/hold"),
+                    Material = skin.GetMaterial("materials/hold"),
                     Mesh = holdMesh,
                 },
 
                 new Drawable3D()
                 {
                     Texture = skin.GetTexture(holdTextureName + "_entry"),
-                    Material = skin.AquireMaterial("materials/basic"),
+                    Material = skin.GetMaterial("materials/basic"),
                     Mesh = holdMesh,
                 },
 
                 new Drawable3D()
                 {
                     Texture = skin.GetTexture(holdTextureName + "_exit"),
-                    Material = skin.AquireMaterial("materials/hold"),
+                    Material = skin.GetMaterial("materials/hold"),
                     Mesh = holdMesh,
                 },
             };
@@ -320,7 +320,7 @@ namespace NeuroSonic.GamePlay
             m_drawable = new Drawable3D()
             {
                 Texture = skin.GetTexture("textures/laser"),
-                Material = skin.AquireMaterial("materials/laser"),
+                Material = skin.GetMaterial("materials/laser"),
                 Mesh = mesh,
             };
 
@@ -397,7 +397,7 @@ namespace NeuroSonic.GamePlay
             m_drawable = new Drawable3D()
             {
                 Texture = skin.GetTexture("textures/laser"),
-                Material = skin.AquireMaterial("materials/laser"),
+                Material = skin.GetMaterial("materials/laser"),
                 Mesh = mesh,
             };
 

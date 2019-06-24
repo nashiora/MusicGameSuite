@@ -96,48 +96,30 @@ namespace theori.Graphics
             public GLType Type;
         }
 
-        private readonly ProgramPipeline pipeline;
+        internal static Material CreateUninitialized() => new Material();
+
+        private ProgramPipeline m_pipeline;
 
         public BlendMode BlendMode;
         public bool Opaque;
 
-        private readonly ShaderProgram[] shaders = new ShaderProgram[3];
+        private readonly ShaderProgram[] m_shaderPrograms = new ShaderProgram[3];
 
-        private uint userId = (uint)BuiltInParams.User;
+        private uint m_userId = (uint)BuiltInParams.User;
 
-        private readonly Dictionary<string, uint> mappedParams = new Dictionary<string, uint>();
-        private readonly Dictionary<uint, List<BoundParamInfo>> boundParams = new Dictionary<uint, List<BoundParamInfo>>();
-        private readonly Dictionary<string, uint> textureIDs = new Dictionary<string, uint>();
+        private readonly Dictionary<string, uint> m_mappedParams = new Dictionary<string, uint>();
+        private readonly Dictionary<uint, List<BoundParamInfo>> m_boundParams = new Dictionary<uint, List<BoundParamInfo>>();
+        private readonly Dictionary<string, uint> m_textureIDs = new Dictionary<string, uint>();
 
-        private uint textureID = 0;
+        private uint m_textureID = 0;
 
-        public Material(string vertexShaderPath, string fragmentShaderPath, string geometryShaderPath = null)
+        private Material()
         {
-            pipeline = new ProgramPipeline();
-
-            void AddShader(string path, ShaderType type)
-            {
-                string source = File.ReadAllText(path);
-
-                var program = new ShaderProgram(type, source);
-                if (!program || !program.Linked)
-                {
-                    Logger.Log(program.InfoLog);
-                    Host.Quit(1);
-                }
-
-                AssignShader(program);
-            }
-            
-            AddShader(vertexShaderPath, ShaderType.Vertex);
-            AddShader(fragmentShaderPath, ShaderType.Fragment);
-            if (geometryShaderPath != null)
-                AddShader(geometryShaderPath, ShaderType.Geometry);
         }
 
         public Material(Stream vertexShaderStream, Stream fragmentShaderStream, Stream geometryShaderStream = null)
         {
-            pipeline = new ProgramPipeline();
+            m_pipeline = new ProgramPipeline();
 
             void AddShader(Stream stream, ShaderType type)
             {
@@ -159,6 +141,11 @@ namespace theori.Graphics
                 AddShader(geometryShaderStream, ShaderType.Geometry);
         }
 
+        internal void CreatePipeline()
+        {
+            m_pipeline = new ProgramPipeline();
+        }
+
         private int GetShaderIndex(ShaderStage stage)
         {
             switch (stage)
@@ -172,7 +159,7 @@ namespace theori.Graphics
 
         public void AssignShader(ShaderProgram program)
         {
-            shaders[GetShaderIndex(program.Stage)] = program;
+            m_shaderPrograms[GetShaderIndex(program.Stage)] = program;
 
             var uniforms = program.ActiveUniforms;
             for (int count = uniforms.Length, i = 0; i < count; i++)
@@ -181,8 +168,8 @@ namespace theori.Graphics
 
                 if (info.Type == GLType.Sampler2D)
                 {
-					if(!textureIDs.ContainsKey(info.Name))
-						textureIDs[info.Name] = textureID++;
+					if(!m_textureIDs.ContainsKey(info.Name))
+						m_textureIDs[info.Name] = m_textureID++;
                 }
 
                 uint target = 0;
@@ -191,8 +178,8 @@ namespace theori.Graphics
                 {
                     target = (uint)builtInKind;
                 }
-                else if (!mappedParams.TryGetValue(info.Name, out target))
-                    mappedParams[info.Name] = target = userId++;
+                else if (!m_mappedParams.TryGetValue(info.Name, out target))
+                    m_mappedParams[info.Name] = target = m_userId++;
 
                 var paramInfo = new BoundParamInfo()
                 {
@@ -201,8 +188,8 @@ namespace theori.Graphics
                     Type = info.Type,
                 };
 
-                if (!boundParams.TryGetValue(target, out var list))
-                    boundParams[target] = list = new List<BoundParamInfo>();
+                if (!m_boundParams.TryGetValue(target, out var list))
+                    m_boundParams[target] = list = new List<BoundParamInfo>();
                 list.Add(paramInfo);
 
 #if DEBUG
@@ -210,7 +197,7 @@ namespace theori.Graphics
 #endif
             }
 
-            program.Use(pipeline);
+            program.Use(m_pipeline);
         }
 
         public void Bind(RenderState state, MaterialParams p)
@@ -224,7 +211,7 @@ namespace theori.Graphics
 
         public void BindToContext()
         {
-            pipeline.Bind();
+            m_pipeline.Bind();
         }
 
         public void ApplyParams(MaterialParams p, Transform world)
@@ -245,7 +232,7 @@ namespace theori.Graphics
                     case GLType.FloatVec4: BindAll(name, param.Get<Vector4>()); break;
 
                     case GLType.Sampler2D:
-                        if (!textureIDs.TryGetValue(name, out uint unit))
+                        if (!m_textureIDs.TryGetValue(name, out uint unit))
                         {
                             // TODO(local): error!!!
                             break;
@@ -261,7 +248,7 @@ namespace theori.Graphics
         private List<BoundParamInfo> GetBoundParams(string name, out int count)
         {
             count = 0;
-            if (!mappedParams.TryGetValue(name, out uint mId))
+            if (!m_mappedParams.TryGetValue(name, out uint mId))
                 return null;
             return GetBoundParams((BuiltInParams)mId, out count);
         }
@@ -269,7 +256,7 @@ namespace theori.Graphics
         private List<BoundParamInfo> GetBoundParams(BuiltInParams p, out int count)
         {
             count = 0;
-            if (!boundParams.TryGetValue((uint)p, out var result))
+            if (!m_boundParams.TryGetValue((uint)p, out var result))
                 return result;
             count = result.Count;
             return result;
@@ -294,7 +281,7 @@ namespace theori.Graphics
             {
                 var param = p[i];
                 
-                var program = shaders[GetShaderIndex(param.Stage)];
+                var program = m_shaderPrograms[GetShaderIndex(param.Stage)];
                 int location = param.Location;
                 
                 bind(program, location, value);
@@ -304,8 +291,8 @@ namespace theori.Graphics
         protected override void DisposeManaged()
         {
             for (int i = 0; i < 3; i++)
-                shaders[i]?.Dispose();
-            pipeline.Dispose();
+                m_shaderPrograms[i]?.Dispose();
+            m_pipeline.Dispose();
         }
     }
 }

@@ -11,6 +11,11 @@ namespace theori.Audio
 {
     public class AudioSample : AudioTrack
     {
+        internal static new AudioSample CreateUninitialized()
+        {
+            return new AudioSample();
+        }
+
         public new static AudioSample FromFile(string fileName)
         {
             var fileSource = CodecFactory.Instance.GetCodec(fileName);
@@ -31,6 +36,12 @@ namespace theori.Audio
 
             var sampleSource = source.ChangeSampleRate(Host.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
             return new AudioSample(sampleSource);
+        }
+
+        private AudioSample()
+            : base()
+        {
+            RemoveFromChannelOnFinish = false;
         }
 
         internal AudioSample(ISampleSource source)

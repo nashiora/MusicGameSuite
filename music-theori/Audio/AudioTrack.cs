@@ -16,6 +16,11 @@ namespace theori.Audio
 
     public class AudioTrack : AudioSource
     {
+        internal static AudioTrack CreateUninitialized()
+        {
+            return new AudioTrack();
+        }
+
         public static AudioTrack FromFile(string fileName)
         {
             var fileSource = CodecFactory.Instance.GetCodec(fileName);
@@ -38,7 +43,7 @@ namespace theori.Audio
             return new AudioTrack(sampleSource);
         }
         
-        private ISampleSource Source { get; }
+        protected internal ISampleSource Source { get; private set; }
 
         public override bool CanSeek => Source.CanSeek;
         
@@ -47,22 +52,22 @@ namespace theori.Audio
 
         internal WaveFormat WaveFormat => Source.WaveFormat;
 
-        private TimeSpan lastSourcePosition;
+        private TimeSpan m_lastSourcePosition;
 
-        private time_t positionCached;
+        private time_t m_positionCached;
         public override time_t Position
         {
             get
             {
-                if (PlaybackState != PlaybackState.Playing && positionCached >= 0)
-                    return positionCached;
+                if (PlaybackState != PlaybackState.Playing && m_positionCached >= 0)
+                    return m_positionCached;
                 return GetPosition().TotalSeconds;
             }
 
             set
             {
                 if (PlaybackState != PlaybackState.Playing)
-                    positionCached = value;
+                    m_positionCached = value;
                 Seek(value); 
             }
         }
@@ -78,12 +83,41 @@ namespace theori.Audio
             set => m_invPlaybackSpeed = 1 / (m_playbackSpeed = MathL.Clamp(value, 0.1f, 9999));
         }
 
+        internal AudioTrack()
+        {
+        }
+
         internal AudioTrack(ISampleSource source)
         {
             Source = source;
         }
 
-        public TimeSpan GetPosition() => lastSourcePosition;
+        /// <summary>
+        /// If this track already has a source, it will dispose of the input source for
+        ///  you since it will not take ownership.
+        /// I guess that IS still taking ownership, you just don't need to worry about it.
+        /// </summary>
+        internal void SetSourceFromStream(Stream stream, string ext)
+        {
+            if (Source != null)
+            {
+                // kill it sorry
+                stream.Dispose();
+                return;
+            }
+
+            IWaveSource source;
+            switch (ext)
+            {
+                case ".wav": source = new WaveFileReader(stream); break;
+                case ".ogg": source = new NVorbis.NVorbisSource(stream).ToWaveSource(); break;
+                default: throw new NotImplementedException();
+            }
+
+            Source = source.ChangeSampleRate(Host.Mixer.MasterChannel.SampleRate).ToStereo().ToSampleSource();
+        }
+
+        public TimeSpan GetPosition() => m_lastSourcePosition;
         public TimeSpan GetLength() => ((IAudioSource)Source).GetLength();
 
         public virtual void Play()
@@ -91,7 +125,7 @@ namespace theori.Audio
             if (PlaybackState == PlaybackState.Playing)
                 return;
 
-            positionCached = -1;
+            m_positionCached = -1;
             PlaybackState = PlaybackState.Playing;
         }
 
@@ -112,7 +146,7 @@ namespace theori.Audio
             {
                 case PlaybackState.Playing:
                 {
-                    lastSourcePosition = TimeSpan.FromSeconds(m_realSampleIndex / (double)(Source.WaveFormat.SampleRate * Source.WaveFormat.Channels));
+                    m_lastSourcePosition = TimeSpan.FromSeconds(m_realSampleIndex / (double)(Source.WaveFormat.SampleRate * Source.WaveFormat.Channels));
 
                     int realSampleCount = (int)(count * m_playbackSpeed);
                     if (m_resampleBuffer.Length < realSampleCount)
@@ -163,7 +197,7 @@ namespace theori.Audio
             double posSeconds = MathL.Max(0, position.Seconds);
             ((IAudioSource)Source).SetPosition(TimeSpan.FromSeconds(posSeconds));
 
-            lastSourcePosition = TimeSpan.FromSeconds(position.Seconds);
+            m_lastSourcePosition = TimeSpan.FromSeconds(position.Seconds);
             m_realSampleIndex = (long)(position.Seconds * Source.WaveFormat.SampleRate * Source.WaveFormat.Channels);
         }
 

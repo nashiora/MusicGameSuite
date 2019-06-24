@@ -101,20 +101,15 @@ namespace NeuroSonic.GamePlay
             m_audioController?.Dispose();
         }
 
-        private Texture m_testTexture;
-
         public override bool AsyncLoad()
         {
-            m_testTexture = m_loader.QueueTextureLoad("textures/highway");
-
             if (!m_highwayView.AsyncLoad())
                 return false;
 
+            m_slamSample = m_loader.QueueAudioSampleLoad("audio/slam");
+
             if (!m_loader.LoadAll())
                 return false;
-
-            m_slamSample = m_loader.AquireAudioSample("audio/slam");
-            m_slamSample.Channel = Host.Mixer.MasterChannel;
 
             return true;
         }
@@ -126,6 +121,8 @@ namespace NeuroSonic.GamePlay
 
             if (!m_loader.FinalizeLoad())
                 return false;
+
+            m_slamSample.Channel = Host.Mixer.MasterChannel;
 
             return true;
         }

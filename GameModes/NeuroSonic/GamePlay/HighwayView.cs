@@ -51,6 +51,10 @@ namespace NeuroSonic.GamePlay
         private Texture btHoldTexture, fxHoldTexture, btHoldEntryTexture, fxHoldEntryTexture, btHoldExitTexture, fxHoldExitTexture;
         private Texture laserTexture;
 
+        private Material basicMaterial, chipMaterial, holdMaterial;
+        private Material highwayMaterial, buttonMaterial;
+        private Material laserMaterial, laserEntryMaterial;
+
         private Drawable3D m_highwayDrawable;
         private Drawable3D[] m_keyBeamDrawables = new Drawable3D[6];
         private Drawable3D m_lVolEntryDrawable, m_lVolExitDrawable;
@@ -120,6 +124,13 @@ namespace NeuroSonic.GamePlay
             entryTexture = m_skin.QueueTextureLoad("textures/laser_entry");
             exitTexture = m_skin.QueueTextureLoad("textures/laser_exit");
 
+            basicMaterial = m_skin.QueueMaterialLoad("materials/basic");
+            chipMaterial = m_skin.QueueMaterialLoad("materials/chip");
+            holdMaterial = m_skin.QueueMaterialLoad("materials/hold");
+            highwayMaterial = m_skin.QueueMaterialLoad("materials/highway");
+            laserMaterial = m_skin.QueueMaterialLoad("materials/laser");
+            laserEntryMaterial = m_skin.QueueMaterialLoad("materials/laser_entry");
+
             if (!m_skin.LoadAll())
                 return false;
 
@@ -133,12 +144,8 @@ namespace NeuroSonic.GamePlay
             highwayParams["RightColor"] = m_rVolColor;
             highwayParams["Hidden"] = 0.0f;
 
-            var basicMaterial = m_skin.AquireMaterial("materials/basic");
-            var highwayMaterial = m_skin.AquireMaterial("materials/highway");
-            var volMaterial = m_skin.AquireMaterial("materials/laser");
-            volMaterial.BlendMode = BlendMode.Additive;
-            var volEntryMaterial = m_skin.AquireMaterial("materials/laser_entry");
-            volEntryMaterial.BlendMode = BlendMode.Additive;
+            laserMaterial.BlendMode = BlendMode.Additive;
+            laserEntryMaterial.BlendMode = BlendMode.Additive;
 
             var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter);
 
@@ -174,7 +181,7 @@ namespace NeuroSonic.GamePlay
                 {
                     Texture = entryTexture,
                     Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 2 / 6.0f, 1.0f, Anchor.TopCenter),
-                    Material = volEntryMaterial,
+                    Material = laserEntryMaterial,
                     Params = CreateVolumeParams(lane),
                 };
 
@@ -182,7 +189,7 @@ namespace NeuroSonic.GamePlay
                 {
                     Texture = exitTexture,
                     Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 2 / 6.0f, 1.0f, Anchor.BottomCenter),
-                    Material = volMaterial,
+                    Material = laserMaterial,
                     Params = CreateVolumeParams(lane),
                 };
             }
