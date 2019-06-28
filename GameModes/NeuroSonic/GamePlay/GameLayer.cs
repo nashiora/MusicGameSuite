@@ -1,22 +1,18 @@
 ﻿using System;
-using System.IO;
 using System.Numerics;
+
+using NeuroSonic.GamePlay.Scoring;
+
+using OpenRM;
+using OpenRM.Audio.Effects;
+using OpenRM.Voltex;
 
 using theori;
 using theori.Audio;
 using theori.Graphics;
 using theori.Gui;
 using theori.IO;
-
-using OpenRM;
-using OpenRM.Audio.Effects;
-using OpenRM.Convert;
-using OpenRM.Voltex;
-using NeuroSonic.GamePlay.Scoring;
-using System.Collections.Generic;
-using NeuroSonic.IO;
 using theori.Resources;
-using OpenGL;
 
 namespace NeuroSonic.GamePlay
 {
@@ -43,7 +39,7 @@ namespace NeuroSonic.GamePlay
         private bool AutoLasers => (m_autoPlay & AutoPlay.Lasers) != 0;
 
         private readonly ClientResourceLocator m_locator;
-        private readonly ClientResourceManager m_loader;
+        private readonly ClientResourceManager m_resources;
 
         private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
@@ -75,21 +71,21 @@ namespace NeuroSonic.GamePlay
         internal GameLayer(ClientResourceLocator resourceLocator, Chart chart, AudioTrack audio, AutoPlay autoPlay = AutoPlay.None)
         {
             m_locator = resourceLocator;
-            m_loader = new ClientResourceManager(resourceLocator);
+            m_resources = new ClientResourceManager(resourceLocator);
 
             m_chart = chart;
             m_audio = audio;
 
             m_autoPlay = autoPlay;
 
-            m_highwayView = new HighwayView(m_loader);
+            m_highwayView = new HighwayView(m_resources);
         }
 
         public override void Destroy()
         {
             base.Destroy();
 
-            m_loader.Dispose();
+            m_resources.Dispose();
 
             if (m_debugOverlay != null)
             {
@@ -106,9 +102,9 @@ namespace NeuroSonic.GamePlay
             if (!m_highwayView.AsyncLoad())
                 return false;
 
-            m_slamSample = m_loader.QueueAudioSampleLoad("audio/slam");
+            m_slamSample = m_resources.QueueAudioSampleLoad("audio/slam");
 
-            if (!m_loader.LoadAll())
+            if (!m_resources.LoadAll())
                 return false;
 
             return true;
@@ -119,7 +115,7 @@ namespace NeuroSonic.GamePlay
             if (!m_highwayView.AsyncFinalize())
                 return false;
 
-            if (!m_loader.FinalizeLoad())
+            if (!m_resources.FinalizeLoad())
                 return false;
 
             m_slamSample.Channel = Host.Mixer.MasterChannel;
@@ -175,8 +171,8 @@ namespace NeuroSonic.GamePlay
             {
                 Children = new GuiElement[]
                 {
-                    m_critRoot = new CriticalLine(m_loader),
-                    m_comboDisplay = new ComboDisplay(m_loader)
+                    m_critRoot = new CriticalLine(m_resources),
+                    m_comboDisplay = new ComboDisplay(m_resources)
                     {
                         RelativePositionAxes = Axes.Both,
                         Position = new Vector2(0.5f, 0.7f)
@@ -424,7 +420,7 @@ namespace NeuroSonic.GamePlay
                 }
                 else
                 {
-                    m_debugOverlay = new GameDebugOverlay(m_loader);
+                    m_debugOverlay = new GameDebugOverlay(m_resources);
                     Host.AddOverlay(m_debugOverlay);
                 }
                 return true;

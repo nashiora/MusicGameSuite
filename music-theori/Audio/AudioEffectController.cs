@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define USE_MULTIPLE_EFFECT_BUFFERS
+
+using System;
 
 using OpenRM;
 using OpenRM.Audio;
@@ -134,13 +136,16 @@ namespace theori.Audio
         public void Play() => Track.Play();
         public void Stop() => Track.Stop();
 
+#if USE_MULTIPLE_EFFECT_BUFFERS
         private float[] m_copyBuffer = new float[2048];
         private float[] m_dummyBuffer = new float[2048];
+#endif
 
         public override int Read(float[] buffer, int offset, int count)
         {
             int result = Track.Read(buffer, offset, count);
 
+#if USE_MULTIPLE_EFFECT_BUFFERS
             // NOTE(local): make sure this doesn't give out garbage?
             if (count > m_copyBuffer.Length)
             {
@@ -150,6 +155,7 @@ namespace theori.Audio
 
             Array.Copy(buffer, offset, m_copyBuffer, 0, result);
             Array.Copy(buffer, offset, m_dummyBuffer, 0, result);
+#endif
 
             for (int fxi = 0; fxi < m_dsps.Length; fxi++)
             {
@@ -157,11 +163,15 @@ namespace theori.Audio
                 if (effect == null)
                     continue;
 
+#if USE_MULTIPLE_EFFECT_BUFFERS
                 var dataBuffer = m_effectsActive[fxi] ? m_copyBuffer : m_dummyBuffer;
                 effect.Process(dataBuffer, 0, result);
 
                 // Always process the effects to keep timing, but don't always mix them in.
                 if (EffectsActive && m_effectsActive[fxi]) Array.Copy(dataBuffer, 0, buffer, offset, result);
+#else
+                if (EffectsActive && m_effectsActive[fxi]) effect.Process(buffer, offset, result);
+#endif
             }
 
             for (int i = offset; i < offset + count; i++)

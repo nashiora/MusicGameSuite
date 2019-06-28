@@ -35,7 +35,11 @@ namespace System
         ~Disposable()
         {
             if (!IsDisposed)
+#if DEBUG
                 Logger.Log("[DISPOSEABLE] Disposable object finalized without previous managed dispose! The object was created:\n" + m_constructionStackTrace.ToString());
+#else
+                Logger.Log("[DISPOSEABLE] Disposable object finalized without previous managed dispose!");
+#endif
             //Debug.Assert(IsDisposed, "Disposable object finalized without previous managed dispose! The object was created:\n" + m_constructionStackTrace.ToString());
             try
             {

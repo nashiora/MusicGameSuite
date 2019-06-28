@@ -13,7 +13,7 @@ using theori.Resources;
 
 namespace NeuroSonic.GamePlay
 {
-    public class HighwayView
+    public class HighwayView : IAsyncLoadable
     {
         struct KeyBeamInfo
         {

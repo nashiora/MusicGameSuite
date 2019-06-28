@@ -8,7 +8,7 @@ using theori.Resources;
 
 namespace theori
 {
-    public abstract class Layer
+    public abstract class Layer : IAsyncLoadable
     {
         internal enum LayerLifetimeState
         {
@@ -115,10 +115,9 @@ namespace theori
     public class GenericTransitionLayer : Layer
     {
         private readonly Layer m_nextLayer;
-
-        private Task<bool> m_asyncLoadTask;
-
         private readonly BasicSpriteRenderer m_renderer;
+
+        private AsyncLoader m_loader;
 
         public GenericTransitionLayer(Layer nextLayer, ClientResourceLocator locator)
         {
@@ -134,13 +133,15 @@ namespace theori
 
         public override void Destroy()
         {
-            m_asyncLoadTask = null;
+            m_loader = null;
             m_renderer.Dispose();
         }
 
         public override void Init()
         {
-            m_asyncLoadTask = Task.Run(() => m_nextLayer.AsyncLoad());
+            m_loader = new AsyncLoader();
+            m_loader.Add(m_nextLayer);
+            m_loader.LoadAll();
         }
 
         public override void Suspended()
@@ -153,19 +154,14 @@ namespace theori
 
         public override void Update(float delta, float total)
         {
-            if (m_asyncLoadTask == null) return;
-            if (m_asyncLoadTask.IsCompleted)
-            {
-                if (m_asyncLoadTask.Result)
-                {
-                    if (m_nextLayer.AsyncFinalize())
-                    {
-                        Host.AddLayerAbove(this, m_nextLayer);
-                    }
-                }
+            if (m_loader == null) return;
 
+            m_loader.Update();
+            if (m_loader.IsCompleted)
+            {
+                if (m_loader.IsFinalizeSuccessful)
+                    Host.AddLayerAbove(this, m_nextLayer);
                 Host.RemoveLayer(this);
-                return;
             }
         }
 

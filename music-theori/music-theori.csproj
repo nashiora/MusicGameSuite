@@ -159,8 +159,10 @@
     <Compile Include="IO\InputDevice.cs" />
     <Compile Include="IO\Keyboard.cs" />
     <Compile Include="IO\KeyboardData.cs" />
+    <Compile Include="Resources\AsyncLoader.cs" />
     <Compile Include="Resources\ClientResourceLocator.cs" />
     <Compile Include="Resources\ClientResourceManager.cs" />
+    <Compile Include="Resources\IAsyncLoadable.cs" />
     <Compile Include="Resources\ManifestResourceLoader.cs" />
     <Compile Include="Scripting\LuaScript.cs" />
     <Compile Include="IO\Mouse.cs" />
