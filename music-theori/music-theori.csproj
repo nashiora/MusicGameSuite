@@ -199,12 +199,12 @@
     <Compile Include="Util\HashCode.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="NotoSansCJKjp-Regular.otf" />
     <None Include="packages.config" />
     <EmbeddedResource Include="Resources\materials\basic.fs" />
     <EmbeddedResource Include="Resources\materials\basic.vs" />
     <EmbeddedResource Include="Resources\materials\gui_texture.fs" />
     <EmbeddedResource Include="Resources\materials\gui_texture.vs" />
+    <EmbeddedResource Include="Resources\fonts\NotoSansCJKjp-Regular.otf" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libraries\System-Additions\System-Additions.csproj">

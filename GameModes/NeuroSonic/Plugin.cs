@@ -36,8 +36,7 @@ namespace NeuroSonic
             // save the defaults on init
             else SaveNscConfig();
 
-            DefaultResourceLocator = new ClientResourceLocator("skins/Default", "materials/basic");
-            DefaultResourceLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Host).Assembly, "theori.Resources"));
+            DefaultResourceLocator = ClientResourceLocator.Default.Clone();
             DefaultResourceLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Plugin).Assembly, "NeuroSonic.Resources"));
 
             Gamepad = Gamepad.Open(Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID));

@@ -177,8 +177,9 @@ namespace theori.Graphics
                         int bufferDataIndex = y * bufferWidth + x;
                         int pixelDataIndex = 4 * ((y + boundsY) * textureWidth + (x + boundsX));
 
-                        for (int j = 0; j < 4; j++)
-                            pixelData[pixelDataIndex + j] = bufferData[bufferDataIndex];
+                        for (int j = 0; j < 3; j++)
+                            pixelData[pixelDataIndex + j] = 255;
+                        pixelData[pixelDataIndex + 3] = bufferData[bufferDataIndex];
                     }
                 }
             }

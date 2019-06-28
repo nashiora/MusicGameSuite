@@ -27,8 +27,7 @@ namespace theori.Graphics
 
     public class Font
     {
-        private const string FALLBACK_FONT_NAME = "NotoSansCJKjp-Regular.otf";
-        private const string FALLBACK_FONT_RESOURCE = "theori." + FALLBACK_FONT_NAME;
+        private const string FALLBACK_FONT_NAME = "fonts/NotoSansCJKjp-Regular.otf";
 
         public static readonly Font Default32;
         public static readonly Font Default24;
@@ -36,15 +35,15 @@ namespace theori.Graphics
 
         static Font()
         {
-            var stream = typeof(Font).Assembly.GetManifestResourceStream(FALLBACK_FONT_RESOURCE);
+            using (var stream = Resources.ClientResourceLocator.Default.OpenFileStream(FALLBACK_FONT_NAME))
+            {
+                byte[] mem = new byte[stream.Length];
+                stream.Read(mem, 0, mem.Length);
 
-            byte[] mem = new byte[stream.Length];
-            stream.Read(mem, 0, mem.Length);
-            stream.Close();
-
-            Default32 = new Font(FALLBACK_FONT_NAME, mem, 32);
-            Default24 = new Font(FALLBACK_FONT_NAME, mem, 24);
-            Default16 = new Font(FALLBACK_FONT_NAME, mem, 16);
+                Default32 = new Font(FALLBACK_FONT_NAME, mem, 32);
+                Default24 = new Font(FALLBACK_FONT_NAME, mem, 24);
+                Default16 = new Font(FALLBACK_FONT_NAME, mem, 16);
+            }
         }
 
         public string Name { get; }
@@ -143,8 +142,9 @@ namespace theori.Graphics
 
                     for (int i = 0; i < bufferData.Length; i++)
                     {
-                        for (int j = 0; j < 4; j++)
-                            pixelData[i * 4 + j] = bufferData[i];
+                        for (int j = 0; j < 3; j++)
+                            pixelData[i * 4 + j] = 255;
+                        pixelData[i * 4 + 3] = bufferData[i];
                     }
 
                     texture.SetData2D(bitmap.Width, bitmap.Rows, pixelData);

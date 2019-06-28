@@ -6,6 +6,14 @@ namespace theori.Resources
 {
     public sealed class ClientResourceLocator
     {
+        public static readonly ClientResourceLocator Default;
+
+        static ClientResourceLocator()
+        {
+            Default = new ClientResourceLocator(null, "materials/basic");
+            Default.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(ClientResourceLocator).Assembly, "theori.Resources"));
+        }
+
         private readonly List<ManifestResourceLoader> m_resourceLoaders = new List<ManifestResourceLoader>();
 
         public readonly string FileSearchDirectory;
@@ -15,6 +23,14 @@ namespace theori.Resources
         {
             FileSearchDirectory = fileSearchDirectory;
             FallbackMaterialName = fallbackMaterialName;
+        }
+
+        public ClientResourceLocator Clone(string newFileSearchDirectory = null)
+        {
+            var result = new ClientResourceLocator(newFileSearchDirectory ?? FileSearchDirectory, FallbackMaterialName);
+            foreach (var loader in m_resourceLoaders)
+                result.AddManifestResourceLoader(loader);
+            return result;
         }
 
         public void AddManifestResourceLoader(ManifestResourceLoader loader)
