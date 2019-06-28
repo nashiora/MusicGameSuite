@@ -63,22 +63,6 @@ namespace NeuroSonic.GamePlay
         {
             m_streamActiveIndicators[stream].Color = active ? new Vector4(0, 1, 1, 1) : Vector4.One;
         }
-
-        public override void Init()
-        {
-        }
-
-        public override void Destroy()
-        {
-        }
-
-        public override void Update(float delta, float total)
-        {
-        }
-
-        public override void Render()
-        {
-        }
     }
 
     public class ControllerVisualizer : Panel

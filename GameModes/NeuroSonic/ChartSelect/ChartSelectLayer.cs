@@ -2,11 +2,11 @@
 
 using theori;
 using theori.Audio;
+using theori.Charting.Conversions;
 using theori.IO;
 using theori.Resources;
 
 using NeuroSonic.GamePlay;
-using theori.Charting.Conversions;
 
 namespace NeuroSonic.ChartSelect
 {
@@ -17,24 +17,6 @@ namespace NeuroSonic.ChartSelect
         public ChartSelectLayer(ClientResourceLocator locator)
         {
             m_locator = locator;
-        }
-
-        public override void Init()
-        {
-            base.Init();
-        }
-
-        public override void Destroy()
-        {
-            base.Destroy();
-        }
-
-        public override void Suspended()
-        {
-        }
-
-        public override void Resumed()
-        {
         }
 
         public override bool KeyPressed(KeyInfo info)
@@ -95,35 +77,6 @@ namespace NeuroSonic.ChartSelect
             }
 
             return true;
-        }
-
-        protected internal override bool ControllerButtonReleased(ControllerInput input)
-        {
-            switch (input)
-            {
-                default: return false;
-            }
-
-            return true;
-        }
-
-        protected internal override bool ControllerAxisChanged(ControllerInput input, float delta)
-        {
-            switch (input)
-            {
-                default: return false;
-            }
-
-            return true;
-        }
-
-        public override void Update(float delta, float total)
-        {
-            base.Update(delta, total);
-        }
-
-        public override void Render()
-        {
         }
     }
 }

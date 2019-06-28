@@ -87,11 +87,11 @@ namespace theori
         public virtual bool AsyncLoad() { return true; }
         public virtual bool AsyncFinalize() { return true; }
 
-        public abstract void Init();
-        public abstract void Destroy();
+        public virtual void Init() { }
+        public virtual void Destroy() { }
 
-        public abstract void Suspended();
-        public abstract void Resumed();
+        public virtual void Suspended() { }
+        public virtual void Resumed() { }
 
         public virtual bool KeyPressed(KeyInfo info) => false;
         public virtual bool KeyReleased(KeyInfo info) => false;
@@ -100,8 +100,8 @@ namespace theori
         public virtual bool ButtonReleased(ButtonInfo info) => false;
         public virtual bool AxisChanged(AnalogInfo info) => false;
 
-        public abstract void Update(float delta, float total);
-        public abstract void Render();
+        public virtual void Update(float delta, float total) { }
+        public virtual void Render() { }
     }
 
     public abstract class Overlay : Layer
@@ -136,14 +136,6 @@ namespace theori
             m_loader = new AsyncLoader();
             m_loader.Add(m_nextLayer);
             m_loader.LoadAll();
-        }
-
-        public override void Suspended()
-        {
-        }
-
-        public override void Resumed()
-        {
         }
 
         public override void Update(float delta, float total)

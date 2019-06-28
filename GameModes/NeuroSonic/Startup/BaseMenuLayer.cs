@@ -107,14 +107,6 @@ namespace NeuroSonic.Startup
             m_items[ItemIndex].Hilited = true;
         }
 
-        public override void Suspended()
-        {
-        }
-
-        public override void Resumed()
-        {
-        }
-
         protected abstract void GenerateMenuItems();
 
         protected void AddMenuItem(MenuItem item) => m_items.Add(item);
@@ -198,9 +190,5 @@ namespace NeuroSonic.Startup
         }
 
         protected virtual void OnExit() => Host.PopToParent(this);
-
-        public override void Render()
-        {
-        }
     }
 }
