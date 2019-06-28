@@ -61,6 +61,11 @@ namespace theori.Gui
             SetSizeFromRasterizer();
         }
 
+        protected override void DisposeManaged()
+        {
+            m_staticRasterizer?.Dispose();
+        }
+
         /// <summary>
         /// Returns true if a new rasterizer was created, false otherwise.
         /// </summary>

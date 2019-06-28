@@ -77,13 +77,14 @@ namespace NeuroSonic.GamePlay
 
             m_autoPlay = autoPlay;
 
-            m_highwayView = new HighwayView(m_resources);
+            m_highwayView = new HighwayView(m_locator);
         }
 
         public override void Destroy()
         {
             base.Destroy();
 
+            m_highwayView.Dispose();
             m_resources.Dispose();
 
             if (m_debugOverlay != null)

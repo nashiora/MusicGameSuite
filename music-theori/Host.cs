@@ -11,12 +11,13 @@ using theori.GameModes;
 using theori.Graphics;
 using theori.IO;
 using theori.Platform;
+using theori.Resources;
+using theori.Scripting;
 
 using CSCore;
 using CSCore.Codecs;
 
 using OpenGL;
-using theori.Scripting;
 
 namespace theori
 {
@@ -38,6 +39,8 @@ namespace theori
 
         public const string GAME_CONFIG_FILE = "theori-config.ini";
         public static GameConfig GameConfig { get; private set; }
+
+        public static ClientResourceManager StaticResources { get; private set; }
 
         internal static ProgramPipeline Pipeline { get; private set; }
 
@@ -133,7 +136,7 @@ namespace theori
             var layer = layers[LayerCount - 1];
             layers.RemoveAt(LayerCount - 1);
 
-            layer.Destroy();
+            layer.DestroyInternal();
             layer.lifetimeState = Layer.LayerLifetimeState.Destroyed;
 
             if (LayerCount == 0)
@@ -165,7 +168,7 @@ namespace theori
             int index = layers.IndexOf(layer);
             layers.RemoveAt(index);
 
-            layer.Destroy();
+            layer.DestroyInternal();
             layer.lifetimeState = Layer.LayerLifetimeState.Destroyed;
 
             if (LayerCount == 0)
@@ -218,13 +221,13 @@ namespace theori
         public static void RemoveOverlay(Overlay overlay)
         {
             if (overlays.Remove(overlay))
-                overlay.Destroy();
+                overlay.DestroyInternal();
         }
 
         public static void RemoveAllOverlays()
         {
             foreach (var overlay in overlays)
-                overlay.Destroy();
+                overlay.DestroyInternal();
             overlays.Clear();
         }
 
@@ -247,6 +250,7 @@ namespace theori
             InitGraphicsPipeline();
             InitAudioSystem();
             InitScriptingSystem();
+            InitClientResources();
         }
 
         public static bool InitGameConfig()
@@ -289,6 +293,12 @@ namespace theori
         public static bool InitScriptingSystem()
         {
             LuaScript.RegisterType<BasicSpriteRenderer>();
+            return true;
+        }
+
+        public static bool InitClientResources()
+        {
+            StaticResources = new ClientResourceManager(ClientResourceLocator.Default);
             return true;
         }
 
@@ -435,12 +445,15 @@ namespace theori
 
         public static void Quit(int code = 0)
         {
+            OnUserQuit?.Invoke();
+
             SaveConfig();
+
+            StaticResources.Dispose();
 
             //Gamepad.Destroy();
             Window.Destroy();
 
-            OnUserQuit?.Invoke();
             Environment.Exit(code);
         }
 

@@ -13,7 +13,7 @@ using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {
-    public class HighwayView : IAsyncLoadable
+    public class HighwayView : Disposable, IAsyncLoadable
     {
         struct KeyBeamInfo
         {
@@ -42,7 +42,9 @@ namespace NeuroSonic.GamePlay
         public Transform WorldTransform { get; private set; }
         public Transform CritLineTransform { get; private set; }
 
-        private readonly ClientResourceManager m_skin;
+        private readonly ClientResourceManager m_resources;
+
+        private ObjectRenderable3DStaticResources m_obj3dResources;
 
         private Texture highwayTexture, keyBeamTexture;
         private Texture entryTexture, exitTexture;
@@ -90,9 +92,9 @@ namespace NeuroSonic.GamePlay
         const float SLAM_DUR_TICKS = 1 / 32.0f;
         time_t SlamDurationTime(ChartObject obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
 
-        public HighwayView(ClientResourceManager skin)
+        public HighwayView(ClientResourceLocator locator)
         {
-            m_skin = skin;
+            m_resources = new ClientResourceManager(locator);
 
             m_lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
             m_rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
@@ -105,33 +107,33 @@ namespace NeuroSonic.GamePlay
 
         public bool AsyncLoad()
         {
-            btChipTexture = m_skin.QueueTextureLoad("textures/bt_chip");
-            btChipSampleTexture = m_skin.QueueTextureLoad("textures/bt_chip_sample");
-            btHoldTexture = m_skin.QueueTextureLoad("textures/bt_hold");
-            btHoldEntryTexture = m_skin.QueueTextureLoad("textures/bt_hold_entry");
-            btHoldExitTexture = m_skin.QueueTextureLoad("textures/bt_hold_exit");
+            btChipTexture = m_resources.QueueTextureLoad("textures/bt_chip");
+            btChipSampleTexture = m_resources.QueueTextureLoad("textures/bt_chip_sample");
+            btHoldTexture = m_resources.QueueTextureLoad("textures/bt_hold");
+            btHoldEntryTexture = m_resources.QueueTextureLoad("textures/bt_hold_entry");
+            btHoldExitTexture = m_resources.QueueTextureLoad("textures/bt_hold_exit");
 
-            fxChipTexture = m_skin.QueueTextureLoad("textures/fx_chip");
-            fxChipSampleTexture = m_skin.QueueTextureLoad("textures/fx_chip_sample");
-            fxHoldTexture = m_skin.QueueTextureLoad("textures/fx_hold");
-            fxHoldEntryTexture = m_skin.QueueTextureLoad("textures/fx_hold_entry");
-            fxHoldExitTexture = m_skin.QueueTextureLoad("textures/fx_hold_exit");
+            fxChipTexture = m_resources.QueueTextureLoad("textures/fx_chip");
+            fxChipSampleTexture = m_resources.QueueTextureLoad("textures/fx_chip_sample");
+            fxHoldTexture = m_resources.QueueTextureLoad("textures/fx_hold");
+            fxHoldEntryTexture = m_resources.QueueTextureLoad("textures/fx_hold_entry");
+            fxHoldExitTexture = m_resources.QueueTextureLoad("textures/fx_hold_exit");
 
-            laserTexture = m_skin.QueueTextureLoad("textures/laser");
+            laserTexture = m_resources.QueueTextureLoad("textures/laser");
 
-            highwayTexture = m_skin.QueueTextureLoad("textures/highway");
-            keyBeamTexture = m_skin.QueueTextureLoad("textures/key_beam");
-            entryTexture = m_skin.QueueTextureLoad("textures/laser_entry");
-            exitTexture = m_skin.QueueTextureLoad("textures/laser_exit");
+            highwayTexture = m_resources.QueueTextureLoad("textures/highway");
+            keyBeamTexture = m_resources.QueueTextureLoad("textures/key_beam");
+            entryTexture = m_resources.QueueTextureLoad("textures/laser_entry");
+            exitTexture = m_resources.QueueTextureLoad("textures/laser_exit");
 
-            basicMaterial = m_skin.QueueMaterialLoad("materials/basic");
-            chipMaterial = m_skin.QueueMaterialLoad("materials/chip");
-            holdMaterial = m_skin.QueueMaterialLoad("materials/hold");
-            highwayMaterial = m_skin.QueueMaterialLoad("materials/highway");
-            laserMaterial = m_skin.QueueMaterialLoad("materials/laser");
-            laserEntryMaterial = m_skin.QueueMaterialLoad("materials/laser_entry");
+            basicMaterial = m_resources.QueueMaterialLoad("materials/basic");
+            chipMaterial = m_resources.QueueMaterialLoad("materials/chip");
+            holdMaterial = m_resources.QueueMaterialLoad("materials/hold");
+            highwayMaterial = m_resources.QueueMaterialLoad("materials/highway");
+            laserMaterial = m_resources.QueueMaterialLoad("materials/laser");
+            laserEntryMaterial = m_resources.QueueMaterialLoad("materials/laser_entry");
 
-            if (!m_skin.LoadAll())
+            if (!m_resources.LoadAll())
                 return false;
 
             return true;
@@ -139,6 +141,11 @@ namespace NeuroSonic.GamePlay
 
         public bool AsyncFinalize()
         {
+            if (!m_resources.FinalizeLoad())
+                return false;
+
+            m_obj3dResources = new ObjectRenderable3DStaticResources();
+
             var highwayParams = new MaterialParams();
             highwayParams["LeftColor"] = m_lVolColor;
             highwayParams["RightColor"] = m_rVolColor;
@@ -148,6 +155,7 @@ namespace NeuroSonic.GamePlay
             laserEntryMaterial.BlendMode = BlendMode.Additive;
 
             var keyBeamMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter);
+            m_resources.Manage(keyBeamMesh);
 
             m_highwayDrawable = new Drawable3D()
             {
@@ -156,6 +164,7 @@ namespace NeuroSonic.GamePlay
                 Mesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1, LENGTH_BASE + LENGTH_ADD, Anchor.BottomCenter),
                 Params = highwayParams,
             };
+            m_resources.Manage(m_highwayDrawable.Mesh);
 
             for (int i = 0; i < 6; i++)
             {
@@ -184,6 +193,7 @@ namespace NeuroSonic.GamePlay
                     Material = laserEntryMaterial,
                     Params = CreateVolumeParams(lane),
                 };
+                m_resources.Manage(entryDrawable.Mesh);
 
                 exitDrawable = new Drawable3D()
                 {
@@ -192,6 +202,7 @@ namespace NeuroSonic.GamePlay
                     Material = laserMaterial,
                     Params = CreateVolumeParams(lane),
                 };
+                m_resources.Manage(exitDrawable.Mesh);
             }
 
             CreateVolDrawables(0, ref m_lVolEntryDrawable, ref m_lVolExitDrawable);
@@ -200,10 +211,28 @@ namespace NeuroSonic.GamePlay
             return true;
         }
 
+        protected override void DisposeManaged()
+        {
+            m_resources.Dispose();
+            m_obj3dResources.Dispose();
+
+            foreach (var r in m_renderables)
+            {
+                foreach (var obj3d in r.Values)
+                    obj3d.Dispose();
+                r.Clear();
+            }
+            m_renderables.Fill((Dictionary<ChartObject, ObjectRenderable3D>)null);
+        }
+
         public void Reset()
         {
             foreach (var r in m_renderables)
+            {
+                foreach (var obj3d in r.Values)
+                    obj3d.Dispose();
                 r.Clear();
+            }
         }
 
         public void RenderableObjectAppear(ChartObject obj)
@@ -214,11 +243,11 @@ namespace NeuroSonic.GamePlay
             {
                 ObjectRenderable3D br3d;
                 if (obj.IsInstant)
-                    br3d = new ButtonChipRenderState3D(bobj, m_skin);
+                    br3d = new ButtonChipRenderState3D(bobj, m_resources, m_obj3dResources);
                 else
                 {
                     float zDur = (float)(obj.AbsoluteDuration.Seconds / ViewDuration.Seconds);
-                    br3d = new ButtonHoldRenderState3D(bobj, zDur * LENGTH_BASE, m_skin);
+                    br3d = new ButtonHoldRenderState3D(bobj, zDur * LENGTH_BASE, m_resources, m_obj3dResources);
                 }
 
                 m_renderables[obj.Stream][obj] = br3d;
@@ -230,7 +259,7 @@ namespace NeuroSonic.GamePlay
                 if (obj.IsInstant)
                 {
                     float zDur = (float)(SlamDurationTime(aobj).Seconds / ViewDuration.Seconds);
-                    m_renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE, color, m_skin);
+                    m_renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE, color, m_resources);
                 }
                 else
                 {
@@ -239,7 +268,7 @@ namespace NeuroSonic.GamePlay
                         duration -= SlamDurationTime(aobj.PreviousConnected);
 
                     float zDur = (float)(duration.Seconds / ViewDuration.Seconds);
-                    m_renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE, color, m_skin);
+                    m_renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE, color, m_resources);
                 }
             }
         }
@@ -248,7 +277,7 @@ namespace NeuroSonic.GamePlay
         {
             if (obj.Stream >= 8) return;
 
-            m_renderables[obj.Stream][obj].Destroy();
+            m_renderables[obj.Stream][obj].Dispose();
             m_renderables[obj.Stream].Remove(obj);
         }
 

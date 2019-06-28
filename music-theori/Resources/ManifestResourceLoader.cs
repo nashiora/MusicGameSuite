@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace theori.Resources
 {
-    public sealed class ManifestResourceLoader : Disposable
+    public sealed class ManifestResourceLoader
     {
         private static readonly Dictionary<(Assembly Assembly, string Namespace), ManifestResourceLoader> loaders =
             new Dictionary<(Assembly Assembly, string Namespace), ManifestResourceLoader>();
@@ -33,11 +33,6 @@ namespace theori.Resources
         {
             Assembly = assembly;
             Namespace = rootNamespace;
-
-#if false && DEBUG
-            foreach (string m in Assembly.GetManifestResourceNames())
-                Logger.Log($"Manifest resource found: { m }");
-#endif
         }
 
         public bool ContainsResource(string resourcePath)
@@ -50,19 +45,7 @@ namespace theori.Resources
 
         public Stream OpenResourceStream(string resourcePath)
         {
-            if (IsDisposed) throw new ObjectDisposedException(nameof(ManifestResourceLoader));
             return Assembly.GetManifestResourceStream(ResourcePathToManifestLocation(resourcePath, Namespace));
-        }
-
-        protected override void DisposeManaged()
-        {
-            var key = (Assembly, Namespace);
-            loaders.Remove(key);
-
-            // make this instance useless
-
-            Assembly = null;
-            Namespace = null;
         }
     }
 }

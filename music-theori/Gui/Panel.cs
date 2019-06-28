@@ -5,7 +5,7 @@ namespace theori.Gui
 {
     public class Panel : GuiElement
     {
-        private List<GuiElement> children = new List<GuiElement>();
+        private List<GuiElement> m_children = new List<GuiElement>();
 
         public Vector2 ChildDrawSize
         {
@@ -30,31 +30,37 @@ namespace theori.Gui
         {
             set
             {
-                foreach (var child in children)
+                foreach (var child in m_children)
                     RemoveChild(child);
                 foreach (var child in value)
                     AddChild(child);
             }
 
-            get => children;
+            get => m_children;
         }
 
         public void AddChild(GuiElement gui)
         {
-            gui._parentBacking = this;
-            if (!children.Contains(gui))
-                children.Add(gui);
+            gui.m_parentBacking = this;
+            if (!m_children.Contains(gui))
+                m_children.Add(gui);
         }
 
         public void RemoveChild(GuiElement gui)
         {
-            gui._parentBacking = null;
-            children.Remove(gui);
+            gui.m_parentBacking = null;
+            m_children.Remove(gui);
+        }
+
+        protected override void DisposeManaged()
+        {
+            foreach (var child in m_children)
+                child.Dispose();
         }
 
         public override void Update()
         {
-            foreach (var child in children)
+            foreach (var child in m_children)
                 child.Update();
         }
 
@@ -62,7 +68,7 @@ namespace theori.Gui
         {
             // TODO(local): scissors aren't enough for rotation things
             //rq.PushScissor();
-            foreach (var child in children)
+            foreach (var child in m_children)
                 child.Render(rq);
             //rq.PopScissor();
         }

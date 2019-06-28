@@ -1,10 +1,10 @@
-﻿using theori;
+﻿using System.Numerics;
+
+using theori;
+using theori.Graphics;
+using theori.Scripting;
 
 using NeuroSonic.ChartSelect.Landscape;
-using theori.Graphics;
-using System.Numerics;
-using theori.Scripting;
-using MoonSharp.Interpreter;
 
 namespace NeuroSonic.Startup
 {
@@ -34,6 +34,12 @@ namespace NeuroSonic.Startup
 
             //m_script.DoString("function Draw() gfx.SetColor(255, 0, 255); gfx.FillRect(10, 10, 100, 100); end");
             m_script.LoadFile(Plugin.DefaultResourceLocator.OpenFileStream("scripts/chart_select/main.lua"));
+        }
+
+        public override void Destroy()
+        {
+            m_renderer.Dispose();
+            base.Destroy();
         }
 
         private void EnterInputMethod()

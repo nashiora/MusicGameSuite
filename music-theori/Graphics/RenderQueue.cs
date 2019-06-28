@@ -6,12 +6,12 @@ namespace theori.Graphics
 {
     public class RenderQueue : Disposable
     {
-        protected readonly RenderState state;
-        protected readonly List<SimpleDrawCall> orderedCommands = new List<SimpleDrawCall>(50);
+        protected readonly RenderState m_state;
+        protected readonly List<SimpleDrawCall> m_orderedCommands = new List<SimpleDrawCall>(50);
 
         public RenderQueue(RenderState state)
         {
-            this.state = state;
+            m_state = state;
         }
 
         public virtual void Process(bool clear)
@@ -30,22 +30,22 @@ namespace theori.Graphics
             //GL.Enable(GL.GL_DEPTH_TEST);
             //GL.DepthFunc(DepthFunction.LessThanOrEqual);
 
-            foreach (var item in orderedCommands)
+            foreach (var item in m_orderedCommands)
             {
                 void SetUpMaterial(Material mat, MaterialParams p)
                 {
                     if (currentMaterial == mat)
-                        mat.ApplyParams(p, state.WorldTransform);
+                        mat.ApplyParams(p, m_state.WorldTransform);
                     else
                     {
                         if (initializedShaders.Contains(mat))
                         {
-                            mat.ApplyParams(p, state.WorldTransform);
+                            mat.ApplyParams(p, m_state.WorldTransform);
                             mat.BindToContext();
                         }
                         else
                         {
-                            mat.Bind(state, p);
+                            mat.Bind(m_state, p);
                             initializedShaders.Add(mat);
                         }
                         currentMaterial = mat;
@@ -92,7 +92,7 @@ namespace theori.Graphics
 
                 if (item is SimpleDrawCall sdc)
                 {
-                    state.WorldTransform = sdc.WorldTransform;
+                    m_state.WorldTransform = sdc.WorldTransform;
                     SetUpMaterial(sdc.Material, sdc.Params);
 
                     bool useScissor = sdc.Scissor.Width >= 0;
@@ -104,7 +104,7 @@ namespace theori.Graphics
                             scissorEnabled = true;
                         }
 
-                        float scissorY = state.ViewportSize.Y - sdc.Scissor.Bottom;
+                        float scissorY = m_state.ViewportSize.Y - sdc.Scissor.Bottom;
                         GL.Scissor((int)sdc.Scissor.Left, (int)scissorY,
                                    (int)sdc.Scissor.Width, (int)sdc.Scissor.Height);
                     }
@@ -125,7 +125,7 @@ namespace theori.Graphics
             GL.Disable(GL.GL_SCISSOR_TEST);
             //GL.Disable(GL.GL_DEPTH_TEST);
 
-            if (clear) orderedCommands.Clear();
+            if (clear) m_orderedCommands.Clear();
         }
 
         public virtual void Draw(Transform world, Mesh mesh, Material mat, MaterialParams p)
@@ -138,7 +138,7 @@ namespace theori.Graphics
                 WorldTransform = world,
                 Scissor = Rect.EmptyScissor,
             };
-            orderedCommands.Add(sdc);
+            m_orderedCommands.Add(sdc);
         }
 
         public virtual void Draw(Rect scissor, Transform world, Mesh mesh, Material mat, MaterialParams p)
@@ -151,7 +151,7 @@ namespace theori.Graphics
                 WorldTransform = world,
                 Scissor = scissor,
             };
-            orderedCommands.Add(sdc);
+            m_orderedCommands.Add(sdc);
         }
 
         protected override void DisposeManaged()

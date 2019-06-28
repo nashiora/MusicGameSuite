@@ -155,6 +155,7 @@ namespace theori.Resources
 
         private readonly List<AsyncResourceLoader> m_loaders = new List<AsyncResourceLoader>();
         private readonly Dictionary<string, Disposable> m_resources = new Dictionary<string, Disposable>();
+        private readonly List<Disposable> m_managed = new List<Disposable>();
 
         public ClientResourceManager(ClientResourceLocator locator)
         {
@@ -166,6 +167,23 @@ namespace theori.Resources
             foreach (var resource in m_resources.Values)
                 resource.Dispose();
             m_resources.Clear();
+
+            foreach (var resource in m_managed)
+                resource.Dispose();
+            m_managed.Clear();
+        }
+
+        public void Manage(Disposable resource)
+        {
+            if (m_managed.Contains(resource)) return;
+            m_managed.Add(resource);
+        }
+
+        public T Manage<T>(T resource)
+            where T : Disposable
+        {
+            Manage((Disposable)resource);
+            return resource;
         }
 
         public Texture QueueTextureLoad(string resourcePath)

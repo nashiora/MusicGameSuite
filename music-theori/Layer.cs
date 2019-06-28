@@ -29,6 +29,14 @@ namespace theori
 
         protected Panel ForegroundGui, BackgroundGui;
 
+        internal void DestroyInternal()
+        {
+            Destroy();
+
+            ForegroundGui?.Dispose();
+            BackgroundGui?.Dispose();
+        }
+
         internal void Suspend()
         {
             if (IsSuspended) return;

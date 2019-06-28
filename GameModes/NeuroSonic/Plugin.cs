@@ -1,11 +1,12 @@
-﻿using theori;
+﻿using System.IO;
 
-using NeuroSonic.Startup;
-using System.IO;
-using theori.IO;
+using theori;
 using theori.Configuration;
-using NeuroSonic.IO;
+using theori.IO;
 using theori.Resources;
+
+using NeuroSonic.IO;
+using NeuroSonic.Startup;
 
 namespace NeuroSonic
 {
@@ -50,6 +51,9 @@ namespace NeuroSonic
         private static void NSC_Quit()
         {
             SaveNscConfig();
+
+            Input.DestroyController();
+            Gamepad?.Dispose();
         }
 
         public static void SwitchActiveGamepad(int newDeviceIndex)

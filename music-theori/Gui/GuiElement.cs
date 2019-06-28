@@ -5,19 +5,19 @@ using theori.IO;
 
 namespace theori.Gui
 {
-    public abstract class GuiElement
+    public abstract class GuiElement : Disposable
     {
-        internal Panel _parentBacking;
+        internal Panel m_parentBacking;
         public Panel Parent
         {
-            get => _parentBacking;
+            get => m_parentBacking;
             set
             {
-                if (_parentBacking != null)
-                    _parentBacking.RemoveChild(this);
-                _parentBacking = value;
+                if (m_parentBacking != null)
+                    m_parentBacking.RemoveChild(this);
+                m_parentBacking = value;
                 if (value != null)
-                    _parentBacking.AddChild(this);
+                    m_parentBacking.AddChild(this);
             }
         }
 

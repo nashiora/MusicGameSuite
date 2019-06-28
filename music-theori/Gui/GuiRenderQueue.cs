@@ -1,38 +1,29 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 
 using OpenGL;
 
 using theori.Graphics;
-using theori.Resources;
 
 namespace theori.Gui
 {
     public class GuiRenderQueue : RenderQueue
     {
-        private static readonly ClientResourceManager resourceManager;
-
-        static GuiRenderQueue()
-        {
-            resourceManager = new ClientResourceManager(ClientResourceLocator.Default);
-        }
-
-        private static Material m_textureMaterialBacking;
+        private static Material textureMaterialBacking;
         private static Material TextureMaterial
         {
             get
             {
-                if (m_textureMaterialBacking == null)
-                    m_textureMaterialBacking = resourceManager.AquireMaterial("materials/basic");
-                return m_textureMaterialBacking;
+                if (textureMaterialBacking == null)
+                    textureMaterialBacking = Host.StaticResources.AquireMaterial("materials/basic");
+                return textureMaterialBacking;
             }
         }
 
-        private Stack<Rect> scissors = new Stack<Rect>();
-        private Rect scissor = Rect.EmptyScissor;
+        private Stack<Rect> m_scissors = new Stack<Rect>();
+        private Rect m_scissor = Rect.EmptyScissor;
 
-        private static readonly Mesh rectMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, theori.Anchor.TopLeft);
+        private static readonly Mesh rectMesh = Host.StaticResources.Manage(Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, Anchor.TopLeft));
 
         public GuiRenderQueue(Vector2 viewportSize)
             : base(new RenderState
@@ -46,18 +37,18 @@ namespace theori.Gui
 
         public void PushScissor(Rect s)
         {
-            if (scissors.Count == 0)
-                scissor = s;
-            else scissor = scissors.Peek().Clamp(s);
-            scissors.Push(scissor);
+            if (m_scissors.Count == 0)
+                m_scissor = s;
+            else m_scissor = m_scissors.Peek().Clamp(s);
+            m_scissors.Push(m_scissor);
         }
 
         public void PopScissor()
         {
-            scissors.Pop();
-            if (scissors.Count == 0)
-                scissor = Rect.EmptyScissor;
-            else scissor = scissors.Peek();
+            m_scissors.Pop();
+            if (m_scissors.Count == 0)
+                m_scissor = Rect.EmptyScissor;
+            else m_scissor = m_scissors.Peek();
         }
 
         public override void Process(bool clear)
@@ -69,7 +60,7 @@ namespace theori.Gui
 
         public virtual void DrawRect(Transform transform, Rect rect, Texture texture, Vector4 color)
         {
-            if (scissor.Width == 0 || scissor.Height == 0)
+            if (m_scissor.Width == 0 || m_scissor.Height == 0)
                 return;
 
             transform = Transform.Scale(rect.Width, rect.Height, 1) * Transform.Translation(rect.Left, rect.Top, 0) * transform;
@@ -78,7 +69,7 @@ namespace theori.Gui
             p["MainTexture"] = texture;
             p["Color"] = color;
             
-            Draw(scissor, transform, rectMesh, TextureMaterial, p);
+            Draw(m_scissor, transform, rectMesh, TextureMaterial, p);
         }
     }
 }

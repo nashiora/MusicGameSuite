@@ -63,7 +63,7 @@ namespace theori.Graphics
 
         public void Dispose()
         {
-            if (m_texture != null) m_texture.Dispose();
+            m_texture?.Dispose();
             m_texture = null;
         }
 
@@ -159,7 +159,9 @@ namespace theori.Graphics
                 return;
             }
 
+            m_texture?.Dispose();
             m_texture = new Texture();
+
             int textureWidth = (int)Math.Ceiling(stringWidth + 2), textureHeight = (int)Math.Ceiling(stringHeight);
 
             var pixelData = new byte[4 * textureWidth * textureHeight];

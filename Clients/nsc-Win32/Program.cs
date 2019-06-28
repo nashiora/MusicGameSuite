@@ -83,20 +83,7 @@ namespace NeuroSonic.Win32
                 }
             });
 
-            if (!Host.InitGameConfig())
-                ;
-
-            if (!Host.InitWindowSystem())
-                ;
-
-            if (!Host.InitGraphicsPipeline())
-                ;
-
-            if (!Host.InitAudioSystem())
-                ;
-
-            if (!Host.InitScriptingSystem())
-                ;
+            Host.DefaultInitialize();
 
             Host.OnUserQuit += TempFileWriter.Flush;
             Host.StartStandalone(NeuroSonicDescription.Instance, args);

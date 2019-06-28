@@ -10,15 +10,7 @@ namespace NeuroSonic.IO
 
         public static void CreateController()
         {
-            if (Controller != null)
-            {
-                Controller.ButtonPressed = null;
-                Controller.ButtonReleased = null;
-                Controller.AxisChanged = null;
-
-                Controller.Dispose();
-            }
-
+            DestroyController();
             Controller = Controller.Create();
 
             if (Controller != null)
@@ -26,6 +18,18 @@ namespace NeuroSonic.IO
                 Controller.ButtonPressed = Controller_ButtonPressed;
                 Controller.ButtonReleased = Controller_ButtonReleased;
                 Controller.AxisChanged = Controller_AxisChanged;
+            }
+        }
+
+        public static void DestroyController()
+        {
+            if (Controller != null)
+            {
+                Controller.ButtonPressed = null;
+                Controller.ButtonReleased = null;
+                Controller.AxisChanged = null;
+
+                Controller.Dispose();
             }
         }
 

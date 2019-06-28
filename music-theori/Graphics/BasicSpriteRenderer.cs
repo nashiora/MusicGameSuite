@@ -12,7 +12,7 @@ namespace theori.Graphics
     [MoonSharpUserData]
     public sealed class BasicSpriteRenderer : RenderQueue
     {
-        private readonly Mesh m_rectMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, Anchor.TopLeft);
+        private readonly Mesh m_rectMesh = Host.StaticResources.Manage(Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, Anchor.TopLeft));
 
         private readonly ClientResourceManager m_resources;
         private readonly Material m_basicMaterial;

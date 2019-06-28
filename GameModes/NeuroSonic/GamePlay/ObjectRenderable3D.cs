@@ -10,7 +10,25 @@ using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {
-    internal abstract class ObjectRenderable3D
+    internal sealed class ObjectRenderable3DStaticResources : System.Disposable
+    {
+        public readonly Mesh ButtonChipMesh;
+        public readonly Mesh ButtonHoldMesh;
+
+        public ObjectRenderable3DStaticResources()
+        {
+            ButtonChipMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1.0f / 6, 0.1f, Anchor.BottomCenter);
+            ButtonHoldMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1.0f / 6, 1.0f, Anchor.BottomCenter);
+        }
+
+        protected override void DisposeManaged()
+        {
+            ButtonChipMesh.Dispose();
+            ButtonHoldMesh.Dispose();
+        }
+    }
+
+    internal abstract class ObjectRenderable3D : System.Disposable
     {
         public readonly ChartObject Object;
 
@@ -19,7 +37,6 @@ namespace NeuroSonic.GamePlay
             Object = obj;
         }
 
-        public abstract void Destroy();
         public abstract void Render(RenderQueue rq, Transform world);
     }
 
@@ -50,8 +67,6 @@ namespace NeuroSonic.GamePlay
 
     internal class ButtonChipRenderState3D : ObjectRenderable3D
     {
-        private static readonly Mesh chipMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1.0f / 6, 0.1f, Anchor.BottomCenter);
-
         public new ButtonObject Object => (ButtonObject)base.Object;
 
         private int m_width = 1;
@@ -59,7 +74,7 @@ namespace NeuroSonic.GamePlay
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public ButtonChipRenderState3D(ButtonObject obj, ClientResourceManager skin)
+        public ButtonChipRenderState3D(ButtonObject obj, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
             : base(obj)
         {
             Debug.Assert(obj.IsChip, "Hold object passed to render state which expects a chip");
@@ -81,16 +96,12 @@ namespace NeuroSonic.GamePlay
 
             m_drawable = new Drawable3D()
             {
-                Texture = skin.GetTexture(textureName),
-                Material = skin.GetMaterial("materials/chip"),
-                Mesh = chipMesh,
+                Texture = resources.GetTexture(textureName),
+                Material = resources.GetMaterial("materials/chip"),
+                Mesh = staticResources.ButtonChipMesh,
             };
 
             m_transform = Transform.Scale(m_width, 1, 1);
-        }
-
-        public override void Destroy()
-        {
         }
 
         public override void Render(RenderQueue rq, Transform world)
@@ -104,8 +115,6 @@ namespace NeuroSonic.GamePlay
         private const float ENTRY_LENGTH = 0.1f;
         private const float EXIT_LENGTH = ENTRY_LENGTH * 0.5f;
 
-        private static readonly Mesh holdMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1.0f / 6, 1.0f, Anchor.BottomCenter);
-
         public new ButtonObject Object => (ButtonObject)base.Object;
 
         private Transform m_entryTransform = Transform.Scale(1, 1, ENTRY_LENGTH);
@@ -116,7 +125,7 @@ namespace NeuroSonic.GamePlay
 
         private readonly Drawable3D[] m_drawables;
 
-        public ButtonHoldRenderState3D(ButtonObject obj, float len, ClientResourceManager skin)
+        public ButtonHoldRenderState3D(ButtonObject obj, float len, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
             : base(obj)
         {
             Debug.Assert(obj.IsHold, "Chip object passed to render state which expects a hold");
@@ -134,23 +143,23 @@ namespace NeuroSonic.GamePlay
             {
                 new Drawable3D()
                 {
-                    Texture = skin.GetTexture(holdTextureName),
-                    Material = skin.GetMaterial("materials/hold"),
-                    Mesh = holdMesh,
+                    Texture = resources.GetTexture(holdTextureName),
+                    Material = resources.GetMaterial("materials/hold"),
+                    Mesh = staticResources.ButtonHoldMesh,
                 },
 
                 new Drawable3D()
                 {
-                    Texture = skin.GetTexture(holdTextureName + "_entry"),
-                    Material = skin.GetMaterial("materials/basic"),
-                    Mesh = holdMesh,
+                    Texture = resources.GetTexture(holdTextureName + "_entry"),
+                    Material = resources.GetMaterial("materials/basic"),
+                    Mesh = staticResources.ButtonHoldMesh,
                 },
 
                 new Drawable3D()
                 {
-                    Texture = skin.GetTexture(holdTextureName + "_exit"),
-                    Material = skin.GetMaterial("materials/hold"),
-                    Mesh = holdMesh,
+                    Texture = resources.GetTexture(holdTextureName + "_exit"),
+                    Material = resources.GetMaterial("materials/hold"),
+                    Mesh = staticResources.ButtonHoldMesh,
                 },
             };
 
@@ -174,10 +183,6 @@ namespace NeuroSonic.GamePlay
         {
             foreach (var d in m_drawables)
                 d.Params["GlowState"] = glowState;
-        }
-
-        public override void Destroy()
-        {
         }
 
         public override void Render(RenderQueue rq, Transform world)
@@ -345,7 +350,7 @@ namespace NeuroSonic.GamePlay
             m_drawable.Params["GlowState"] = glowState;
         }
 
-        public override void Destroy()
+        protected override void DisposeManaged()
         {
             m_drawable.Mesh.Dispose();
         }
@@ -422,7 +427,7 @@ namespace NeuroSonic.GamePlay
             m_drawable.Params["GlowState"] = glowState;
         }
 
-        public override void Destroy()
+        protected override void DisposeManaged()
         {
             m_drawable.Mesh.Dispose();
         }
