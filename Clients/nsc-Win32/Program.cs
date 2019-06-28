@@ -54,6 +54,9 @@ namespace NeuroSonic.Win32
         [STAThread]
         static void Main(string[] args)
         {
+            // TODO: now that default skins aren't a thing, the only reason for this is
+            //  persistent config across builds; setting the working directory in the project or
+            //  just relying on the build directory is now preferable.
 #if DEBUG
             string cd = System.Reflection.Assembly.GetEntryAssembly().Location;
             while (cd != null && !Directory.Exists(Path.Combine(cd, "InstallDir")))
@@ -83,6 +86,12 @@ namespace NeuroSonic.Win32
                 }
             });
 
+            // on platforms where [app].config doesn't work and we can't do much else (windows cough)
+            //  we pre-load the necessary native libraries.
+            // The search order takes over from there, looking up "SDL2.dll" ignores the directory it
+            //  was loaded from and selects the proper one we loaded.
+            // The Linux/MacOS clients will likely assume Mono is around and use the [app].config files instead.
+            // We aren't using .NET Core, so we can't use their methods for fixing this either.
             if (Environment.Is64BitProcess)
             {
                 Host.Platform.LoadLibrary("x64/SDL2.dll");

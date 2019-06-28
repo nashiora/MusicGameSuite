@@ -186,9 +186,6 @@
     <EmbeddedResource Include="Resources\materials\gui_texture.fs" />
     <EmbeddedResource Include="Resources\materials\gui_texture.vs" />
     <EmbeddedResource Include="Resources\fonts\NotoSansCJKjp-Regular.otf" />
-    <None Include="music-theori.dll.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Libraries\System-Additions\System-Additions.csproj">
