@@ -122,13 +122,7 @@ namespace theori
         public GenericTransitionLayer(Layer nextLayer, ClientResourceLocator locator)
         {
             m_nextLayer = nextLayer;
-
-            if (locator == null)
-            {
-                locator = new ClientResourceLocator(null, "materials/basic");
-                locator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(GetType().Assembly, "theori.Resources"));
-            }
-            m_renderer = new BasicSpriteRenderer(locator, new Vector2(Window.Width, Window.Height));
+            m_renderer = new BasicSpriteRenderer(locator ?? ClientResourceLocator.Default, new Vector2(Window.Width, Window.Height));
         }
 
         public override void Destroy()
