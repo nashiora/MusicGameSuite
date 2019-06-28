@@ -2,6 +2,8 @@
 
 An extensible rhythm game client with many built-in game modes for home and arcade use.
 
+[![Early Demo](https://img.youtube.com/vi/vbyPEh_-LfU/0.jpg)](https://www.youtube.com/watch?v=vbyPEh_-LfU)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
