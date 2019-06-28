@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
-using NeuroSonic.GamePlay.Scoring;
-using NeuroSonic.IO;
-using OpenGL;
-using OpenRM;
+
 using theori;
-using theori.Graphics;
 using theori.Gui;
 using theori.Resources;
+
+using NeuroSonic.GamePlay.Scoring;
+using NeuroSonic.IO;
 
 namespace NeuroSonic.GamePlay
 {

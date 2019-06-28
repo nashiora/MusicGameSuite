@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using CSCore;
-using OpenRM;
 
 namespace theori.Audio
 {

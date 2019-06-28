@@ -1,6 +1,5 @@
 ﻿using theori;
-
-using OpenRM;
+using theori.Charting;
 
 namespace NeuroSonic.GamePlay.Scoring
 {

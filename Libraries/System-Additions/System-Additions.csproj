@@ -102,6 +102,10 @@
     <Compile Include="Extensions\System_Single.cs" />
     <Compile Include="Extensions\System_String.cs" />
     <Compile Include="HashCode.cs" />
+    <Compile Include="IO\BigEndian.cs" />
+    <Compile Include="IO\BinReader.cs" />
+    <Compile Include="IO\BinWriter.cs" />
+    <Compile Include="IO\Error.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MathL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

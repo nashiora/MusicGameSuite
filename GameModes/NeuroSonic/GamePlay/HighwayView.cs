@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using theori;
+using theori.Charting;
 using theori.Graphics;
+using theori.Resources;
 
 using OpenGL;
 
-using OpenRM;
-using OpenRM.Voltex;
-using theori.Resources;
+using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {
@@ -23,7 +23,7 @@ namespace NeuroSonic.GamePlay
 
         struct GlowInfo
         {
-            public OpenRM.Object Object;
+            public ChartObject Object;
             public float Glow;
             public int GlowState;
         }
@@ -62,7 +62,7 @@ namespace NeuroSonic.GamePlay
 
         private Vector3 m_lVolColor, m_rVolColor;
 
-        private Dictionary<OpenRM.Object, ObjectRenderable3D>[] m_renderables = new Dictionary<OpenRM.Object, ObjectRenderable3D>[8];
+        private Dictionary<ChartObject, ObjectRenderable3D>[] m_renderables = new Dictionary<ChartObject, ObjectRenderable3D>[8];
         private readonly KeyBeamInfo[] m_keyBeamInfos = new KeyBeamInfo[6];
         private readonly GlowInfo[] m_glowInfos = new GlowInfo[8];
         private readonly bool[] m_streamsActive = new bool[8].Fill(true);
@@ -88,7 +88,7 @@ namespace NeuroSonic.GamePlay
         public Vector3 CameraOffset { get; set; }
         
         const float SLAM_DUR_TICKS = 1 / 32.0f;
-        time_t SlamDurationTime(OpenRM.Object obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
+        time_t SlamDurationTime(ChartObject obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
 
         public HighwayView(ClientResourceManager skin)
         {
@@ -100,7 +100,7 @@ namespace NeuroSonic.GamePlay
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
             
-            m_renderables.Fill(() => new Dictionary<OpenRM.Object, ObjectRenderable3D>());
+            m_renderables.Fill(() => new Dictionary<ChartObject, ObjectRenderable3D>());
         }
 
         public bool AsyncLoad()
@@ -206,7 +206,7 @@ namespace NeuroSonic.GamePlay
                 r.Clear();
         }
 
-        public void RenderableObjectAppear(OpenRM.Object obj)
+        public void RenderableObjectAppear(ChartObject obj)
         {
             if (obj.Stream >= 8) return;
 
@@ -244,7 +244,7 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        public void RenderableObjectDisappear(OpenRM.Object obj)
+        public void RenderableObjectDisappear(ChartObject obj)
         {
             if (obj.Stream >= 8) return;
 
@@ -263,7 +263,7 @@ namespace NeuroSonic.GamePlay
             m_streamsActive[stream] = active;
         }
 
-        public void SetObjectGlow(OpenRM.Object targetObject, float glow, int glowState)
+        public void SetObjectGlow(ChartObject targetObject, float glow, int glowState)
         {
             ref GlowInfo glowInfo = ref m_glowInfos[targetObject.Stream];
             glowInfo.Object = targetObject;

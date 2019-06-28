@@ -2,9 +2,8 @@
 
 using System;
 
-using OpenRM;
-using OpenRM.Audio;
-using OpenRM.Audio.Effects;
+using theori.Audio;
+using theori.Audio.Effects;
 
 namespace theori.Audio
 {

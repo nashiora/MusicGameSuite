@@ -1,13 +1,12 @@
 ﻿using System.IO;
 
-using OpenRM.Convert;
-
 using theori;
 using theori.Audio;
 using theori.IO;
 using theori.Resources;
 
 using NeuroSonic.GamePlay;
+using theori.Charting.Conversions;
 
 namespace NeuroSonic.ChartSelect
 {
@@ -68,7 +67,7 @@ namespace NeuroSonic.ChartSelect
                         string kshChart = dialogResult.FilePath;
 
                         string fileDir = Directory.GetParent(kshChart).FullName;
-                        var ksh = KShootMania.Chart.CreateFromFile(kshChart);
+                        var ksh = NeuroSonic.Charting.KShootMania.Chart.CreateFromFile(kshChart);
 
                         string audioFileFx = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? "");
                         string audioFileNoFx = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? "");

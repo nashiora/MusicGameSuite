@@ -1,18 +1,20 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 
 using theori;
+using theori.Charting;
 using theori.Graphics;
-
-using System.Diagnostics;
 using theori.Resources;
+
+using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {
     internal abstract class ObjectRenderable3D
     {
-        public readonly OpenRM.Object Object;
+        public readonly ChartObject Object;
 
-        protected ObjectRenderable3D(OpenRM.Object obj)
+        protected ObjectRenderable3D(ChartObject obj)
         {
             Object = obj;
         }
@@ -26,7 +28,7 @@ namespace NeuroSonic.GamePlay
         private float m_glow = -1.0f;
         private int m_glowState = -1;
 
-        protected GlowingRenderState3D(OpenRM.Object obj)
+        protected GlowingRenderState3D(ChartObject obj)
             : base(obj)
         {
         }
@@ -50,14 +52,14 @@ namespace NeuroSonic.GamePlay
     {
         private static readonly Mesh chipMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1.0f / 6, 0.1f, Anchor.BottomCenter);
 
-        public new OpenRM.Voltex.ButtonObject Object => (OpenRM.Voltex.ButtonObject)base.Object;
+        public new ButtonObject Object => (ButtonObject)base.Object;
 
         private int m_width = 1;
 
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public ButtonChipRenderState3D(OpenRM.Voltex.ButtonObject obj, ClientResourceManager skin)
+        public ButtonChipRenderState3D(ButtonObject obj, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(obj.IsChip, "Hold object passed to render state which expects a chip");
@@ -104,7 +106,7 @@ namespace NeuroSonic.GamePlay
 
         private static readonly Mesh holdMesh = Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitZ, 1.0f / 6, 1.0f, Anchor.BottomCenter);
 
-        public new OpenRM.Voltex.ButtonObject Object => (OpenRM.Voltex.ButtonObject)base.Object;
+        public new ButtonObject Object => (ButtonObject)base.Object;
 
         private Transform m_entryTransform = Transform.Scale(1, 1, ENTRY_LENGTH);
         private Transform m_exitTransform = Transform.Scale(1, 1, EXIT_LENGTH);
@@ -114,7 +116,7 @@ namespace NeuroSonic.GamePlay
 
         private readonly Drawable3D[] m_drawables;
 
-        public ButtonHoldRenderState3D(OpenRM.Voltex.ButtonObject obj, float len, ClientResourceManager skin)
+        public ButtonHoldRenderState3D(ButtonObject obj, float len, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(obj.IsHold, "Chip object passed to render state which expects a hold");
@@ -190,12 +192,12 @@ namespace NeuroSonic.GamePlay
     {
         private const float LASER_WIDTH = 2.0f;
 
-        public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
+        public new AnalogObject Object => (AnalogObject)base.Object;
         
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public SlamRenderState3D(OpenRM.Voltex.AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
+        public SlamRenderState3D(AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(obj.IsInstant, "Analog for slam render state wasn't a slam");
@@ -358,12 +360,12 @@ namespace NeuroSonic.GamePlay
     {
         private const float LASER_WIDTH = 2.0f;
 
-        public new OpenRM.Voltex.AnalogObject Object => (OpenRM.Voltex.AnalogObject)base.Object;
+        public new AnalogObject Object => (AnalogObject)base.Object;
         
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public LaserRenderState3D(OpenRM.Voltex.AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
+        public LaserRenderState3D(AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(!obj.IsInstant, "analog for segment render state was a slam");

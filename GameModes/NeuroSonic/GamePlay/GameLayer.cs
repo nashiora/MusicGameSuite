@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Numerics;
-
+using NeuroSonic.Charting;
 using NeuroSonic.GamePlay.Scoring;
-
-using OpenRM;
-using OpenRM.Audio.Effects;
-using OpenRM.Voltex;
 
 using theori;
 using theori.Audio;
+using theori.Audio.Effects;
+using theori.Charting;
+using theori.Charting.Playback;
 using theori.Graphics;
 using theori.Gui;
 using theori.IO;
@@ -55,7 +54,7 @@ namespace NeuroSonic.GamePlay
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
-        private readonly OpenRM.Object[] m_activeObjects = new OpenRM.Object[8];
+        private readonly ChartObject[] m_activeObjects = new ChartObject[8];
         private readonly bool[] m_streamHasActiveEffects = new bool[8].Fill(true);
 
         private readonly EffectDef[] m_currentEffects = new EffectDef[8];
@@ -154,13 +153,13 @@ namespace NeuroSonic.GamePlay
             {
                 if (dir != PlayDirection.Forward) return;
 
-                if (obj is Event evt)
+                if (obj is ChartEvent evt)
                     PlaybackEventTrigger(evt, dir);
                 else PlaybackObjectBegin(obj);
             };
             m_playback.ObjectTailCrossCritical += (dir, obj) =>
             {
-                if (dir == PlayDirection.Backward && obj is Event evt)
+                if (dir == PlayDirection.Backward && obj is ChartEvent evt)
                     PlaybackEventTrigger(evt, dir);
                 else PlaybackObjectEnd(obj);
             };
@@ -233,7 +232,7 @@ namespace NeuroSonic.GamePlay
             m_audioController?.Play();
         }
 
-        private void PlaybackObjectBegin(OpenRM.Object obj)
+        private void PlaybackObjectBegin(ChartObject obj)
         {
             if (obj is AnalogObject aobj)
             {
@@ -266,7 +265,7 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private void PlaybackObjectEnd(OpenRM.Object obj)
+        private void PlaybackObjectEnd(ChartObject obj)
         {
             if (obj is AnalogObject aobj)
             {
@@ -289,7 +288,7 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private void Judge_OnTickProcessed(OpenRM.Object obj, time_t position, JudgeResult result)
+        private void Judge_OnTickProcessed(ChartObject obj, time_t position, JudgeResult result)
         {
             //Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
 
@@ -306,22 +305,22 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private void Judge_OnChipPressed(time_t position, OpenRM.Object obj)
+        private void Judge_OnChipPressed(time_t position, ChartObject obj)
         {
         }
 
-        private void Judge_OnHoldReleased(time_t position, OpenRM.Object obj)
+        private void Judge_OnHoldReleased(time_t position, ChartObject obj)
         {
             m_streamHasActiveEffects[obj.Stream] = false;
         }
 
-        private void Judge_OnHoldPressed(time_t position, OpenRM.Object obj)
+        private void Judge_OnHoldPressed(time_t position, ChartObject obj)
         {
             m_streamHasActiveEffects[obj.Stream] = true;
             CreateKeyBeam(obj.Stream, JudgeKind.Passive, false);
         }
 
-        private void PlaybackEventTrigger(Event evt, PlayDirection direction)
+        private void PlaybackEventTrigger(ChartEvent evt, PlayDirection direction)
         {
             if (direction == PlayDirection.Forward)
             {

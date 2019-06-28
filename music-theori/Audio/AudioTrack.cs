@@ -4,7 +4,6 @@ using System.IO;
 using CSCore;
 using CSCore.Codecs;
 using CSCore.Codecs.WAV;
-using OpenRM;
 
 namespace theori.Audio
 {

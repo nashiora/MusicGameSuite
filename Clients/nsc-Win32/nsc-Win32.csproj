@@ -57,10 +57,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Formats\ChartData\ChartData.csproj">
-      <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
-      <Name>ChartData</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\GameModes\NeuroSonic\NeuroSonic.csproj">
       <Project>{56c07185-659e-4d92-bf9a-902b9bc5bb7f}</Project>
       <Name>NeuroSonic</Name>

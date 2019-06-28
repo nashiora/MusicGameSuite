@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using OpenRM;
+using theori;
+using theori.Charting;
 
 namespace NeuroSonic.GamePlay.Scoring
 {
@@ -9,14 +10,14 @@ namespace NeuroSonic.GamePlay.Scoring
     {
         public struct Tick
         {
-            public OpenRM.Object AssociatedObject;
+            public ChartObject AssociatedObject;
 
             public time_t Position;
             public bool IsHold;
 
             public bool IsAutoTick;
 
-            public Tick(OpenRM.Object obj, time_t pos, bool isHold, bool isAutoTick = false)
+            public Tick(ChartObject obj, time_t pos, bool isHold, bool isAutoTick = false)
             {
                 AssociatedObject = obj;
                 Position = pos;
@@ -44,16 +45,16 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private bool m_userHeld = false;
         private time_t m_userWhen = 0.0;
-        private OpenRM.Object m_lastPressedObject;
+        private ChartObject m_lastPressedObject;
 
         private readonly List<Tick> m_ticks = new List<Tick>();
 
-        public event Action<time_t, OpenRM.Object> OnChipPressed;
+        public event Action<time_t, ChartObject> OnChipPressed;
 
-        public event Action<time_t, OpenRM.Object> OnHoldPressed;
-        public event Action<time_t, OpenRM.Object> OnHoldReleased;
+        public event Action<time_t, ChartObject> OnHoldPressed;
+        public event Action<time_t, ChartObject> OnHoldReleased;
 
-        public event Action<OpenRM.Object, time_t, JudgeResult> OnTickProcessed;
+        public event Action<ChartObject, time_t, JudgeResult> OnTickProcessed;
 
         public ButtonJudge(Chart chart, int streamIndex)
             : base(chart, streamIndex)
@@ -170,7 +171,7 @@ namespace NeuroSonic.GamePlay.Scoring
             }
         }
 
-        protected override void ObjectEnteredJudgement(OpenRM.Object obj)
+        protected override void ObjectEnteredJudgement(ChartObject obj)
         {
             if (AutoPlay && !obj.IsInstant)
                 m_ticks.Add(new Tick(obj, obj.AbsolutePosition, true, true));
@@ -204,7 +205,7 @@ namespace NeuroSonic.GamePlay.Scoring
                 m_ticks.Add(new Tick(obj, obj.AbsoluteEndPosition, true, true));
         }
 
-        protected override void ObjectExitedJudgement(OpenRM.Object obj)
+        protected override void ObjectExitedJudgement(ChartObject obj)
         {
             if (m_lastPressedObject == obj)
                 m_lastPressedObject = null;

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Numerics;
 
-using OpenRM;
-using OpenRM.Voltex;
+using theori;
+using theori.Charting;
+
+using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {

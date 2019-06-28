@@ -1,4 +1,5 @@
-﻿using OpenRM;
+﻿using theori;
+using theori.Charting;
 
 namespace NeuroSonic.GamePlay.Scoring
 {
@@ -12,8 +13,8 @@ namespace NeuroSonic.GamePlay.Scoring
 
         protected time_t CurrentPosition { get; private set; }
 
-        private Object m_mostRecentInactive;
-        private Object m_firstActive, m_lastActive;
+        private ChartObject m_mostRecentInactive;
+        private ChartObject m_firstActive, m_lastActive;
 
         private bool m_completed = false;
 
@@ -53,7 +54,7 @@ namespace NeuroSonic.GamePlay.Scoring
 
                 if (m_firstActive == null)
                 {
-                    Object first;
+                    ChartObject first;
                     if (m_mostRecentInactive == null)
                         first = Objects.FirstObject;
                     else first = m_mostRecentInactive.Next;
@@ -98,7 +99,7 @@ namespace NeuroSonic.GamePlay.Scoring
         }
 
         protected abstract void AdvancePosition(time_t position);
-        protected abstract void ObjectEnteredJudgement(Object obj);
-        protected abstract void ObjectExitedJudgement(Object obj);
+        protected abstract void ObjectEnteredJudgement(ChartObject obj);
+        protected abstract void ObjectExitedJudgement(ChartObject obj);
     }
 }

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-using OpenRM;
-using OpenRM.Voltex;
+using theori;
+using theori.Charting;
+
+using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {

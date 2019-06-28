@@ -49,6 +49,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Charting\AnalogObject.cs" />
+    <Compile Include="Charting\ButtonObject.cs" />
+    <Compile Include="Charting\Conversions\ChartExt_Ksh2Voltex.cs" />
+    <Compile Include="Charting\Enums.cs" />
+    <Compile Include="Charting\Events.cs" />
+    <Compile Include="Charting\KShootMania\Chart.cs" />
+    <Compile Include="Charting\KShootMania\ChartMetadata.cs" />
+    <Compile Include="Charting\ParamTypes.cs" />
+    <Compile Include="Charting\VoltexChartSerializer.cs" />
     <Compile Include="ChartSelect\ChartSelectLayer.cs" />
     <Compile Include="ChartSelect\DifficultySlot.cs" />
     <Compile Include="ChartSelect\Landscape\LandscapeChartSelectLayer.cs" />
@@ -80,10 +89,6 @@
     <Compile Include="Startup\NeuroSonicStandaloneStartup.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Formats\ChartData\ChartData.csproj">
-      <Project>{c113c0a4-990b-4de6-863c-d2518ded3d13}</Project>
-      <Name>ChartData</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Libraries\System-Additions\System-Additions.csproj">
       <Project>{cfbacb82-087e-4ed3-a496-55f420880d82}</Project>
       <Name>System-Additions</Name>
@@ -98,7 +103,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Charting\" />
     <Folder Include="ChartSelect\Portrait\" />
     <Folder Include="GamePlay\Shared\" />
     <Folder Include="GamePlay\Standalone\" />

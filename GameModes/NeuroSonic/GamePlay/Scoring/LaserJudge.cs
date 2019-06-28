@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using OpenRM;
-using OpenRM.Voltex;
+using theori;
+using theori.Charting;
+
+using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay.Scoring
 {
@@ -10,14 +12,14 @@ namespace NeuroSonic.GamePlay.Scoring
     {
         public struct Tick
         {
-            public OpenRM.Object AssociatedObject;
+            public ChartObject AssociatedObject;
 
             public time_t Position;
             public bool IsSegment;
 
             public bool IsAutoTick;
 
-            public Tick(OpenRM.Object obj, time_t pos, bool isSegment, bool isAutoTick = false)
+            public Tick(ChartObject obj, time_t pos, bool isSegment, bool isAutoTick = false)
             {
                 AssociatedObject = obj;
                 Position = pos;
@@ -146,12 +148,12 @@ namespace NeuroSonic.GamePlay.Scoring
         private float m_targetCursorPosition = 0.0f;
         private AnalogObject m_currentObject;
 
-        public event Action<time_t, OpenRM.Object> OnSlamHit;
+        public event Action<time_t, ChartObject> OnSlamHit;
 
-        public event Action<time_t, OpenRM.Object> OnLaserActivated;
-        public event Action<time_t, OpenRM.Object> OnLaserDeactivated;
+        public event Action<time_t, ChartObject> OnLaserActivated;
+        public event Action<time_t, ChartObject> OnLaserDeactivated;
 
-        public event Action<OpenRM.Object, time_t, JudgeResult> OnTickProcessed;
+        public event Action<ChartObject, time_t, JudgeResult> OnTickProcessed;
 
         public LaserJudge(Chart chart, int streamIndex)
             : base(chart, streamIndex)
@@ -168,11 +170,11 @@ namespace NeuroSonic.GamePlay.Scoring
         {
         }
 
-        protected override void ObjectEnteredJudgement(OpenRM.Object obj)
+        protected override void ObjectEnteredJudgement(ChartObject obj)
         {
         }
 
-        protected override void ObjectExitedJudgement(OpenRM.Object obj)
+        protected override void ObjectExitedJudgement(ChartObject obj)
         {
         }
     }
