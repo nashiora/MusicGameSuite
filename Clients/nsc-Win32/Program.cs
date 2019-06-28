@@ -83,6 +83,17 @@ namespace NeuroSonic.Win32
                 }
             });
 
+            if (Environment.Is64BitProcess)
+            {
+                Host.Platform.LoadLibrary("x64/SDL2.dll");
+                Host.Platform.LoadLibrary("x64/freetype6.dll");
+            }
+            else
+            {
+                Host.Platform.LoadLibrary("x86/SDL2.dll");
+                Host.Platform.LoadLibrary("x86/freetype6.dll");
+            }
+
             Host.DefaultInitialize();
 
             Host.OnUserQuit += TempFileWriter.Flush;
