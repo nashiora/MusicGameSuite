@@ -254,7 +254,7 @@ namespace NeuroSonic.Charting.KShootMania
 
                     case "Phaser":
                     {
-                        def = new PhaserEffectDef(1.0f);
+                        def = new PhaserEffectDef(0.5f);
                     } break;
                 }
 

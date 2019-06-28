@@ -97,6 +97,8 @@ namespace theori.Audio
             m_effectMixes[i] = mix;
 
             m_dsps[i] = f.CreateEffectDsp(SampleRate);
+            m_dsps[i].Reset();
+
             UpdateEffect(i, qnDur, 0);
         }
 
@@ -127,6 +129,7 @@ namespace theori.Audio
 
         public void SetEffectActive(int i, bool active)
         {
+            if (active && !m_effectsActive[i]) m_dsps[i]?.Reset();
             m_effectsActive[i] = active;
         }
 

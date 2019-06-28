@@ -21,14 +21,6 @@ namespace theori.Audio.Effects
         
         public void SetDelayRange(int min, int max)
         {
-            if (min > max)
-            {
-                int temp = min;
-                min = max;
-                max = temp;
-            }
-
-	        // Assuming 44100hz is the base sample rate
 	        float mult = SampleRate / 44100.0f;
 	        m_min = (int)(min * mult);
 	        m_max = (int)(max * mult);
@@ -74,7 +66,7 @@ namespace theori.Audio.Effects
 
     public class FlangerEffectDef : EffectDef
     {
-        public EffectParamF Delay = 21000.0f;
+        public EffectParamF Delay = 2.0f;
         public EffectParamI Offset = 10;
         public EffectParamI Depth = 40;
 

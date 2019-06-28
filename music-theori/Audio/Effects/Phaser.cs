@@ -4,19 +4,27 @@ namespace theori.Audio.Effects
 {
     public class Phaser : Dsp
     {
-        private const int NumBands = 6;
+        private const int NumBands = 8;
 
-        private float feedback = 0.35f;
+        private float feedback = 0.15f;
         private double time;
         private APF[] allPassFilters = new APF[NumBands * 2]; // 6 bands - Stereo
         private float[] feedbackBuffer = new float[2];
-        private float maxmimumFrequency = 20000.0f;
-        private float minimumFrequency = 12000.0f;
+        private float maxmimumFrequency = 6000.0f;
+        private float minimumFrequency = 1000.0f;
         private float frequencyDelta;
 
         public Phaser(int sampleRate)
             : base(sampleRate)
         {
+            CalculateFrequencyDelta();
+        }
+
+        public override void Reset()
+        {
+            time = 0.0f;
+            feedbackBuffer.Fill(0.0f);
+            allPassFilters.Fill(new APF());
         }
 
         public float MinimumFrequency
@@ -45,13 +53,13 @@ namespace theori.Audio.Effects
             set { feedback = MathL.Clamp(value, 0.0f, 1.0f); }
         }
 
-        public double Duration { get; set; } = 1.0;
+        public double Duration { get; set; } = 2.0;
 
         protected override void ProcessImpl(float[] buffer, int offset, int count)
         {
             int numSamples = count / 2;
 
-            float sampleRateFloat = (float)SampleRate;
+            float sampleRateFloat = SampleRate;
             double sampleStep = 1.0 / SampleRate;
 
             for(int i = 0; i < numSamples; i++)
@@ -74,12 +82,9 @@ namespace theori.Audio.Effects
 
                     // Calculate ouput from filters chained together
                     // Merry christmas!
-                    float filtered = allPassFilters[0 + filterOffset].Update(
-                        allPassFilters[1 + filterOffset].Update(
-                            allPassFilters[2 + filterOffset].Update(
-                                allPassFilters[3 + filterOffset].Update(
-                                    allPassFilters[4 + filterOffset].Update(
-                                        allPassFilters[5 + filterOffset].Update(buffer[i * 2 + c] + feedbackBuffer[c] * feedback))))));
+                    float filtered = buffer[i * 2 + c] + feedbackBuffer[c] * feedback;
+                    for (int b = NumBands - 1; b >= 0; b--)
+                        filtered = allPassFilters[b + filterOffset].Update(filtered);
 
                     // Store filter feedback
                     feedbackBuffer[c] = filtered;
@@ -101,10 +106,14 @@ namespace theori.Audio.Effects
         {
             public float Update(float input)
             {
-                float y = input * -a1 + za;
-                za = y * a1 + input;
+                y = a1 * (y + input) - x;
+                x = input;
+                //float y = input * -a1 + za;
+                //za = y * a1 + input;
                 return y;
             }
+
+            float y, x;
 
             public float a1;
             public float za;
