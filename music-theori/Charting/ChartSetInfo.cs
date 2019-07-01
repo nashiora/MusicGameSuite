@@ -29,11 +29,17 @@ namespace theori.Charting
         /// </summary>
         public string FilePath { get; set; }
 
+        public string SongTitle { get; set; } = "Unknown";
+        public string SongArtist { get; set; } = "Unknown";
+        public string SongFileName { get; set; } = "song.ogg";
+
         public override bool Equals(object obj) => obj is ChartSetInfo info && Equals(info);
         bool IEquatable<ChartSetInfo>.Equals(ChartSetInfo other)
         {
             if (other is null) return false;
-            return true;
+            // TODO(local): This isn't TECHNICALLY true
+            //  but should it be considered true?
+            return ID == other.ID;
         }
 
         public override int GetHashCode() => HashCode.For(ID);

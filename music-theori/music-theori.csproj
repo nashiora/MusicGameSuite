@@ -118,11 +118,13 @@
     <Compile Include="Cached.cs" />
     <Compile Include="Charting\Chart.cs" />
     <Compile Include="Charting\ChartInfo.cs" />
+    <Compile Include="Charting\ChartSet.cs" />
     <Compile Include="Charting\ChartSetInfo.cs" />
     <Compile Include="Charting\ControlPoint.cs" />
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\ChartEvent.cs" />
     <Compile Include="Charting\ChartObject.cs" />
+    <Compile Include="Charting\IO\ChartSerializer.cs" />
     <Compile Include="Charting\Playback\SlidingChartPlayback.cs" />
     <Compile Include="Charting\SerializeFieldAttribute.cs" />
     <Compile Include="Configuration\Config.cs" />
@@ -134,7 +136,7 @@
     <Compile Include="Extensions\NumericExt.cs" />
     <Compile Include="Extensions\ShaderProgramExt.cs" />
     <Compile Include="Extensions\StringExt.cs" />
-    <Compile Include="GameModes\GameModeDescription.cs" />
+    <Compile Include="GameModes\GameMode.cs" />
     <Compile Include="BootLoaders\StandaloneBootLoader.cs" />
     <Compile Include="Game\PositionFunc.cs" />
     <Compile Include="Graphics\BasicSpriteRenderer.cs" />

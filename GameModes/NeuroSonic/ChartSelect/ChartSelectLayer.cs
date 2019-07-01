@@ -49,7 +49,7 @@ namespace NeuroSonic.ChartSelect
                         string kshChart = dialogResult.FilePath;
 
                         string fileDir = Directory.GetParent(kshChart).FullName;
-                        var ksh = NeuroSonic.Charting.KShootMania.Chart.CreateFromFile(kshChart);
+                        var ksh = Charting.KShootMania.Chart.CreateFromFile(kshChart);
 
                         string audioFileFx = Path.Combine(fileDir, ksh.Metadata.MusicFile ?? "");
                         string audioFileNoFx = Path.Combine(fileDir, ksh.Metadata.MusicFileNoFx ?? "");

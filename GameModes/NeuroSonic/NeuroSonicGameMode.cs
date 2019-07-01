@@ -6,14 +6,14 @@ using NeuroSonic.IO;
 
 namespace NeuroSonic
 {
-    public sealed class NeuroSonicDescription : GameModeDescription
+    public sealed class NeuroSonicGameMode : GameMode
     {
-        public static GameModeDescription Instance { get; } = new NeuroSonicDescription();
+        public static GameMode Instance { get; } = new NeuroSonicGameMode();
 
         public override bool SupportsStandaloneUsage => true;
         public override bool SupportsSharedUsage => true;
 
-        public NeuroSonicDescription()
+        public NeuroSonicGameMode()
             : base("NeuroSonic")
         {
         }

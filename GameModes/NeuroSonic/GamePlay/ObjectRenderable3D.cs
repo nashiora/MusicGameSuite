@@ -240,7 +240,7 @@ namespace NeuroSonic.GamePlay
                     new VertexP3T2(new Vector3(fl, 0, -1), new Vector2(0, 1)),
                 };
 #else
-                ushort[] indices = new ushort[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
+                ushort[] indices = new ushort[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
                 VertexP3T2[] vertices = new VertexP3T2[]
                 {
                     new VertexP3T2(new Vector3(il , 0,  0.0f), new Vector2(0.00f, 0.875f)),
@@ -249,21 +249,11 @@ namespace NeuroSonic.GamePlay
 
                     new VertexP3T2(new Vector3(ir , 0,  0.5f), new Vector2(1.00f, 0.000f)),
                     new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(0.00f, 0.500f)),
-                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(0.00f, 0.000f)),
-
-
-                    new VertexP3T2(new Vector3(ir , 0,  0.5f), new Vector2(1.00f, 1.000f)),
-                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(0.00f, 1.000f)),
                     new VertexP3T2(new Vector3(fl , 0, -1.5f), new Vector2(0.00f, 0.000f)),
 
                     new VertexP3T2(new Vector3(ir , 0,  0.5f), new Vector2(1.00f, 1.000f)),
                     new VertexP3T2(new Vector3(fl , 0, -1.5f), new Vector2(0.00f, 0.000f)),
-                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(1.00f, 0.000f)),
-
-
-                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(1.00f, 1.000f)),
-                    new VertexP3T2(new Vector3(fl , 0, -1.5f), new Vector2(0.00f, 1.000f)),
-                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(1.00f, 0.500f)),
+                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(1.00f, 1.000f)),
 
                     new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(1.00f, 0.500f)),
                     new VertexP3T2(new Vector3(flh, 0, -1.0f), new Vector2(0.25f, 0.125f)),
@@ -289,13 +279,9 @@ namespace NeuroSonic.GamePlay
                     new VertexP3T2(new Vector3(fl, 0, 0), new Vector2(0, 1)),
                 };
 #else
-                ushort[] indices = new ushort[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17 };
+                ushort[] indices = new ushort[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
                 VertexP3T2[] vertices = new VertexP3T2[]
                 {
-                    new VertexP3T2(new Vector3(il , 0,  0.5f), new Vector2(0.00f, 0.000f)),
-                    new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(1.00f, 0.000f)),
-                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(1.00f, 0.500f)),
-
                     new VertexP3T2(new Vector3(ilh, 0,  0.0f), new Vector2(0.25f, 0.875f)),
                     new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(1.00f, 0.500f)),
                     new VertexP3T2(new Vector3(ir , 0,  0.0f), new Vector2(1.00f, 0.875f)),
@@ -303,16 +289,12 @@ namespace NeuroSonic.GamePlay
 
                     new VertexP3T2(new Vector3(il , 0,  0.5f), new Vector2(0.00f, 1.000f)),
                     new VertexP3T2(new Vector3(fr , 0, -1.5f), new Vector2(1.00f, 0.000f)),
-                    new VertexP3T2(new Vector3(il , 0, -1.5f), new Vector2(1.00f, 1.000f)),
+                    new VertexP3T2(new Vector3(ir , 0, -1.5f), new Vector2(1.00f, 1.000f)),
 
                     new VertexP3T2(new Vector3(il , 0,  0.5f), new Vector2(0.00f, 1.000f)),
-                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(0.00f, 0.000f)),
+                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(0.00f, 0.000f)),
                     new VertexP3T2(new Vector3(fr , 0, -1.5f), new Vector2(1.00f, 0.000f)),
 
-
-                    new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(0.00f, 0.500f)),
-                    new VertexP3T2(new Vector3(fr , 0, -1.5f), new Vector2(1.00f, 1.000f)),
-                    new VertexP3T2(new Vector3(fr , 0,  0.5f), new Vector2(0.00f, 1.000f)),
 
                     new VertexP3T2(new Vector3(fl , 0,  0.5f), new Vector2(0.00f, 0.500f)),
                     new VertexP3T2(new Vector3(fl , 0, -1.0f), new Vector2(0.00f, 0.125f)),

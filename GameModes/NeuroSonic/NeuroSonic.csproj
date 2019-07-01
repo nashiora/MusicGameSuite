@@ -77,6 +77,7 @@
     <Compile Include="Charting\KShootMania\ChartMetadata.cs" />
     <Compile Include="Charting\ParamTypes.cs" />
     <Compile Include="Charting\VoltexChartSerializer.cs" />
+    <Compile Include="ChartSelect\ChartManagerLayer.cs" />
     <Compile Include="ChartSelect\ChartSelectLayer.cs" />
     <Compile Include="ChartSelect\DifficultySlot.cs" />
     <Compile Include="ChartSelect\Landscape\LandscapeChartSelectLayer.cs" />
@@ -101,7 +102,7 @@
     <Compile Include="Startup\BaseMenuLayer.cs" />
     <Compile Include="Startup\BindingConfigurationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
-    <Compile Include="NeuroSonicDescription.cs" />
+    <Compile Include="NeuroSonicGameMode.cs" />
     <Compile Include="NscConfig.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

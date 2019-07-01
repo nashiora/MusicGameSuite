@@ -106,7 +106,7 @@ namespace NeuroSonic.Win32
             Host.DefaultInitialize();
 
             Host.OnUserQuit += TempFileWriter.Flush;
-            Host.StartStandalone(NeuroSonicDescription.Instance, args);
+            Host.StartStandalone(NeuroSonicGameMode.Instance, args);
 #if !DEBUG
             }
             catch (Exception e)

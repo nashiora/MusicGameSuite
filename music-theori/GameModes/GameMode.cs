@@ -1,6 +1,6 @@
 ﻿namespace theori.GameModes
 {
-    public abstract class GameModeDescription
+    public abstract class GameMode
     {
         #region Meta Info
 
@@ -44,7 +44,7 @@
 
         #endregion
 
-        protected GameModeDescription(string name)
+        protected GameMode(string name)
         {
             Name = name;
         }

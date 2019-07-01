@@ -50,7 +50,7 @@ namespace theori
         private static readonly List<Overlay> overlays = new List<Overlay>();
 
         // TODO(local): Probably make this a dictionary for lookups
-        private static readonly List<GameModeDescription> sharedGameModes = new List<GameModeDescription>();
+        private static readonly List<GameMode> sharedGameModes = new List<GameMode>();
 
         private static int LayerCount => layers.Count;
         private static int OverlayCount => overlays.Count;
@@ -320,7 +320,7 @@ namespace theori
 
         #endregion
 
-        public static void RegisterSharedGameMode(GameModeDescription desc)
+        public static void RegisterSharedGameMode(GameMode desc)
         {
             if (!desc.SupportsSharedUsage)
             {
@@ -429,7 +429,7 @@ namespace theori
             runProgramLoop = false;
         }
 
-        public static void StartStandalone(GameModeDescription desc, string[] args)
+        public static void StartStandalone(GameMode desc, string[] args)
         {
             if (desc != null)
                 desc.InvokeStandalone(args);
