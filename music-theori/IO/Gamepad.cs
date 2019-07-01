@@ -45,12 +45,11 @@ namespace theori.IO
         {
             if (!openGamepads.TryGetValue(deviceIndex, out var gamepad))
             {
+                SDL_JoystickEventState(SDL_ENABLE);
                 gamepad = new Gamepad(deviceIndex);
                 if (gamepad)
-                {
                     openGamepads[gamepad.InstanceId] = gamepad;
-                    SDL_JoystickEventState(SDL_ENABLE);
-                }
+                else return null;
             }
             return gamepad;
         }

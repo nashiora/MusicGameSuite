@@ -104,6 +104,8 @@ namespace theori.Graphics
             GL.Enable(GL.GL_BLEND);
             //GL.Enable(GL.GL_DEPTH_TEST);
             GL.BlendFunc(BlendingSourceFactor.SourceAlpha, BlendingDestinationFactor.OneMinusSourceAlpha);
+
+            Update();
         }
 
         internal static void Destroy()
@@ -197,8 +199,12 @@ namespace theori.Graphics
                         string composition = Encoding.UTF8.GetString(bytes, 0, Array.IndexOf<byte>(bytes, 0));
                     } break;
 
-                    case SDL_EventType.SDL_JOYDEVICEADDED: Gamepad.HandleAddedEvent(evt.jdevice.which); break;
-                    case SDL_EventType.SDL_JOYDEVICEREMOVED: Gamepad.HandleRemovedEvent(evt.jdevice.which); break;
+                    case SDL_EventType.SDL_JOYDEVICEADDED:
+                        Gamepad.HandleAddedEvent(evt.jdevice.which);
+                        break;
+                    case SDL_EventType.SDL_JOYDEVICEREMOVED:
+                        Gamepad.HandleRemovedEvent(evt.jdevice.which);
+                        break;
 
                     case SDL_EventType.SDL_JOYAXISMOTION:
                     {
@@ -215,7 +221,7 @@ namespace theori.Graphics
                         Gamepad.HandleInputEvent(evt.jbutton.which, evt.jbutton.button, 0);
                     } break;
                     case SDL_EventType.SDL_JOYHATMOTION: break;
-                        
+
                     case SDL_EventType.SDL_DROPBEGIN: break;
                     case SDL_EventType.SDL_DROPCOMPLETE: break;
                     case SDL_EventType.SDL_DROPFILE: break;

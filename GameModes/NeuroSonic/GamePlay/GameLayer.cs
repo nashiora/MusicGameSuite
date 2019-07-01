@@ -650,12 +650,12 @@ namespace NeuroSonic.GamePlay
 
             m_audioController.UpdateEffect(6, CurrentQuarterNodeDuration, alpha);
 
-            float mix = 1.0f;
+            float mix = laserGain;
             if (currentLaserEffectDef != null)
             {
                 if (currentLaserEffectDef.Type == EffectType.PeakingFilter)
                 {
-                    mix = BASE_LASER_MIX * laserGain;
+                    mix *= BASE_LASER_MIX;
                     if (alpha < 0.1f)
                         mix *= alpha / 0.1f;
                     else if (alpha > 0.8f)
@@ -667,7 +667,6 @@ namespace NeuroSonic.GamePlay
                     {
                         case EffectType.HighPassFilter:
                         case EffectType.LowPassFilter:
-                            mix = laserGain;
                             break;
                     }
                 }

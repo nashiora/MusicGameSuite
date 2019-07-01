@@ -52,6 +52,8 @@ namespace theori.Charting.Conversions
 
         public static Chart ToVoltex(this NeuroSonic.Charting.KShootMania.Chart ksh)
         {
+            bool hasActiveEffects = !(ksh.Metadata.MusicFile != null && ksh.Metadata.MusicFileNoFx != null);
+
             var voltex = new Chart(StreamIndex.COUNT)
             {
                 Offset = ksh.Metadata.OffsetMillis / 1_000.0
@@ -66,7 +68,9 @@ namespace theori.Charting.Conversions
 
                 var laserGain = voltex[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(0);
                 laserGain.LaserIndex = LaserIndex.Both;
-                laserGain.Gain = ksh.Metadata.PFilterGain / 100.0f;
+                if (!hasActiveEffects)
+                    laserGain.Gain = 0.0f;
+                else laserGain.Gain = ksh.Metadata.PFilterGain / 100.0f;
                 
                 var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
                 laserFilter.LaserIndex = LaserIndex.Both;
@@ -146,16 +150,22 @@ namespace theori.Charting.Conversions
 
                         case "pfiltergain":
                         {
-                            var laserGain = voltex[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(chartPos);
-                            laserGain.LaserIndex = LaserIndex.Both;
-                            laserGain.Gain = setting.Value.ToInt() / 100.0f;
+                            if (hasActiveEffects)
+                            {
+                                var laserGain = voltex[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(chartPos);
+                                laserGain.LaserIndex = LaserIndex.Both;
+                                laserGain.Gain = setting.Value.ToInt() / 100.0f;
+                            }
                         } break;
 
                         case "filtertype":
                         {
-                            var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
-                            laserFilter.LaserIndex = LaserIndex.Both;
-                            laserFilter.FilterEffect = (string)setting.Value.Value == "" ? null : ksh.FilterDefines[setting.Value.ToString()];
+                            if (hasActiveEffects)
+                            {
+                                var laserFilter = voltex[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
+                                laserFilter.LaserIndex = LaserIndex.Both;
+                                laserFilter.FilterEffect = (string)setting.Value.Value == "" ? null : ksh.FilterDefines[setting.Value.ToString()];
+                            }
                         } break;
 
                         case "chokkakuvol":
