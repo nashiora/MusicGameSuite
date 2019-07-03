@@ -118,6 +118,7 @@
     <Compile Include="Cached.cs" />
     <Compile Include="Charting\Chart.cs" />
     <Compile Include="Charting\ChartInfo.cs" />
+    <Compile Include="Charting\ChartMetadata.cs" />
     <Compile Include="Charting\ChartSet.cs" />
     <Compile Include="Charting\ChartSetInfo.cs" />
     <Compile Include="Charting\ControlPoint.cs" />

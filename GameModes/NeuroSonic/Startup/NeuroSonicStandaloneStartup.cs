@@ -5,6 +5,7 @@ using theori.Graphics;
 using theori.Scripting;
 
 using NeuroSonic.ChartSelect.Landscape;
+using NeuroSonic.ChartSelect;
 
 namespace NeuroSonic.Startup
 {
@@ -19,8 +20,9 @@ namespace NeuroSonic.Startup
         {
             AddMenuItem(new MenuItem(NextOffset, "Input Method", EnterInputMethod));
             AddMenuItem(new MenuItem(NextOffset, "Input Binding Configuration", EnterBindingConfig));
-            AddSpacing();
-            AddMenuItem(new MenuItem(NextOffset, "Free Play", EnterFreePlay));
+            AddMenuItem(new MenuItem(NextOffset, "Chart Management", EnterChartManagement));
+            //AddSpacing();
+            //AddMenuItem(new MenuItem(NextOffset, "Free Play", EnterFreePlay));
         }
 
         public override void Init()
@@ -53,6 +55,11 @@ namespace NeuroSonic.Startup
             Layer layer;
             layer = new ControllerConfigurationLayer();
             Host.PushLayer(layer);
+        }
+
+        private void EnterChartManagement()
+        {
+            Host.PushLayer(new ChartManagerLayer());
         }
 
         private void EnterFreePlay()

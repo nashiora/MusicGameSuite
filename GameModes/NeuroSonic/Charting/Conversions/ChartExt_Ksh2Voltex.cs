@@ -1,12 +1,14 @@
 ﻿using System;
 
+using theori;
 using theori.Audio.Effects;
 using theori.Charting;
 
-using NeuroSonic.Charting;
 using NeuroSonic.Charting.KShootMania;
 
-namespace theori.Charting.Conversions
+using Chart = theori.Charting.Chart;
+
+namespace NeuroSonic.Charting.Conversions
 {
     public static class ChartExt_Ksh2Voltex
     {
@@ -50,13 +52,27 @@ namespace theori.Charting.Conversions
             }
         }
 
-        public static Chart ToVoltex(this NeuroSonic.Charting.KShootMania.Chart ksh)
+        public static Chart ToVoltex(this KshChart ksh)
         {
             bool hasActiveEffects = !(ksh.Metadata.MusicFile != null && ksh.Metadata.MusicFileNoFx != null);
 
             var voltex = new Chart(StreamIndex.COUNT)
             {
                 Offset = ksh.Metadata.OffsetMillis / 1_000.0
+            };
+
+            voltex.Metadata = new ChartMetadata()
+            {
+                Charter = ksh.Metadata.EffectedBy,
+                JacketFileName = ksh.Metadata.JacketPath,
+                JacketArtist = ksh.Metadata.Illustrator,
+                BackgroundFileName = ksh.Metadata.Background,
+                BackgroundArtist = "Unknown",
+                DifficultyLevel = ksh.Metadata.Level,
+                DifficultyIndex = (int)ksh.Metadata.Difficulty,
+                DifficultyName = ksh.Metadata.Difficulty.ToString(),
+                DifficultyNameShort = ksh.Metadata.Difficulty.ToShortString(),
+                DifficultyColor = ksh.Metadata.Difficulty.GetColor(),
             };
 
             {
@@ -257,21 +273,21 @@ namespace theori.Charting.Conversions
 
                     switch (data.State)
                     {
-                        case NeuroSonic.Charting.KShootMania.ButtonState.Off:
+                        case KshButtonState.Off:
                         {
                             if (buttonStates[b] != null)
                                 CreateHold(chartPos);
                             buttonStates[b] = null;
                         } break;
 
-                        case NeuroSonic.Charting.KShootMania.ButtonState.Chip:
-                        case NeuroSonic.Charting.KShootMania.ButtonState.ChipSample:
+                        case KshButtonState.Chip:
+                        case KshButtonState.ChipSample:
                         {
                             //System.Diagnostics.Trace.WriteLine(b);
                             voltex[b].Add<ButtonObject>(chartPos);
                         } break;
                         
-                        case NeuroSonic.Charting.KShootMania.ButtonState.Hold:
+                        case KshButtonState.Hold:
                         {
                             if (buttonStates[b] == null)
                                 buttonStates[b] = new TempButtonState(chartPos);
@@ -318,7 +334,7 @@ namespace theori.Charting.Conversions
 
                     switch (state)
                     {
-                        case NeuroSonic.Charting.KShootMania.LaserState.Inactive:
+                        case KshLaserState.Inactive:
                         {
                             if (laserStates[l] != null)
                             {
@@ -327,12 +343,12 @@ namespace theori.Charting.Conversions
                             }
                         } break;
 
-                        case NeuroSonic.Charting.KShootMania.LaserState.Lerp:
+                        case KshLaserState.Lerp:
                         {
                             laserStates[l].HiResTickCount += (192 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex;
                         } break;
                         
-                        case NeuroSonic.Charting.KShootMania.LaserState.Position:
+                        case KshLaserState.Position:
                         {
                             var alpha = data.Position;
                             var startPos = chartPos;
@@ -357,16 +373,16 @@ namespace theori.Charting.Conversions
 
                 switch (tick.Add.Kind)
                 {
-                    case NeuroSonic.Charting.KShootMania.AddKind.None: break;
+                    case KshAddKind.None: break;
 
-                    case NeuroSonic.Charting.KShootMania.AddKind.Spin:
+                    case KshAddKind.Spin:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration * 2, 192);
                         var spin = voltex[StreamIndex.HighwayEffect].Add<SpinImpulseEvent>(chartPos, duration);
                         spin.Direction = (AngularDirection)tick.Add.Direction;
                     } break;
 
-                    case NeuroSonic.Charting.KShootMania.AddKind.Swing:
+                    case KshAddKind.Swing:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration * 2, 192);
                         var swing = voltex[StreamIndex.HighwayEffect].Add<SwingImpulseEvent>(chartPos, duration);
@@ -374,7 +390,7 @@ namespace theori.Charting.Conversions
                         swing.Amplitude = tick.Add.Amplitude * 70 / 100.0f;
                     } break;
 
-                    case NeuroSonic.Charting.KShootMania.AddKind.Wobble:
+                    case KshAddKind.Wobble:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration, 192);
                         var wobble = voltex[StreamIndex.HighwayEffect].Add<WobbleImpulseEvent>(chartPos, duration);

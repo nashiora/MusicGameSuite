@@ -43,7 +43,7 @@ namespace theori.Charting
         public string DifficultyName { get; set; } = null;
         public string DifficultyNameShort { get; set; } = null;
 
-        public Vector4? DifficultyColor { get; set; } = null;
+        public Vector3? DifficultyColor { get; set; } = null;
 
         public time_t ChartDuration { get; set; } = 0;
         

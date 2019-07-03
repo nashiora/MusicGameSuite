@@ -9,6 +9,11 @@ namespace theori.Charting
     /// </summary>
     public sealed class Chart
     {
+        public ChartSetMetadata SetMetadata { get; set; } = new ChartSetMetadata();
+        public ChartMetadata Metadata { get; set; } = new ChartMetadata();
+
+        public ChartInfo Info { get; set; } = new ChartInfo();
+
         public readonly int StreamCount;
 
         /// <summary>
@@ -150,6 +155,9 @@ namespace theori.Charting
                 m_chart = chart;
                 m_stream = stream;
             }
+
+            public IEnumerator<ChartObject> GetEnumerator() => m_objects.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => m_objects.GetEnumerator();
 
             internal void InvalidateTimeCalc()
             {
@@ -312,9 +320,6 @@ namespace theori.Charting
                 return null;
             }
 
-            public IEnumerator<ChartObject> GetEnumerator() => m_objects.GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() => m_objects.GetEnumerator();
-
             public void ForEach(Action<ChartObject> action)
             {
                 if (action == null) return;
@@ -387,7 +392,7 @@ namespace theori.Charting
             }
         }
 
-        public sealed class ControlPointList
+        public sealed class ControlPointList : IEnumerable<ControlPoint>
         {
             private readonly Chart m_chart;
             private readonly OrderedLinkedList<ControlPoint> m_controlPoints = new OrderedLinkedList<ControlPoint>();
@@ -399,6 +404,9 @@ namespace theori.Charting
                 m_chart = chart;
                 Add(new ControlPoint());
             }
+
+            public IEnumerator<ControlPoint> GetEnumerator() => m_controlPoints.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => m_controlPoints.GetEnumerator();
 
             internal void InvalidateTimeCalc()
             {

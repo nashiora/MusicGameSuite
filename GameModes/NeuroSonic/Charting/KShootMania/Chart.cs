@@ -9,54 +9,54 @@ using theori.Audio.Effects;
 
 namespace NeuroSonic.Charting.KShootMania
 {
-    public class Block
+    public class KshBlock
     {
-        public readonly List<Tick> Ticks = new List<Tick>();
+        public readonly List<KshTick> Ticks = new List<KshTick>();
 
         public int TickCount => Ticks.Count;
-        public Tick this[int index] => Ticks[index];
+        public KshTick this[int index] => Ticks[index];
     }
 
-    public class Tick
+    public class KshTick
     {
-        public readonly List<TickSetting> Settings = new List<TickSetting>();
+        public readonly List<KshTickSetting> Settings = new List<KshTickSetting>();
         
-        public readonly ButtonData[] Bt = new ButtonData[4];
-        public readonly ButtonData[] Fx = new ButtonData[2];
-        public readonly LaserData[] Laser = new LaserData[2];
+        public readonly KshButtonData[] Bt = new KshButtonData[4];
+        public readonly KshButtonData[] Fx = new KshButtonData[2];
+        public readonly KshLaserData[] Laser = new KshLaserData[2];
 
-        public AddData Add;
+        public KshAddData Add;
     }
 
-    public struct TickSetting
+    public struct KshTickSetting
     {
         public string Key;
         public Variant Value;
 
-        public TickSetting(string key, Variant value)
+        public KshTickSetting(string key, Variant value)
         {
             Key = key;
             Value = value;
         }
     }
 
-    public enum ButtonState
+    public enum KshButtonState
     {
         Off, Chip, Hold, ChipSample,
     }
     
-    public enum LaserState
+    public enum KshLaserState
     {
         Inactive, Lerp, Position,
     }
 
-    public struct ButtonData
+    public struct KshButtonData
     {
-        public ButtonState State;
-        public FxKind FxKind;
+        public KshButtonState State;
+        public KshFxKind FxKind;
     }
 
-    public enum FxKind
+    public enum KshFxKind
     {
         None = 0,
 
@@ -82,13 +82,13 @@ namespace NeuroSonic.Charting.KShootMania
         TapeStop = 'A',
     }
 
-    public struct LaserData
+    public struct KshLaserData
     {
-        public LaserState State;
-        public LaserPosition Position;
+        public KshLaserState State;
+        public KshLaserPosition Position;
     }
 
-    public struct LaserPosition
+    public struct KshLaserPosition
     {
         public const int Resolution = 51;
 
@@ -138,25 +138,25 @@ namespace NeuroSonic.Charting.KShootMania
             set => chars.TryGetValue(value, out this.value);
         }
 
-        public LaserPosition(int value)
+        public KshLaserPosition(int value)
         {
             this.value = MathL.Clamp(value, 0, chars.NumChars - 1);
         }
 
-        public LaserPosition(char image)
+        public KshLaserPosition(char image)
         {
             chars.TryGetValue(image, out value);
         }
     }
 
-    public enum AddKind
+    public enum KshAddKind
     {
         None, Spin, Swing, Wobble
     }
 
-    public struct AddData
+    public struct KshAddData
     {
-        public AddKind Kind;
+        public KshAddKind Kind;
         public int Direction;
         public int Duration;
         public int Amplitude;
@@ -164,30 +164,30 @@ namespace NeuroSonic.Charting.KShootMania
         public int Decay;
     }
 
-    public struct TickRef
+    public struct KshTickRef
     {
         public int Block, Index, MaxIndex;
-        public Tick Tick;
+        public KshTick Tick;
     }
 
     /// <summary>
     /// Contains all relevant data for a single chart.
     /// </summary>
-    public sealed class Chart : IEnumerable<TickRef>
+    public sealed class KshChart : IEnumerable<KshTickRef>
     {
         internal const string SEP = "--";
 
-        public static Chart CreateFromFile(string fileName)
+        public static KshChart CreateFromFile(string fileName)
         {
             using (var reader = File.OpenText(fileName))
                 return Create(reader);
         }
 
-        public static Chart Create(StreamReader reader)
+        public static KshChart Create(StreamReader reader)
         {
-            var chart = new Chart
+            var chart = new KshChart
             {
-                Metadata = ChartMetadata.Create(reader)
+                Metadata = KshChartMetadata.Create(reader)
             };
             
             void TryAddBuiltInFx(string effect, float bpm)
@@ -286,8 +286,8 @@ namespace NeuroSonic.Charting.KShootMania
 
             TryAddBuiltInFilter(chart.Metadata.FilterType);
 
-            var block = new Block();
-            var tick = new Tick();
+            var block = new KshBlock();
+            var tick = new KshTick();
 
             float mrBpm = 120.0f;
 
@@ -510,12 +510,12 @@ namespace NeuroSonic.Charting.KShootMania
                     else if (key == "filtertype")
                         TryAddBuiltInFilter(value);
 
-                    tick.Settings.Add(new TickSetting(key, value));
+                    tick.Settings.Add(new KshTickSetting(key, value));
                 }
                 if (line == SEP)
                 {
                     chart.m_blocks.Add(block);
-                    block = new Block();
+                    block = new KshBlock();
                 }
                 else
                 {
@@ -539,8 +539,8 @@ namespace NeuroSonic.Charting.KShootMania
                                     char d = add[1];
                                     switch (d)
                                     {
-                                        case '(': case ')': tick.Add.Kind = AddKind.Spin; break;
-                                        case '<': case '>': tick.Add.Kind = AddKind.Swing; break;
+                                        case '(': case ')': tick.Add.Kind = KshAddKind.Spin; break;
+                                        case '<': case '>': tick.Add.Kind = KshAddKind.Swing; break;
                                     }
                                     switch (d)
                                     {
@@ -554,7 +554,7 @@ namespace NeuroSonic.Charting.KShootMania
                                 case 'S':
                                 {
                                     char d = add[1];
-                                    tick.Add.Kind = AddKind.Wobble;
+                                    tick.Add.Kind = KshAddKind.Wobble;
                                     tick.Add.Direction = d == '<' ? -1 : (d == '>' ? 1 : 0);
                                     ParseArg(0, out tick.Add.Duration);
                                     ParseArg(1, out tick.Add.Amplitude);
@@ -576,9 +576,9 @@ namespace NeuroSonic.Charting.KShootMania
                         char c = bt[i];
                         switch (c)
                         {
-                            case '0': tick.Bt[i].State = ButtonState.Off; break;
-                            case '1': tick.Bt[i].State = ButtonState.Chip; break;
-                            case '2': tick.Bt[i].State = ButtonState.Hold; break;
+                            case '0': tick.Bt[i].State = KshButtonState.Off; break;
+                            case '1': tick.Bt[i].State = KshButtonState.Chip; break;
+                            case '2': tick.Bt[i].State = KshButtonState.Hold; break;
                         }
                     }
 
@@ -587,17 +587,17 @@ namespace NeuroSonic.Charting.KShootMania
                         char c = fx[i];
                         switch (c)
                         {
-                            case '0': tick.Fx[i].State = ButtonState.Off; break;
-                            case '1': tick.Fx[i].State = ButtonState.Hold; break;
-                            case '2': tick.Fx[i].State = ButtonState.Chip; break;
-                            case '3': tick.Fx[i].State = ButtonState.ChipSample; break;
+                            case '0': tick.Fx[i].State = KshButtonState.Off; break;
+                            case '1': tick.Fx[i].State = KshButtonState.Hold; break;
+                            case '2': tick.Fx[i].State = KshButtonState.Chip; break;
+                            case '3': tick.Fx[i].State = KshButtonState.ChipSample; break;
                                 
                             default:
                             {
-                                var kind = (FxKind)c;
-                                if (Enum.IsDefined(typeof(FxKind), kind) && kind != FxKind.None)
+                                var kind = (KshFxKind)c;
+                                if (Enum.IsDefined(typeof(KshFxKind), kind) && kind != KshFxKind.None)
                                 {
-                                    tick.Fx[i].State = ButtonState.Hold;
+                                    tick.Fx[i].State = KshButtonState.Hold;
                                     tick.Fx[i].FxKind = kind;
                                 }
                             } break;
@@ -609,44 +609,44 @@ namespace NeuroSonic.Charting.KShootMania
                         char c = vol[i];
                         switch (c)
                         {
-                            case '-': tick.Laser[i].State = LaserState.Inactive; break;
-                            case ':': tick.Laser[i].State = LaserState.Lerp; break;
+                            case '-': tick.Laser[i].State = KshLaserState.Inactive; break;
+                            case ':': tick.Laser[i].State = KshLaserState.Lerp; break;
                             default:
                             {
-                                tick.Laser[i].State = LaserState.Position;
+                                tick.Laser[i].State = KshLaserState.Position;
                                 tick.Laser[i].Position.Image = c;
                             } break;
                         }
                     }
 
                     block.Ticks.Add(tick);
-                    tick = new Tick();
+                    tick = new KshTick();
                 }
             }
 
             return chart;
         }
 
-        public ChartMetadata Metadata;
+        public KshChartMetadata Metadata;
 
-        private List<Block> m_blocks = new List<Block>();
-        public Tick this[int block, int tick] => m_blocks[block][tick];
+        private List<KshBlock> m_blocks = new List<KshBlock>();
+        public KshTick this[int block, int tick] => m_blocks[block][tick];
 
         public readonly Dictionary<string, EffectDef> FxDefines = new Dictionary<string, EffectDef>();
         public readonly Dictionary<string, EffectDef> FilterDefines = new Dictionary<string, EffectDef>();
         
         public int BlockCount => m_blocks.Count;
 
-        IEnumerator<TickRef> IEnumerable<TickRef>.GetEnumerator() => new TickEnumerator(this);
-        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<TickRef>)this).GetEnumerator();
+        IEnumerator<KshTickRef> IEnumerable<KshTickRef>.GetEnumerator() => new TickEnumerator(this);
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<KshTickRef>)this).GetEnumerator();
 
-        class TickEnumerator : IEnumerator<TickRef>
+        class TickEnumerator : IEnumerator<KshTickRef>
         {
-            private Chart m_chart;
+            private KshChart m_chart;
             private int m_block, m_tick = -1;
             
             object IEnumerator.Current => Current;
-            public TickRef Current => new TickRef()
+            public KshTickRef Current => new KshTickRef()
             {
                 Block = m_block,
                 Index = m_tick,
@@ -654,7 +654,7 @@ namespace NeuroSonic.Charting.KShootMania
                 Tick = m_chart[m_block, m_tick],
             };
 
-            public TickEnumerator(Chart c)
+            public TickEnumerator(KshChart c)
             {
                 m_chart = c;
             }

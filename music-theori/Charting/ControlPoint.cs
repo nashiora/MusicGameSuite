@@ -25,9 +25,6 @@ namespace theori.Charting
         private time_t m_qnDuration = time_t.FromSeconds(60.0 / 120);
         private int m_beatCount = 4, m_beatKind = 4;
 
-        // TODO(local): implement this and associated functions, so charts can more easily support hispeed changes for games which do that
-        private double m_viewSpeed = 1.0;
-
         public tick_t Position
         {
             get => m_position;
@@ -72,6 +69,8 @@ namespace theori.Charting
                 Chart?.InvalidateTimeCalc();
             }
         }
+
+        public double SpeedMultiplier { get; set; } = 1.0;
 
         public time_t AbsolutePosition
         {

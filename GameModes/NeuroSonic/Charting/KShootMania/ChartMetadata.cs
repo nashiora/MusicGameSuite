@@ -1,24 +1,52 @@
 ﻿using System;
 using System.IO;
+using System.Numerics;
 
 namespace NeuroSonic.Charting.KShootMania
 {
     public enum Difficulty
     {
-        Novice,
+        Light,
         Challenge,
         Extended,
         Infinite,
     }
 
-    public sealed class ChartMetadata
+    public static class DifficultyExt
     {
-        public static ChartMetadata Create(StreamReader reader)
+        public static string ToShortString(this Difficulty d)
         {
-            var meta = new ChartMetadata();
+            switch (d)
+            {
+                case Difficulty.Light: return "LT";
+                case Difficulty.Challenge: return "CH";
+                case Difficulty.Extended: return "EX";
+                case Difficulty.Infinite: return "IN";
+                default: return "XX";
+            }
+        }
+
+        public static Vector3 GetColor(this Difficulty d)
+        {
+            switch (d)
+            {
+                case Difficulty.Light: return new Vector3(0, 1, 0);
+                case Difficulty.Challenge: return new Vector3(1, 1, 0);
+                case Difficulty.Extended: return new Vector3(1, 0, 0);
+                case Difficulty.Infinite: return new Vector3(0.5f, 1, 1);
+                default: return Vector3.One;
+            }
+        }
+    }
+
+    public sealed class KshChartMetadata
+    {
+        public static KshChartMetadata Create(StreamReader reader)
+        {
+            var meta = new KshChartMetadata();
 
             string line;
-            while ((line = reader.ReadLine()) != Chart.SEP && line != null)
+            while ((line = reader.ReadLine()) != KshChart.SEP && line != null)
             {
                 if (string.IsNullOrEmpty(line))
                     continue;
@@ -38,7 +66,7 @@ namespace NeuroSonic.Charting.KShootMania
         public string JacketPath;
         public string Illustrator = "";
 
-        public Difficulty Difficulty = Difficulty.Novice;
+        public Difficulty Difficulty = Difficulty.Light;
         public int Level = 1;
 
         public string BeatsPerMinute = "";
@@ -78,7 +106,7 @@ namespace NeuroSonic.Charting.KShootMania
 
                 case "difficulty":
                     {
-                        var dif = Difficulty.Novice;
+                        var dif = Difficulty.Light;
                         if (value == "challenge")
                             dif = Difficulty.Challenge;
                         else if (value == "extended")
