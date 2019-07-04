@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
+using NeuroSonic.Properties;
 using theori;
 using theori.Configuration;
 using theori.Graphics;
@@ -68,7 +69,7 @@ namespace NeuroSonic.Startup
             }
         }
 
-        protected override string Title => "Controller Binding Configuration";
+        protected override string Title => Strings.SecretMenu_InputBindingConfigTitle;
 
         private bool m_isEditing = false;
         private Panel m_graphicPanel;
@@ -138,12 +139,12 @@ namespace NeuroSonic.Startup
 
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(NextOffset, "Configure Controller Bindings", () =>
+            AddMenuItem(new MenuItem(NextOffset, Strings.SecretMenu_ConfigureControllerBindings, () =>
             {
                 m_isEditing = true;
                 m_bindables[m_bindableIndex = 0].FillColor = m_selectedColor;
             }));
-            AddMenuItem(new MenuItem(NextOffset, "Other Misc. Bindings", () => { }));
+            //AddMenuItem(new MenuItem(NextOffset, "Other Misc. Bindings", () => { }));
         }
 
         public override void Init()
@@ -339,7 +340,7 @@ namespace NeuroSonic.Startup
 
                 Children = new GuiElement[]
                 {
-                    new TextLabel(Font.Default16, "[Enter] Change Primary Binding")
+                    new TextLabel(Font.Default16, Strings.SecretMenu_BindingChangePrimary)
                     {
                         TextAlignment = Anchor.BottomLeft,
                         Position = new Vector2(10, -40),
@@ -353,7 +354,7 @@ namespace NeuroSonic.Startup
 
                         Children = new GuiElement[]
                         {
-                            new TextLabel(Font.Default16, "Change Secondary Binding [Control + Enter]")
+                            new TextLabel(Font.Default16, Strings.SecretMenu_BindingChangeSecondary)
                             {
                                 TextAlignment = Anchor.BottomRight,
                                 Position = new Vector2(-10, -40),

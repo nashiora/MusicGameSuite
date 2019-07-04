@@ -12,6 +12,6 @@ namespace NeuroSonic.Charting
 
         public bool HasSample => Sample != null;
 
-        private string Sample { get; set; }
+        public string Sample { get; set; }
     }
 }

@@ -3,6 +3,11 @@ using theori.GameModes;
 
 using NeuroSonic.GamePlay;
 using NeuroSonic.IO;
+using System;
+using theori.Charting.IO;
+using NeuroSonic.Charting;
+using theori.Charting;
+using NeuroSonic.Charting.IO;
 
 namespace NeuroSonic
 {
@@ -20,5 +25,27 @@ namespace NeuroSonic
 
         public override void InvokeStandalone(string[] args) => Plugin.NSC_Main(args);
         public override Layer CreateSharedGameLayer() => new GameLayer(null, null, null, AutoPlay.None);
+
+        public override ChartObjectSerializer GetSerializerByID(int id)
+        {
+            switch (id)
+            {
+                case 1: return new ButtonObjectSerializer();
+                case 2: return new AnalogObjectSerializer();
+
+                default: return null;
+            }
+        }
+
+        public override ChartObjectSerializer GetSerializerFor(ChartObject obj)
+        {
+            switch (obj)
+            {
+                case ButtonObject _: return new ButtonObjectSerializer();
+                case AnalogObject _: return new AnalogObjectSerializer();
+
+                default: return null;
+            }
+        }
     }
 }

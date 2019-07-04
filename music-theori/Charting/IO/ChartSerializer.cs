@@ -1,9 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+
 using theori.GameModes;
 
 namespace theori.Charting.IO
 {
+    public abstract class ChartObjectSerializer
+    {
+        /// <summary>
+        /// A value > 0
+        /// </summary>
+        public abstract int ID { get; }
+
+        public abstract string SerializeSubclass(ChartObject obj);
+    }
+
+    public abstract class ChartObjectSerializer<T> : ChartObjectSerializer
+        where T : ChartObject
+    {
+        public sealed override string SerializeSubclass(ChartObject obj) => SerializeSubclass(obj as T);
+        public abstract string SerializeSubclass(T obj);
+    }
+
     public class ChartSerializer
     {
         private const int VERSION = 1;
@@ -29,9 +48,32 @@ namespace theori.Charting.IO
 
         private readonly GameMode m_mode;
 
+        private readonly Dictionary<Type, ChartObjectSerializer> m_serializersByType = new Dictionary<Type, ChartObjectSerializer>();
+        private readonly Dictionary<int, ChartObjectSerializer> m_serializersByID = new Dictionary<int, ChartObjectSerializer>();
+
         private ChartSerializer(GameMode mode = null)
         {
             m_mode = mode;
+        }
+
+        private ChartObjectSerializer GetSerializerForType(ChartObject obj)
+        {
+            if (!m_serializersByType.TryGetValue(obj.GetType(), out var serializer))
+            {
+                serializer = m_mode.GetSerializerFor(obj);
+                m_serializersByType[obj.GetType()] = serializer;
+            }
+            return serializer;
+        }
+
+        private ChartObjectSerializer GetSerializerByID(int id)
+        {
+            if (!m_serializersByID.TryGetValue(id, out var serializer))
+            {
+                serializer = m_mode.GetSerializerByID(id);
+                m_serializersByID[id] = serializer;
+            }
+            return serializer;
         }
 
         public void SerializeChart(Chart chart, Stream outStream)
@@ -50,6 +92,14 @@ namespace theori.Charting.IO
 
                 writer.WriteLine();
                 writer.WriteLine("#stream " + i);
+
+                foreach (var obj in stream)
+                {
+                    var serializer = GetSerializerForType(obj);
+                    if (serializer != null)
+                        writer.WriteLine($"{serializer.ID},{(double)obj.Position},{(double)obj.Duration} {serializer.SerializeSubclass(obj)}");
+                    else writer.WriteLine($"0,{(double)obj.Position},{(double)obj.Duration}");
+                }
             }
 
             writer.Flush();

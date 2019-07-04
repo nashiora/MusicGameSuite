@@ -1,0 +1,27 @@
+#version 1
+
+#song-metadata
+title=ストリーミングハート
+artist=Deco*27,れをる
+filename=nofx.ogg
+
+#chart 3
+filename=mxm.tchart
+color=80FFFF
+charter=Local
+jacket-file=cover.jpg
+jacket-artist=ががめ, yuma saito
+difficulty-level=17
+difficulty-name=Infinite
+difficulty-name-short=IN
+duration=0
+
+#chart 2
+filename=exh.tchart
+color=FF0000
+charter=Local
+jacket-file=.jpg
+difficulty-level=1
+difficulty-name=Extended
+difficulty-name-short=EX
+duration=0

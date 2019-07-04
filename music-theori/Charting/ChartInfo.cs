@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+
 using theori.Database;
 
 namespace theori.Charting

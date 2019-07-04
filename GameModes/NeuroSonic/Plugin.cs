@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Globalization;
 
 using theori;
 using theori.Configuration;
@@ -7,9 +8,26 @@ using theori.Resources;
 
 using NeuroSonic.IO;
 using NeuroSonic.Startup;
+using NeuroSonic.Properties;
 
 namespace NeuroSonic
 {
+    internal class DebugLanguageSwitchOverlay : Overlay
+    {
+        public override bool KeyPressed(KeyInfo info)
+        {
+            if (info.KeyCode == KeyCode.F1)
+            {
+                if (Plugin.UICulture == null || Plugin.UICulture.IetfLanguageTag == "en-US")
+                    Plugin.UICulture = CultureInfo.CreateSpecificCulture("ja-JP");
+                else Plugin.UICulture = CultureInfo.CreateSpecificCulture("en-US");
+
+                return true;
+            }
+            return base.KeyPressed(info);
+        }
+    }
+
     internal static class Plugin
     {
         public const string NSC_CONFIG_FILE = "nsc-config.ini";
@@ -19,6 +37,12 @@ namespace NeuroSonic
         public static NscConfig Config { get; private set; }
 
         public static Gamepad Gamepad { get; private set; }
+
+        public static CultureInfo UICulture
+        {
+            get => Strings.Culture;
+            set => Strings.Culture = value;
+        }
 
         public static ClientResourceLocator DefaultResourceLocator { get; private set; }
 
@@ -40,9 +64,12 @@ namespace NeuroSonic
             DefaultResourceLocator = ClientResourceLocator.Default.Clone();
             DefaultResourceLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(Plugin).Assembly, "NeuroSonic.Resources"));
 
+            //UICulture = CultureInfo.CreateSpecificCulture("ja-JP");
+
             Gamepad = Gamepad.Open(Host.GameConfig.GetInt(GameConfigKey.Controller_DeviceID));
             Input.CreateController();
 
+            Host.AddOverlay(new DebugLanguageSwitchOverlay());
             // TODO(local): push the game loading layer, which creates the game layer
             //Host.PushLayer(new GameLayer(true));
             Host.PushLayer(new NeuroSonicStandaloneStartup());

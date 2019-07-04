@@ -1,19 +1,20 @@
 ﻿using System;
 
 using theori;
-using theori.Configuration;
 using theori.IO;
+
+using NeuroSonic.Properties;
 
 namespace NeuroSonic.Startup
 {
     public sealed class InputMethodConfigLayer : BaseMenuLayer
     {
-        protected override string Title => "Input Methods";
+        protected override string Title => Strings.SecretMenu_InputMethodTitle;
 
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(NextOffset, "Keyboard Only", () => SelectKeyboard(false)));
-            AddMenuItem(new MenuItem(NextOffset, "Keyboard and Mouse", () => SelectKeyboard(true)));
+            AddMenuItem(new MenuItem(NextOffset, Strings.SecretMenu_InputKeyboardOnly, () => SelectKeyboard(false)));
+            AddMenuItem(new MenuItem(NextOffset, Strings.SecretMenu_InputKeyboardMouse, () => SelectKeyboard(true)));
 
             for (int id = 0; id < Gamepad.NumConnected; id++)
             {

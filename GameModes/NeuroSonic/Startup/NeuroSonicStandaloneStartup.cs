@@ -6,21 +6,22 @@ using theori.Scripting;
 
 using NeuroSonic.ChartSelect.Landscape;
 using NeuroSonic.ChartSelect;
+using NeuroSonic.Properties;
 
 namespace NeuroSonic.Startup
 {
     public class NeuroSonicStandaloneStartup : BaseMenuLayer
     {
-        protected override string Title => "NeuroSonic - Main Menu";
+        protected override string Title => Strings.SecretMenu_MainTitle;
 
         private BasicSpriteRenderer m_renderer;
         private LuaScript m_script;
 
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(NextOffset, "Input Method", EnterInputMethod));
-            AddMenuItem(new MenuItem(NextOffset, "Input Binding Configuration", EnterBindingConfig));
-            AddMenuItem(new MenuItem(NextOffset, "Chart Management", EnterChartManagement));
+            AddMenuItem(new MenuItem(NextOffset, Strings.SecretMenu_InputMethodTitle, EnterInputMethod));
+            AddMenuItem(new MenuItem(NextOffset, Strings.SecretMenu_InputBindingConfigTitle, EnterBindingConfig));
+            AddMenuItem(new MenuItem(NextOffset, Strings.SecretMenu_ChartManagementTitle, EnterChartManagement));
             //AddSpacing();
             //AddMenuItem(new MenuItem(NextOffset, "Free Play", EnterFreePlay));
         }

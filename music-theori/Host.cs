@@ -477,6 +477,13 @@ namespace theori
 
         internal static void KeyPressed(KeyInfo info)
         {
+            for (int i = OverlayCount - 1; i >= 0; i--)
+            {
+                var overlay = overlays[i];
+                if (overlay.KeyPressed(info))
+                    break;
+            }
+
             for (int i = LayerCount - 1; i >= 0; i--)
             {
                 var layer = layers[i];
@@ -487,6 +494,13 @@ namespace theori
 
         internal static void KeyReleased(KeyInfo info)
         {
+            for (int i = OverlayCount - 1; i >= 0; i--)
+            {
+                var overlay = overlays[i];
+                if (overlay.KeyReleased(info))
+                    break;
+            }
+
             for (int i = LayerCount - 1; i >= 0; i--)
             {
                 var layer = layers[i];
@@ -497,6 +511,13 @@ namespace theori
 
         internal static void ButtonPressed(ButtonInfo info)
         {
+            for (int i = OverlayCount - 1; i >= 0; i--)
+            {
+                var overlay = overlays[i];
+                if (overlay.ButtonPressed(info))
+                    break;
+            }
+
             for (int i = LayerCount - 1; i >= 0; i--)
             {
                 var layer = layers[i];
@@ -507,6 +528,13 @@ namespace theori
 
         internal static void ButtonReleased(ButtonInfo info)
         {
+            for (int i = OverlayCount - 1; i >= 0; i--)
+            {
+                var overlay = overlays[i];
+                if (overlay.ButtonReleased(info))
+                    break;
+            }
+
             for (int i = LayerCount - 1; i >= 0; i--)
             {
                 var layer = layers[i];
@@ -517,6 +545,13 @@ namespace theori
 
         internal static void AxisChanged(AnalogInfo info)
         {
+            for (int i = OverlayCount - 1; i >= 0; i--)
+            {
+                var overlay = overlays[i];
+                if (overlay.AxisChanged(info))
+                    break;
+            }
+
             for (int i = LayerCount - 1; i >= 0; i--)
             {
                 var layer = layers[i];

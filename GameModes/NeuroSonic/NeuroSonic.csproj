@@ -73,6 +73,7 @@
     <Compile Include="Charting\Conversions\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\Events.cs" />
+    <Compile Include="Charting\IO\ObjectSerializers.cs" />
     <Compile Include="Charting\KShootMania\Chart.cs" />
     <Compile Include="Charting\KShootMania\ChartMetadata.cs" />
     <Compile Include="Charting\ParamTypes.cs" />
@@ -99,6 +100,16 @@
     <Compile Include="IO\Controller.cs" />
     <Compile Include="IO\Input.cs" />
     <Compile Include="NscLayer.cs" />
+    <Compile Include="Properties\Strings.ja-JP.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.ja-JP.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
     <Compile Include="Startup\BaseMenuLayer.cs" />
     <Compile Include="Startup\BindingConfigurationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
@@ -129,6 +140,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Properties\Strings.ja-JP.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.ja-JP.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Strings.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\materials\chip.fs" />
     <EmbeddedResource Include="Resources\materials\highway.fs" />
     <EmbeddedResource Include="Resources\materials\hold.fs" />

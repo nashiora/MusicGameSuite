@@ -1,4 +1,7 @@
-﻿namespace theori.GameModes
+﻿using theori.Charting;
+using theori.Charting.IO;
+
+namespace theori.GameModes
 {
     public abstract class GameMode
     {
@@ -48,5 +51,8 @@
         {
             Name = name;
         }
+
+        public abstract ChartObjectSerializer GetSerializerByID(int id);
+        public abstract ChartObjectSerializer GetSerializerFor(ChartObject obj);
     }
 }

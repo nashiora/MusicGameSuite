@@ -8,6 +8,34 @@ namespace theori.Charting.Playback
         Forward, Backward,
     }
 
+    public sealed class PlaybackWindow
+    {
+        public readonly string Name;
+        public time_t Position { get; internal set; }
+
+        public Action<ChartObject> HeadCross;
+        public Action<ChartObject> TailCross;
+
+        internal List<ChartObject>[] m_objectsAhead;
+        internal List<ChartObject>[] m_objectsBehind;
+
+        public PlaybackWindow(string name, time_t where)
+        {
+            Name = name;
+            Position = where;
+        }
+
+        internal void OnHeadCross(ChartObject obj)
+        {
+            HeadCross?.Invoke(obj);
+        }
+
+        internal void OnTailCross(ChartObject obj)
+        {
+            TailCross?.Invoke(obj);
+        }
+    }
+
     public class SlidingChartPlayback
     {
         public Chart Chart { get; private set; }
@@ -36,7 +64,9 @@ namespace theori.Charting.Playback
         public time_t TotalViewDuration => LookAhead + LookBehind;
 
         // <--0 behind--<  (|  <--1 sec--<  |  <--2 pri--<  |)  <--3 ahead--<<
-        
+
+        private readonly List<PlaybackWindow> m_customWindows;
+
         private List<ChartObject>[] m_objsAhead, m_objsBehind;
         private List<ChartObject>[] m_objsPrimary, m_objsSecondary;
 
@@ -58,19 +88,42 @@ namespace theori.Charting.Playback
             SetChart(chart);
         }
 
+        public PlaybackWindow CreateWindow(string name, time_t where)
+        {
+            var window = new PlaybackWindow(name, where);
+            if (Chart != null)
+            {
+                window.m_objectsAhead = new List<ChartObject>[Chart.StreamCount].Fill(i => new List<ChartObject>(Chart[i]));
+                window.m_objectsBehind = new List<ChartObject>[Chart.StreamCount].Fill(() => new List<ChartObject>());
+            }
+            return window;
+        }
+
+        public void Reset()
+        {
+            SetChart(Chart);
+        }
+
         public void SetChart(Chart chart)
         {
             if (chart == null) return;
+            Chart = chart;
 
             m_position = -9999;
 
-            m_objsAhead = new List<ChartObject>[chart.StreamCount];
+            m_objsAhead = new List<ChartObject>[Chart.StreamCount];
             m_objsAhead.Fill(i =>
             {
-                var result = new List<ChartObject>();
-                chart[i].ForEach(obj => result.Add(obj));
+                var result = new List<ChartObject>(chart[i]);
+                //chart[i].ForEach(obj => result.Add(obj));
                 return result;
             });
+
+            foreach (var window in m_customWindows)
+            {
+                window.m_objectsAhead = new List<ChartObject>[Chart.StreamCount].Fill(i => new List<ChartObject>(Chart[i]));
+                window.m_objectsBehind = new List<ChartObject>[Chart.StreamCount].Fill(() => new List<ChartObject>());
+            }
 
             m_objsPrimary = new List<ChartObject>[chart.StreamCount];
             m_objsPrimary.Fill(() => new List<ChartObject>());
@@ -80,8 +133,6 @@ namespace theori.Charting.Playback
 
             m_objsBehind = new List<ChartObject>[chart.StreamCount];
             m_objsBehind.Fill(() => new List<ChartObject>());
-
-            Chart = chart;
         }
 
         private void SetNextPosition(time_t nextPos)
@@ -89,11 +140,19 @@ namespace theori.Charting.Playback
             bool isForward = nextPos > m_position;
             m_position = nextPos;
 
+            System.Diagnostics.Debug.Assert(isForward);
+
             if (isForward)
             {
                 CheckEdgeForward(nextPos + LookAhead, m_objsAhead, m_objsPrimary, OnHeadCrossPrimary, OnTailCrossPrimary);
                 CheckEdgeForward(nextPos, m_objsPrimary, m_objsSecondary, OnHeadCrossCritical, OnTailCrossCritical);
                 CheckEdgeForward(nextPos - LookBehind, m_objsSecondary, m_objsBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
+
+                foreach (var window in m_customWindows)
+                {
+                    CheckEdgeForward(nextPos + window.Position, window.m_objectsAhead, window.m_objectsBehind,
+                        (dir, obj) => window.OnHeadCross(obj), (dir, obj) => window.OnTailCross(obj));
+                }
             }
             else
             {

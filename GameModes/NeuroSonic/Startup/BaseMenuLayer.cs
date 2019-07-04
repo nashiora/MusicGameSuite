@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-
+using NeuroSonic.Properties;
 using theori;
 using theori.Graphics;
 using theori.Gui;
@@ -78,7 +78,7 @@ namespace NeuroSonic.Startup
 
                         Children = new GuiElement[]
                         {
-                            new TextLabel(Font.Default16, "[Up / Down] or [BT-A / BT-B] Navigate Menu")
+                            new TextLabel(Font.Default16, Strings.SecretMenu_UpDownNavHint)
                             {
                                 TextAlignment = Anchor.BottomLeft,
                                 Position = new Vector2(10, -10),
@@ -92,7 +92,7 @@ namespace NeuroSonic.Startup
 
                                 Children = new GuiElement[]
                                 {
-                                    new TextLabel(Font.Default16, "Select Option [Enter] or [START]")
+                                    new TextLabel(Font.Default16, Strings.SecretMenu_SelectHint)
                                     {
                                         TextAlignment = Anchor.BottomRight,
                                         Position = new Vector2(-10, -10),
