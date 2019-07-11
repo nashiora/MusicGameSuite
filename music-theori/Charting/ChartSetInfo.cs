@@ -30,10 +30,6 @@ namespace theori.Charting
         /// </summary>
         public string FilePath { get; set; }
 
-        public string SongTitle { get; set; } = "Unknown";
-        public string SongArtist { get; set; } = "Unknown";
-        public string SongFileName { get; set; } = "song.ogg";
-
         public List<ChartInfo> Charts { get; set; } = new List<ChartInfo>();
 
         public override bool Equals(object obj) => obj is ChartSetInfo info && Equals(info);

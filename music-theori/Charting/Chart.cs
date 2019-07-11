@@ -9,9 +9,7 @@ namespace theori.Charting
     /// </summary>
     public sealed class Chart
     {
-        public ChartSetMetadata SetMetadata { get; set; } = new ChartSetMetadata();
-        public ChartMetadata Metadata { get; set; } = new ChartMetadata();
-
+        public ChartSetInfo SetInfo => Info.Set;
         public ChartInfo Info { get; set; } = new ChartInfo();
 
         public readonly int StreamCount;
@@ -149,6 +147,7 @@ namespace theori.Charting
             public ChartObject LastObject => m_objects.Count == 0 ? null : m_objects[m_objects.Count - 1];
             
             public int Count => m_objects.Count;
+            public ChartObject this[int index] => m_objects[index];
 
             internal ObjectStream(Chart chart, int stream)
             {
@@ -396,6 +395,9 @@ namespace theori.Charting
         {
             private readonly Chart m_chart;
             private readonly OrderedLinkedList<ControlPoint> m_controlPoints = new OrderedLinkedList<ControlPoint>();
+
+            public int Count => m_controlPoints.Count;
+            public ControlPoint this[int index] => m_controlPoints[index];
 
             public ControlPoint Root => m_controlPoints[0];
 

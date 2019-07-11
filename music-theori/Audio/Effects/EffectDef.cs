@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace theori.Audio.Effects
 {
-    public abstract class EffectDef
+    public abstract class EffectDef : IEquatable<EffectDef>
     {
         private static readonly Dictionary<EffectType, EffectDef> defaults =
             new Dictionary<EffectType, EffectDef>();
@@ -76,5 +76,15 @@ namespace theori.Audio.Effects
         {
             effect.Mix = Mix.Sample(alpha);
         }
+
+        public abstract bool Equals(EffectDef other);
+
+        public override bool Equals(object obj)
+        {
+            if (obj is EffectDef def) return Equals(def);
+            return false;
+        }
+
+        public override abstract int GetHashCode();
     }
 }

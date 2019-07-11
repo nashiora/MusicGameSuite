@@ -101,5 +101,13 @@ namespace theori.Audio.Effects
                 retrigger.Duration = GateDuration.Sample(alpha) * qnDur.Seconds * 4;
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is RetriggerEffectDef rt)) return false;
+            return Type == rt.Type && Mix == rt.Mix && GateDuration == rt.GateDuration && Gating == rt.Gating;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, GateDuration, Gating);
     }
 }

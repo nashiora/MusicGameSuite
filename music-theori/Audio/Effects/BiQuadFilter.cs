@@ -150,5 +150,13 @@ namespace theori.Audio.Effects
                 }
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is BiQuadFilterEffectDef bqf)) return false;
+            return Type == bqf.Type && Mix == bqf.Mix && Q == bqf.Q && Gain == bqf.Gain && Freq == bqf.Freq;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, Q, Gain, Freq);
     }
 }

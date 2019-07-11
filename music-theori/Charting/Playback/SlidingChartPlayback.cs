@@ -65,7 +65,7 @@ namespace theori.Charting.Playback
 
         // <--0 behind--<  (|  <--1 sec--<  |  <--2 pri--<  |)  <--3 ahead--<<
 
-        private readonly List<PlaybackWindow> m_customWindows;
+        private readonly List<PlaybackWindow> m_customWindows = new List<PlaybackWindow>();
 
         private List<ChartObject>[] m_objsAhead, m_objsBehind;
         private List<ChartObject>[] m_objsPrimary, m_objsSecondary;
@@ -137,6 +137,8 @@ namespace theori.Charting.Playback
 
         private void SetNextPosition(time_t nextPos)
         {
+            if (nextPos == m_position) return;
+
             bool isForward = nextPos > m_position;
             m_position = nextPos;
 

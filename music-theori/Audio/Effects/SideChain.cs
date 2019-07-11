@@ -65,5 +65,13 @@ namespace theori.Audio.Effects
                 sc.Duration = Duration.Sample(alpha) * qnDur.Seconds * 4;
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is SideChainEffectDef sch)) return false;
+            return Type == sch.Type && Mix == sch.Mix && Amount == sch.Amount && Duration == sch.Duration;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, Amount, Duration);
     }
 }

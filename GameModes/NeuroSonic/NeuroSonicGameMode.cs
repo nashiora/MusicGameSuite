@@ -33,6 +33,8 @@ namespace NeuroSonic
                 case 1: return new ButtonObjectSerializer();
                 case 2: return new AnalogObjectSerializer();
 
+                case StreamIndex.SlamVolume: return new SlamVolumeEventSerializer();
+
                 default: return null;
             }
         }
@@ -43,6 +45,8 @@ namespace NeuroSonic
             {
                 case ButtonObject _: return new ButtonObjectSerializer();
                 case AnalogObject _: return new AnalogObjectSerializer();
+
+                case SlamVolumeEvent _: return new SlamVolumeEventSerializer();
 
                 default: return null;
             }

@@ -87,5 +87,13 @@ namespace theori.Audio.Effects
                 ts.Duration = Duration.Sample(alpha);
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is TapeStopEffectDef stop)) return false;
+            return Type == stop.Type && Mix == stop.Mix && Duration == stop.Duration;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, Duration);
     }
 }

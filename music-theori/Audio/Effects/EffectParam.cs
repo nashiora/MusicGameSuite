@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace theori.Audio.Effects
 {
@@ -90,36 +92,70 @@ namespace theori.Audio.Effects
         }
     }
 
-    public abstract class EffectParam
+    public interface IEffectParam : IEquatable<IEffectParam>
     {
+        bool IsRange { get; }
     }
 
-    public class EffectParam<T> : EffectParam
+    public abstract class EffectParam<T> : IEffectParam, IEquatable<EffectParam<T>>
+        where T : IEquatable<T>
     {
-        public static implicit operator EffectParam<T>(T value) => new EffectParam<T>(value);
+        public static bool operator ==(EffectParam<T> a, EffectParam<T> b) => a is null ? b is null : a.Equals(b);
+        public static bool operator !=(EffectParam<T> a, EffectParam<T> b) => !(a == b);
 
         private readonly T[] m_values;
         private readonly EffectInterpolator<T> m_interpFunction;
 
-        private readonly bool m_isRange;
+        public bool IsRange { get; private set; }
 
-        public EffectParam(T value)
+        public T MinValue => m_values[0];
+        public T MaxValue => m_values[m_values.Length - 1];
+
+        protected EffectParam(T value)
         {
             m_values = new T[] { value };
-            m_isRange = false;
+            IsRange = false;
         }
 
-        public EffectParam(T a, T b, EffectInterpolator<T> interp)
+        protected EffectParam(T a, T b, EffectInterpolator<T> interp)
         {
             m_values = new T[] { a, b };
             m_interpFunction = interp;
-            m_isRange = true;
+            IsRange = true;
         }
 
         public T Sample(float alpha = 0)
         {
             alpha = MathL.Clamp(alpha, 0, 1);
-            return m_isRange ? m_interpFunction(m_values[0], m_values[1], alpha) : m_values[0];
+            return IsRange ? m_interpFunction(m_values[0], m_values[1], alpha) : m_values[0];
+        }
+
+        public bool Equals(EffectParam<T> other)
+        {
+            if (m_values.Length != other.m_values.Length) return false;
+            for (int i = 0; i < m_values.Length; i++)
+            {
+                if (!EqualityComparer<T>.Default.Equals(m_values[i], other.m_values[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        bool IEquatable<IEffectParam>.Equals(IEffectParam other)
+        {
+            if (other is EffectParam<T> t) return Equals(t);
+            return false;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is EffectParam<T> t) return Equals(t);
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.For(m_values);
         }
     }
 }

@@ -70,8 +70,6 @@ namespace NeuroSonic
             Input.CreateController();
 
             Host.AddOverlay(new DebugLanguageSwitchOverlay());
-            // TODO(local): push the game loading layer, which creates the game layer
-            //Host.PushLayer(new GameLayer(true));
             Host.PushLayer(new NeuroSonicStandaloneStartup());
         }
 

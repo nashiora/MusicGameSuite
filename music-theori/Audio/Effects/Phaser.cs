@@ -136,5 +136,13 @@ namespace theori.Audio.Effects
             {
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is PhaserEffectDef ph)) return false;
+            return Type == ph.Type && Mix == ph.Mix;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix);
     }
 }

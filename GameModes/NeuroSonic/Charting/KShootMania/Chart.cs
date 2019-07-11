@@ -19,8 +19,9 @@ namespace NeuroSonic.Charting.KShootMania
 
     public class KshTick
     {
+        public readonly List<string> Comments = new List<string>();
         public readonly List<KshTickSetting> Settings = new List<KshTickSetting>();
-        
+
         public readonly KshButtonData[] Bt = new KshButtonData[4];
         public readonly KshButtonData[] Fx = new KshButtonData[2];
         public readonly KshLaserData[] Laser = new KshLaserData[2];
@@ -180,13 +181,14 @@ namespace NeuroSonic.Charting.KShootMania
         public static KshChart CreateFromFile(string fileName)
         {
             using (var reader = File.OpenText(fileName))
-                return Create(reader);
+                return Create(fileName, reader);
         }
 
-        public static KshChart Create(StreamReader reader)
+        public static KshChart Create(string fileName, StreamReader reader)
         {
             var chart = new KshChart
             {
+                FileName = fileName,
                 Metadata = KshChartMetadata.Create(reader)
             };
             
@@ -300,9 +302,9 @@ namespace NeuroSonic.Charting.KShootMania
 
                 if (line[0] == '#')
                 {
-                    Dictionary<string, EffectParam> GetParameterList(string args, out string typeName)
+                    Dictionary<string, IEffectParam> GetParameterList(string args, out string typeName)
                     {
-                        var result = new Dictionary<string, EffectParam>();
+                        var result = new Dictionary<string, IEffectParam>();
                         typeName = null;
 
                         foreach (string a in args.Split(';'))
@@ -326,7 +328,7 @@ namespace NeuroSonic.Charting.KShootMania
 
                                 // TODO(local): this will ONLY allow ranges of the same type, so 0.5-1/8 is illegal (but are these really ever used?)
                                 // (kinda makes sense for Hz-kHz but uh shh)
-                                EffectParam pv;
+                                IEffectParam pv;
                                 if (v.Contains("on") || v.Contains("off"))
                                 {
                                     if (isRange)
@@ -416,7 +418,7 @@ namespace NeuroSonic.Charting.KShootMania
                     Logger.Log($">> ksh { defKind } \"{ defKey }\"");
 
                     var pars = GetParameterList(argList, out string effectType);
-                    T GetEffectParam<T>(string parsKey, T parsDef) where T : EffectParam
+                    T GetEffectParam<T>(string parsKey, T parsDef) where T : IEffectParam
                     {
                         if (pars.TryGetValue(parsKey, out var parsValue) && parsValue is T valueT)
                             return valueT;
@@ -499,6 +501,15 @@ namespace NeuroSonic.Charting.KShootMania
                     else if (defKind == "#define_filter")
                         chart.FilterDefines[defKey] = def;
                 }
+                if (line == SEP)
+                {
+                    chart.m_blocks.Add(block);
+                    block = new KshBlock();
+                }
+                else if (line.StartsWith("//"))
+                {
+                    tick.Comments.Add(line.Substring(2).Trim());
+                }
                 if (line.TrySplit('=', out string key, out string value))
                 {
                     if (key == "t") mrBpm = float.Parse(value);
@@ -511,11 +522,6 @@ namespace NeuroSonic.Charting.KShootMania
                         TryAddBuiltInFilter(value);
 
                     tick.Settings.Add(new KshTickSetting(key, value));
-                }
-                if (line == SEP)
-                {
-                    chart.m_blocks.Add(block);
-                    block = new KshBlock();
                 }
                 else
                 {
@@ -627,6 +633,7 @@ namespace NeuroSonic.Charting.KShootMania
             return chart;
         }
 
+        public string FileName;
         public KshChartMetadata Metadata;
 
         private List<KshBlock> m_blocks = new List<KshBlock>();

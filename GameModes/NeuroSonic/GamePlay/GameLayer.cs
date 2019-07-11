@@ -583,10 +583,9 @@ namespace NeuroSonic.GamePlay
                 Vector2 critRotationVector = critRootPositionEast - critRootPositionWest;
                 float critRootRotation = MathL.Atan(critRotationVector.Y, critRotationVector.X);
 
-                m_critRoot.LaserRoll = m_highwayView.LaserRoll;
-                m_critRoot.BaseRoll = m_highwayControl.Roll * 360;
-                m_critRoot.EffectRoll = m_highwayControl.EffectRoll;
-                m_critRoot.EffectOffset = m_highwayControl.EffectOffset;
+                //m_critRoot.Roll = m_highwayView.LaserRoll;
+                //m_critRoot.EffectRoll = m_highwayControl.EffectRoll;
+                //m_critRoot.EffectOffset = m_highwayControl.EffectOffset;
                 m_critRoot.Position = critRootPosition;
                 m_critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_highwayControl.CritLineEffectRoll * 25;
             }
@@ -665,6 +664,12 @@ namespace NeuroSonic.GamePlay
                 {
                     switch (currentLaserEffectDef.Type)
                     {
+                        case EffectType.Gate:
+                        case EffectType.Retrigger:
+                        case EffectType.TapeStop:
+                            mix = 1.0f;
+                            break;
+
                         case EffectType.HighPassFilter:
                         case EffectType.LowPassFilter:
                             break;

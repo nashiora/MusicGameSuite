@@ -75,5 +75,13 @@ namespace theori.Audio.Effects
                 wobble.SetPeriod(Period.Sample(alpha) * qnDur.Seconds * 4);
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is WobbleEffectDef wob)) return false;
+            return Type == wob.Type && Mix == wob.Mix && Period == wob.Period;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, Period);
     }
 }

@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace theori.Charting
 {
+    public interface IHasEffectDef
+    {
+        Audio.Effects.EffectDef Effect { get; }
+    }
+
     public class ChartObject : ILinkable<ChartObject>, IComparable<ChartObject>, ICloneable
     {
         private static long creationIndexCounter = 0;

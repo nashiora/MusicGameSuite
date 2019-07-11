@@ -423,10 +423,12 @@ namespace NeuroSonic.GamePlay
                     keyBeamDrawable.DrawToQueue(queue, t);
                 }
 
-                void RenderButtonStream(int i)
+                void RenderButtonStream(int i, bool chip)
                 {
                     foreach (var objr in m_renderables[i].Values)
                     {
+                        if (chip != objr.Object.IsInstant) continue;
+
                         float zAbs = (float)((objr.Object.AbsolutePosition - PlaybackPosition) / ViewDuration);
                         float z = LENGTH_BASE * zAbs;
 
@@ -533,13 +535,17 @@ namespace NeuroSonic.GamePlay
                 }
 
                 for (int i = 0; i < 2; i++)
-                    RenderButtonStream(i + 4);
-
+                    RenderButtonStream(i + 4, false);
                 for (int i = 0; i < 4; i++)
-                    RenderButtonStream(i);
+                    RenderButtonStream(i, false);
 
                 for (int i = 0; i < 2; i++)
                     RenderAnalogStream(i);
+
+                for (int i = 0; i < 2; i++)
+                    RenderButtonStream(i + 4, true);
+                for (int i = 0; i < 4; i++)
+                    RenderButtonStream(i, true);
             }
         }
     }

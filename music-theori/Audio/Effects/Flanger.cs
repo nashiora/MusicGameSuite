@@ -75,6 +75,14 @@ namespace theori.Audio.Effects
         {
         }
 
+        public FlangerEffectDef(EffectParamF mix, EffectParamF delay, EffectParamI offset, EffectParamI depth)
+            : this(mix)
+        {
+            Delay = delay;
+            Offset = offset;
+            Depth = depth;
+        }
+
         public override Dsp CreateEffectDsp(int sampleRate) => new Flanger(sampleRate);
 
         public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
@@ -86,5 +94,13 @@ namespace theori.Audio.Effects
                 flanger.SetDelayRange(Offset.Sample(alpha), Depth.Sample(alpha));
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is FlangerEffectDef fl)) return false;
+            return Type == fl.Type && Mix == fl.Mix && Delay == fl.Delay && Offset == fl.Offset && Depth == fl.Depth;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, Delay, Offset, Depth);
     }
 }

@@ -88,9 +88,17 @@ namespace theori.Audio.Effects
             base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is Gate gate)
             {
-                gate.SetGateDuration(GateDuration.Sample(alpha) * qnDur.Seconds * 4);
                 gate.SetGating(Gating.Sample(alpha));
+                gate.SetGateDuration(GateDuration.Sample(alpha) * qnDur.Seconds * 4);
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is GateEffectDef rt)) return false;
+            return Type == rt.Type && Mix == rt.Mix && GateDuration == rt.GateDuration && Gating == rt.Gating;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, GateDuration, Gating);
     }
 }

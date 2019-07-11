@@ -16,17 +16,16 @@ namespace NeuroSonic.GamePlay
         private readonly Panel m_container;
         private readonly Sprite m_image, m_capLeft, m_capRight, m_cursorLeft, m_cursorRight;
 
-        private float m_horHeight, m_critHeight;
-        private float m_laserRoll, m_baseRoll, m_addRoll, m_addOffset;
+        //private float m_horHeight, m_critHeight;
+        //private float m_roll, m_baseRoll, m_addRoll, m_addOffset;
         private float m_leftPos, m_rightPos;
 
-        public float HorizonHeight { get => m_horHeight; set { m_horHeight = value; m_isDirty = true; } }
-        public float CriticalHeight { get => m_critHeight; set { m_critHeight = value; m_isDirty = true; } }
+        //public float HorizonHeight { get => m_horHeight; set { m_horHeight = value; m_isDirty = true; } }
+        //public float CriticalHeight { get => m_critHeight; set { m_critHeight = value; m_isDirty = true; } }
         
-        public float LaserRoll { get => m_laserRoll; set { m_laserRoll = value; m_isDirty = true; } }
-        public float BaseRoll { get => m_baseRoll; set { m_baseRoll = value; m_isDirty = true; } }
-        public float EffectRoll { get => m_addRoll; set { m_addRoll = value; m_isDirty = true; } }
-        public float EffectOffset { get => m_addOffset; set { m_addOffset = value; m_isDirty = true; } }
+        //public float Roll { get => m_roll; set { m_roll = value; m_isDirty = true; } }
+        //public float EffectRoll { get => m_addRoll; set { m_addRoll = value; m_isDirty = true; } }
+        //public float EffectOffset { get => m_addOffset; set { m_addOffset = value; m_isDirty = true; } }
 
         public float LeftCursorPosition { get => m_leftPos; set { m_leftPos = value; m_isDirty = true; } }
         public float RightCursorPosition { get => m_rightPos; set { m_rightPos = value; m_isDirty = true; } }

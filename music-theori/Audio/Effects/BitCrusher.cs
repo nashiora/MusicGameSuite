@@ -58,5 +58,13 @@ namespace theori.Audio.Effects
                 bitCrusher.Reduction = Reduction.Sample(alpha);
             }
         }
+
+        public override bool Equals(EffectDef other)
+        {
+            if (!(other is BitCrusherEffectDef bc)) return false;
+            return Type == bc.Type && Mix == bc.Mix && Reduction == bc.Reduction;
+        }
+
+        public override int GetHashCode() => HashCode.For(Type, Mix, Reduction);
     }
 }

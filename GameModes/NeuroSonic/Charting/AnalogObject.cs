@@ -14,7 +14,7 @@ namespace NeuroSonic.Charting
 
     public static class CurveShapeExt
     {
-        public static float Sample(this CurveShape shape, float alpha, float a = 0.5f, float b = 0.5f)
+        public static float Sample(this CurveShape shape, float alpha, float a = 0.0f, float b = 0.0f)
         {
             switch (shape)
             {
@@ -23,7 +23,7 @@ namespace NeuroSonic.Charting
 
                 case CurveShape.Cosine:
                 {
-                    // TODO(local): "strengthen" the curve based on `a`
+                    // TODO(local): "strengthen" the curve based on `a` and `b`
                     float angle = alpha * MathL.Pi;
                     return (1 - (float)Math.Cos(angle)) * 0.5f;
                 }
@@ -91,6 +91,14 @@ namespace NeuroSonic.Charting
             if (position >= AbsoluteEndPosition) return FinalValue;
 
             return MathL.Lerp(InitialValue, FinalValue, (float)((position - AbsolutePosition).Seconds / AbsoluteDuration.Seconds));
+        }
+
+        public float SampleValueRelative(float value)
+        {
+            if (value <= 0) return InitialValue;
+            if (value >= 1.0f) return FinalValue;
+
+            return MathL.Lerp(InitialValue, FinalValue, value);
         }
     }
 }

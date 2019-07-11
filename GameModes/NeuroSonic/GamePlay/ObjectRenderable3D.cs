@@ -7,6 +7,7 @@ using theori.Graphics;
 using theori.Resources;
 
 using NeuroSonic.Charting;
+using System;
 
 namespace NeuroSonic.GamePlay
 {
@@ -346,6 +347,7 @@ namespace NeuroSonic.GamePlay
     internal class LaserRenderState3D : GlowingRenderState3D
     {
         private const float LASER_WIDTH = 2.0f;
+        private const float AUTO_RESOLUTION_AMT = 1.0f / 32;
 
         public new AnalogObject Object => (AnalogObject)base.Object;
         
@@ -361,9 +363,6 @@ namespace NeuroSonic.GamePlay
             var mesh = new Mesh();
 
             const float W = LASER_WIDTH / 6.0f;
-
-            ushort[] indices = new ushort[] { 0, 1, 2, 0, 2, 3, };
-            mesh.SetIndices(indices);
             
             float range = 5 / 6.0f * (obj.RangeExtended ? 2 : 1);
 
@@ -373,14 +372,58 @@ namespace NeuroSonic.GamePlay
             float fl = range * (obj.FinalValue - 0.5f) - W / 2;
             float fr = range * (obj.FinalValue - 0.5f) + W / 2;
 
-            VertexP3T2[] vertices = new VertexP3T2[4]
-            {
-                new VertexP3T2(new Vector3(il, 0, 0), new Vector2(0, 1)),
-                new VertexP3T2(new Vector3(fl, 0, -1), new Vector2(0, 0)),
-                new VertexP3T2(new Vector3(fr, 0, -1), new Vector2(1, 0)),
-                new VertexP3T2(new Vector3(ir, 0, 0), new Vector2(1, 1)),
-            };
+            VertexP3T2[] vertices;
+            ushort[] indices;
 
+            int SegmentCount()
+            {
+                //if (obj.CurveResolution > 0) return obj.CurveResolution;
+                return MathL.Max(4, MathL.FloorToInt((float)obj.Duration / AUTO_RESOLUTION_AMT));
+            }
+
+            if (obj.Shape == CurveShape.Cosine || obj.Shape == CurveShape.ThreePoint)
+            {
+                int segments = SegmentCount();
+
+                indices = new ushort[segments * 6];
+                vertices = new VertexP3T2[(segments + 1) * 2];
+
+                for (int i = 0; i < segments; i++)
+                {
+                    indices[i * 6 + 0] = (ushort)(i * 2 + 0);
+                    indices[i * 6 + 1] = (ushort)(i * 2 + 3);
+                    indices[i * 6 + 2] = (ushort)(i * 2 + 1);
+                    indices[i * 6 + 3] = (ushort)(i * 2 + 0);
+                    indices[i * 6 + 4] = (ushort)(i * 2 + 2);
+                    indices[i * 6 + 5] = (ushort)(i * 2 + 3);
+                }
+
+                float fTex = 0.0f, fTexOffs = len / segments;
+                for (int v = 0; v <= segments; v++, fTex += fTexOffs)
+                {
+                    int i = v * 2;
+
+                    float alpha = (float)v / segments;
+                    float xa = obj.Shape.Sample(alpha, obj.CurveA, obj.CurveB);
+                    float xl = MathL.Lerp(il, fl, xa), xr = MathL.Lerp(ir, fr, xa);
+
+                    vertices[i + 0] = new VertexP3T2(new Vector3(xl, 0, -alpha), new Vector2(0, -fTex));
+                    vertices[i + 1] = new VertexP3T2(new Vector3(xr, 0, -alpha), new Vector2(1, -fTex));
+                }
+            }
+            else
+            {
+                indices = new ushort[] { 0, 1, 2, 0, 2, 3, };
+                vertices = new VertexP3T2[4]
+                {
+                    new VertexP3T2(new Vector3(il, 0, 0), new Vector2(0, 1)),
+                    new VertexP3T2(new Vector3(fl, 0, -1), new Vector2(0, 0)),
+                    new VertexP3T2(new Vector3(fr, 0, -1), new Vector2(1, 0)),
+                    new VertexP3T2(new Vector3(ir, 0, 0), new Vector2(1, 1)),
+                };
+            }
+
+            mesh.SetIndices(indices);
             mesh.SetVertices(vertices);
 
             m_drawable = new Drawable3D()

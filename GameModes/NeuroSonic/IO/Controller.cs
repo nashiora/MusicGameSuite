@@ -56,9 +56,12 @@ namespace NeuroSonic.IO
         {
             m_gamepad = gamepad;
 
-            m_gamepad.ButtonPressed += OnButtonPressed;
-            m_gamepad.ButtonReleased += OnButtonReleased;
-            m_gamepad.AxisChanged += OnAxisChanged;
+            if (gamepad != null)
+            {
+                m_gamepad.ButtonPressed += OnButtonPressed;
+                m_gamepad.ButtonReleased += OnButtonReleased;
+                m_gamepad.AxisChanged += OnAxisChanged;
+            }
 
             SetButtonCode(ControllerInput.Start, NscConfigKey.Controller_Start);
             SetButtonCode(ControllerInput.Back, NscConfigKey.Controller_Back);

@@ -120,14 +120,19 @@ namespace theori.Gui
 
         public Vector2 ScreenToLocal(Vector2 screen)
         {
+            var t = Transform.Translation(-new Vector3(Origin, 0))
+                  * Transform.RotationZ(Rotation)
+                  * Transform.Scale(new Vector3(Scale, 1));
+
             var transform = Matrix3x2.CreateTranslation(-Origin) *
                 Matrix3x2.CreateRotation(MathL.ToRadians(Rotation)) *
                 Matrix3x2.CreateScale(Scale);
 
+            Matrix4x4.Invert(t.Matrix, out var tMat);
             Matrix3x2.Invert(transform, out transform);
 
             screen -= DrawPosition;
-            screen = Vector2.Transform(screen, transform);
+            screen = Vector2.Transform(screen, tMat);
 
             return screen;
         }

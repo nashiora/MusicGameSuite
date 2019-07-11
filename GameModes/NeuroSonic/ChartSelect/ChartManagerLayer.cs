@@ -23,6 +23,8 @@ namespace NeuroSonic.ChartSelect
     {
         protected override string Title => "Chart Manager";
 
+        private string m_chartsDir = Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory);
+
         protected override void GenerateMenuItems()
         {
             AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", OpenKSH));
@@ -104,11 +106,9 @@ namespace NeuroSonic.ChartSelect
             }
         }
 
-        private ChartSetInfo ConvertKSHAndSave(string primaryKshFile)
+        private ChartSetInfo ConvertKSHAndSave(string primaryKshFile, out ChartInfo selected)
         {
             var primaryKshChart = KshChart.CreateFromFile(primaryKshFile);
-            var primaryKshMeta = primaryKshChart.Metadata;
-
             var primaryChart = primaryKshChart.ToVoltex();
 
             string setDir = Directory.GetParent(primaryKshFile).FullName;
@@ -128,12 +128,14 @@ namespace NeuroSonic.ChartSelect
                     kshMeta = KshChartMetadata.Create(reader);
 
                 // don't worry about checking the nofx one, as we'll only keep the primary file anyway.
+                /*
                 if ((kshMeta.MusicFile, kshMeta.Title, kshMeta.Artist) !=
                     (primaryKshMeta.MusicFile, primaryKshMeta.Title, primaryKshMeta.Artist))
                 {
                     Logger.Log($"Skipping '{ Path.GetFileName(kshChartFile) }' chart file in the set '{ setDir }'.\n:theori and NeuroSonic only support a single song for each set, and the chosen set does not comply.\nOnly charts of the same song will be added to this converted set.");
                     continue;
                 }
+                */
 
                 var kshChart = KshChart.CreateFromFile(kshChartFile);
                 var chart = kshChart.ToVoltex();
@@ -147,45 +149,36 @@ namespace NeuroSonic.ChartSelect
                 OnlineID = null, // no online stuff, it's not uploaded
 
                 FilePath = setName,
-
-                SongTitle = primaryKshMeta.Title,
-                SongArtist = primaryKshMeta.Artist,
-                SongFileName = primaryKshMeta.MusicFileNoFx,
             };
 
-            foreach (var (kshChartFile, chart) in chartFiles)
-            {
-                var chartInfo = new ChartInfo()
-                {
-                    ID = 0, // No database ID, it's not in the database yet
-                    Set = chartSetInfo,
-
-                    FileName = $"{ Path.GetFileNameWithoutExtension(kshChartFile) }.tchart",
-
-                    Charter = chart.Metadata.Charter,
-                    JacketFileName = chart.Metadata.JacketFileName,
-                    JacketArtist = chart.Metadata.JacketArtist,
-                    BackgroundFileName = chart.Metadata.BackgroundFileName,
-                    BackgroundArtist = chart.Metadata.BackgroundArtist,
-                    DifficultyLevel = chart.Metadata.DifficultyLevel,
-                    DifficultyIndex = chart.Metadata.DifficultyIndex,
-                    DifficultyName = chart.Metadata.DifficultyName,
-                    DifficultyNameShort = chart.Metadata.DifficultyNameShort,
-                    DifficultyColor = chart.Metadata.DifficultyColor,
-                };
-
-                chart.Info = chartInfo;
-                chartSetInfo.Charts.Add(chartInfo);
-            }
-
-            string nscChartDirectory = Path.Combine("charts", setName);
+            string nscChartDirectory = Path.Combine(m_chartsDir, setName);
             if (!Directory.Exists(nscChartDirectory))
                 Directory.CreateDirectory(nscChartDirectory);
 
-            var serializer = ChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
+            foreach (var (kshChartFile, chart) in chartFiles)
+            {
+                string audioFile = Path.Combine(setDir, chart.Info.SongFileName);
+                if (File.Exists(audioFile))
+                {
+                    string audioFileDest = Path.Combine(m_chartsDir, setName, Path.GetFileName(audioFile));
+                    if (File.Exists(audioFileDest))
+                        File.Delete(audioFileDest);
+                    File.Copy(audioFile, audioFileDest);
+                }
 
-            using (var setInfoStream = File.Open(Path.Combine(nscChartDirectory, ".tset"), FileMode.Create))
-                serializer.SerializeSetInfo(chartSetInfo, setInfoStream);
+                chart.Info.Set = chartSetInfo;
+                chart.Info.FileName = $"{ Path.GetFileNameWithoutExtension(kshChartFile) }.theori";
+
+                chartSetInfo.Charts.Add(chart.Info);
+            }
+
+            selected = primaryChart.Info;
+
+            var setSerializer = new ChartSetSerializer();
+            var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
+
+            using (var setInfoStream = File.Open(Path.Combine(nscChartDirectory, ".theori-set"), FileMode.Create))
+                setSerializer.SerializeSetInfo(chartSetInfo, setInfoStream);
 
             foreach (var (_, chart) in chartFiles)
             {
@@ -206,9 +199,9 @@ namespace NeuroSonic.ChartSelect
             if (dialogResult.DialogResult == DialogResult.OK)
             {
                 string primaryKshFile = dialogResult.FilePath;
-                var chartSetInfo = ConvertKSHAndSave(primaryKshFile);
+                var chartSetInfo = ConvertKSHAndSave(primaryKshFile, out _);
 
-                Process.Start(Path.Combine("charts", chartSetInfo.FilePath));
+                Process.Start(Path.Combine(Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory), chartSetInfo.FilePath));
             }
         }
 
@@ -221,7 +214,26 @@ namespace NeuroSonic.ChartSelect
             if (dialogResult.DialogResult == DialogResult.OK)
             {
                 string primaryKshFile = dialogResult.FilePath;
-                var chartSetInfo = ConvertKSHAndSave(primaryKshFile);
+                var chartSetInfo = ConvertKSHAndSave(primaryKshFile, out ChartInfo selected);
+
+                var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
+                using (var stream = File.OpenRead(Path.Combine(m_chartsDir, chartSetInfo.FilePath, selected.FileName)))
+                {
+                    var chart = serializer.DeserializeChart(selected, stream);
+
+                    string audioFile = Path.Combine(m_chartsDir, chartSetInfo.FilePath, chart.Info.SongFileName);
+
+                    var audio = AudioTrack.FromFile(audioFile);
+                    audio.Channel = Host.Mixer.MasterChannel;
+                    audio.Volume = chart.Info.SongVolume / 100.0f;
+
+                    AutoPlay autoPlay = AutoPlay.None;
+                    if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
+                        autoPlay = AutoPlay.ButtonsAndLasers;
+
+                    var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
+                    Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
+                }
             }
         }
     }

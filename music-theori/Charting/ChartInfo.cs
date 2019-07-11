@@ -5,8 +5,6 @@ using theori.Database;
 
 namespace theori.Charting
 {
-    // TODO(local): Figure out how to do difficulties
-
     public class ChartInfo : IEquatable<ChartInfo>, IHasPrimaryKey
     {
         public static bool operator ==(ChartInfo a, ChartInfo b) => a == null ? b == null : a.Equals(b);
@@ -24,6 +22,13 @@ namespace theori.Charting
         /// The name of the chart file inside of the Set directory.
         /// </summary>
         public string FileName { get; set; }
+
+        public string SongTitle { get; set; } = "Unknown";
+        public string SongArtist { get; set; } = "Unknown";
+        public string SongFileName { get; set; } = "song.ogg";
+        public int SongVolume { get; set; } = 80;
+
+        public time_t ChartOffset { get; set; } = 0;
 
         private string m_charterBacking = "Unknown";
         public string Charter
