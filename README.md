@@ -10,7 +10,7 @@ Demo Video(s):
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-Note that currently this project has only been developed and tested on a Windows machine with Visual Studio (2017/2019) installed. Any Windows setup should work in theory, and Linux/OS X hasn't been a consideration as of yet.
+Note that currently this project has only been developed and tested on a Windows machine with Visual Studio (2017/2019) installed. Any Windows setup should work in theory, assuming all packages are installed properly, and Linux/OS X hasn't been a consideration as of yet.
 
 ### Prerequisites
 
@@ -20,9 +20,14 @@ SDL2 and freetype are required and included as 32-bit DLLs (with support for 64-
 
 ### Building and Running
 
-Setup should be as simple as cloning the repository and opening the solution file, making sure all NuGet packages are installed and `theori-Win32` is the start-up project.
+Setup should be as simple as cloning the repository and opening the solution file, making sure all NuGet packages are installed and `nsc-Win32` is the start-up project.
 
 You'll need at least one `.ksh` file with associated music file to see this in action.
+The client has the ability to load .ksh files and convert them to .theori binary files and .theori-set metadata files but you won't just have these lying around.
+If you'd like you convert your KSH files to .theori/.theori-set, but the file serializer isn't yet finished for all features.
+
+The default menu will allow you to select your input method and configure bindings for it as well as give you a sub menu for selecting charts.
+Holding L- or R-CTRL when selecting an option to open a chart file will enable full autoplay mode.
 
 ## Running the tests
 

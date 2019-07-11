@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 
 using theori;
 using theori.Audio;
 using theori.Charting;
+using theori.Charting.IO;
 using theori.IO;
+using theori.Gui;
+using theori.Graphics;
 
 using NeuroSonic.Startup;
 using NeuroSonic.GamePlay;
 using NeuroSonic.Charting.KShootMania;
 using NeuroSonic.Charting.Conversions;
-using theori.Gui;
-using System.Numerics;
-using theori.Graphics;
-using System.Diagnostics;
-using theori.Charting.IO;
+using System.Linq;
 
 namespace NeuroSonic.ChartSelect
 {
@@ -28,6 +29,8 @@ namespace NeuroSonic.ChartSelect
         protected override void GenerateMenuItems()
         {
             AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", OpenKSH));
+            AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", OpenTheori));
+            AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", ConvertKSH));
             AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", ConvertKSHAndOpen));
         }
@@ -103,6 +106,70 @@ namespace NeuroSonic.ChartSelect
 
                 var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
                 Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
+            }
+        }
+
+        private void OpenTheori()
+        {
+            var dialog = new OpenFileDialogDesc("Open Theori Chart",
+                                new[] { new FileFilter("music:theori Files", "theori") });
+
+            var dialogResult = FileSystem.ShowOpenFileDialog(dialog);
+            if (dialogResult.DialogResult == DialogResult.OK)
+            {
+                string theoriFile = dialogResult.FilePath;
+                string theoriDirectory = Directory.GetParent(theoriFile).FullName;
+
+                var setFiles = Directory.EnumerateFiles(theoriDirectory, "*.theori-set").ToArray();
+                if (setFiles.Length == 0)
+                {
+                    Logger.Log("Failed to locate .theori-set file.");
+                    return;
+                }
+                else if (setFiles.Length != 1)
+                {
+                    Logger.Log($"Too many .theori-set files, choosing the first ({ setFiles[0] }).");
+                    return;
+                }
+
+                string setFile = setFiles[0];
+
+                var setSerializer = new ChartSetSerializer();
+
+                ChartSetInfo setInfo;
+                using (var setStream = File.OpenRead(setFile))
+                    setInfo = setSerializer.DeserializeChartSetInfo(setStream);
+                setInfo.FilePath = theoriDirectory;
+
+                var chartInfos = (from chartInfo in setInfo.Charts
+                                  where chartInfo.FileName == Path.GetFileName(theoriFile)
+                                  select chartInfo).ToArray();
+                if (chartInfos.Length == 0)
+                {
+                    Logger.Log($"Set file { Path.GetFileName(setFile) } did not contain meta information for given chart { Path.GetFileName(theoriFile) }.");
+                    return;
+                }
+
+                Debug.Assert(chartInfos.Length == 1, "Chart set deserialization returned multiple sets with the same file name!");
+                var selected = chartInfos.Single();
+
+                var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
+                using (var stream = File.OpenRead(Path.Combine(m_chartsDir, setInfo.FilePath, selected.FileName)))
+                {
+                    var chart = serializer.DeserializeChart(selected, stream);
+                    string audioFile = Path.Combine(m_chartsDir, setInfo.FilePath, chart.Info.SongFileName);
+
+                    var audio = AudioTrack.FromFile(audioFile);
+                    audio.Channel = Host.Mixer.MasterChannel;
+                    audio.Volume = chart.Info.SongVolume / 100.0f;
+
+                    AutoPlay autoPlay = AutoPlay.None;
+                    if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
+                        autoPlay = AutoPlay.ButtonsAndLasers;
+
+                    var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
+                    Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
+                }
             }
         }
 
@@ -220,7 +287,6 @@ namespace NeuroSonic.ChartSelect
                 using (var stream = File.OpenRead(Path.Combine(m_chartsDir, chartSetInfo.FilePath, selected.FileName)))
                 {
                     var chart = serializer.DeserializeChart(selected, stream);
-
                     string audioFile = Path.Combine(m_chartsDir, chartSetInfo.FilePath, chart.Info.SongFileName);
 
                     var audio = AudioTrack.FromFile(audioFile);
