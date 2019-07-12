@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 
 using theori;
 using theori.Charting;
@@ -81,6 +82,26 @@ namespace NeuroSonic.Charting.IO
                     writer.WriteSingleBE(obj.CurveB);
                     break;
             }
+        }
+    }
+
+    public class EffectKindEventSerializer : ChartObjectSerializer<EffectKindEvent>
+    {
+        public override int ID => StreamIndex.EffectKind;
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override void SerializeSubclass(EffectKindEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            int effectID = effects.IndexOf(obj.Effect);
+            if (effectID < 0) effectID = ushort.MaxValue;
+            //Debug.Assert(effectIndex >= 0, "Failed to properly save effect to table, couldn't find");
+
+            writer.WriteUInt8((byte)obj.EffectIndex);
+            writer.WriteUInt16BE((ushort)effectID);
         }
     }
 
