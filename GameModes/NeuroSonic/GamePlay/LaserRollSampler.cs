@@ -36,7 +36,7 @@ namespace NeuroSonic.GamePlay
             
             left = m_chart[StreamIndex.VolL].FirstObject as AnalogObject;
             right = m_chart[StreamIndex.VolR].FirstObject as AnalogObject;
-            appl = m_chart[StreamIndex.LaserApplicationKind].FirstObject as LaserApplicationEvent;
+            appl = m_chart[StreamIndex.LaserApplication].FirstObject as LaserApplicationEvent;
             pars = m_chart[StreamIndex.LaserParams].FirstObject as LaserParamsEvent;
 
             while (left != null || right != null)

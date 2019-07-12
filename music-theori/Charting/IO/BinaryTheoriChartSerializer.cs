@@ -70,6 +70,8 @@ namespace theori.Charting.IO
             byte typeId = reader.ReadUInt8();
             var type = (EffectType)typeId;
 
+            Debug.Assert(type != EffectType.None);
+
             var mix = ReadValuesF();
             switch (type)
             {
@@ -123,7 +125,7 @@ namespace theori.Charting.IO
 
             EffectParamF ReadValuesF()
             {
-                bool single = reader.ReadUInt8() == 1;
+                bool single = reader.ReadUInt8() == 0;
                 float min = reader.ReadSingleBE();
                 if (single) return min;
                 float max = reader.ReadSingleBE();
@@ -132,7 +134,7 @@ namespace theori.Charting.IO
 
             EffectParamI ReadValuesI()
             {
-                bool single = reader.ReadUInt8() == 1;
+                bool single = reader.ReadUInt8() == 0;
                 int min = reader.ReadInt32BE();
                 if (single) return min;
                 int max = reader.ReadInt32BE();
@@ -146,8 +148,7 @@ namespace theori.Charting.IO
             byte typeId = (byte)type;
 
             writer.WriteUInt8(typeId);
-            writer.WriteSingleBE(effectDef.Mix.MinValue);
-            writer.WriteSingleBE(effectDef.Mix.MaxValue);
+            WriteValuesF(effectDef.Mix);
 
             switch (effectDef)
             {
@@ -205,16 +206,14 @@ namespace theori.Charting.IO
 
             void WriteValuesF(EffectParamF p)
             {
-                byte single = (byte)(p.IsRange ? 1 : 0);
-                writer.WriteUInt8(single);
+                writer.WriteUInt8((byte)(p.IsRange ? 0xFF : 0));
                 writer.WriteSingleBE(p.MinValue);
                 if (p.IsRange) writer.WriteSingleBE(p.MaxValue);
             }
 
             void WriteValuesI(EffectParamI p)
             {
-                byte single = (byte)(p.IsRange ? 0 : 1);
-                writer.WriteUInt8(single);
+                writer.WriteUInt8((byte)(p.IsRange ? 0xFF : 0));
                 writer.WriteInt32BE(p.MinValue);
                 if (p.IsRange) writer.WriteInt32BE(p.MaxValue);
             }
@@ -277,7 +276,7 @@ namespace theori.Charting.IO
                     var serializer = GetSerializerByID(objId);
 
                     byte flags = reader.ReadUInt8();
-                    bool hasDuration = flags != 0;
+                    bool hasDuration = (flags & 0x01) != 0;
 
                     tick_t position = reader.ReadDoubleBE();
                     tick_t duration = hasDuration ? reader.ReadDoubleBE() : 0;
@@ -313,6 +312,8 @@ namespace theori.Charting.IO
                     if (obj is IHasEffectDef e)
                     {
                         var effect = e.Effect;
+                        if (effect == null || effect.Type == EffectType.None)
+                            continue;
                         effectTable.Add(effect);
                     }
                 }

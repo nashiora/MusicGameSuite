@@ -25,7 +25,7 @@
         HighwayEffect,
 
         LaserParams,
-        LaserApplicationKind,
+        LaserApplication,
         EffectKind,
         LaserFilterGain,
         LaserFilterKind,
@@ -85,7 +85,7 @@
         public const int HighwayEffect = (int)EnumStreamIndex.HighwayEffect;
         
         public const int LaserParams = (int)EnumStreamIndex.LaserParams;
-        public const int LaserApplicationKind = (int)EnumStreamIndex.LaserApplicationKind;
+        public const int LaserApplication = (int)EnumStreamIndex.LaserApplication;
         public const int EffectKind = (int)EnumStreamIndex.EffectKind;
         public const int LaserFilterGain = (int)EnumStreamIndex.LaserFilterKind;
         public const int LaserFilterKind = (int)EnumStreamIndex.LaserFilterGain;

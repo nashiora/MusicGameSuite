@@ -2,6 +2,7 @@
 using System.IO;
 
 using theori;
+using theori.Audio.Effects;
 using theori.Charting;
 using theori.Charting.IO;
 
@@ -85,13 +86,73 @@ namespace NeuroSonic.Charting.IO
         }
     }
 
+    public class LaserApplicationEventSerializer : ChartObjectSerializer<LaserApplicationEvent>
+    {
+        public override int ID => StreamIndex.LaserApplication;
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            return new LaserApplicationEvent() { Position = pos, Application = (LaserApplication)reader.ReadUInt8() };
+        }
+
+        public override void SerializeSubclass(LaserApplicationEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteUInt8((byte)obj.Application);
+        }
+    }
+
+    public class LaserParamsEventSerializer : ChartObjectSerializer<LaserParamsEvent>
+    {
+        public override int ID => StreamIndex.LaserParams;
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            var evt = new LaserParamsEvent() { Position = pos };
+            evt.LaserIndex = (LaserIndex)reader.ReadUInt8();
+            evt.Params.Function = (LaserFunction)reader.ReadUInt8();
+            evt.Params.Scale = (LaserScale)reader.ReadUInt8();
+            return evt;
+        }
+
+        public override void SerializeSubclass(LaserParamsEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteUInt8((byte)obj.LaserIndex);
+            writer.WriteUInt8((byte)obj.Params.Function);
+            writer.WriteUInt8((byte)obj.Params.Scale);
+        }
+    }
+
+    public class PathPointEventSerializer : ChartObjectSerializer<PathPointEvent>
+    {
+        // Zoom is the smallest of the path point values, not that it matters
+        public override int ID => StreamIndex.Zoom;
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            return new PathPointEvent() { Position = pos, Value = reader.ReadSingleBE() };
+        }
+
+        public override void SerializeSubclass(PathPointEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteSingleBE(obj.Value);
+        }
+    }
+
     public class EffectKindEventSerializer : ChartObjectSerializer<EffectKindEvent>
     {
         public override int ID => StreamIndex.EffectKind;
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
-            throw new System.NotImplementedException();
+            int laneIndex = reader.ReadUInt8();
+            ushort effectID = reader.ReadUInt16BE();
+
+            EffectDef effect;
+            if (effectID == ushort.MaxValue)
+                effect = null;
+            else effect = effects[effectID];
+
+            return new EffectKindEvent() { Position = pos, EffectIndex = laneIndex, Effect = effect };
         }
 
         public override void SerializeSubclass(EffectKindEvent obj, BinaryWriter writer, ChartEffectTable effects)
@@ -105,15 +166,59 @@ namespace NeuroSonic.Charting.IO
         }
     }
 
+    public class LaserFilterKindEventSerializer : ChartObjectSerializer<LaserFilterKindEvent>
+    {
+        public override int ID => StreamIndex.LaserFilterKind;
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            var laserIndex = (LaserIndex)reader.ReadUInt8();
+            ushort effectID = reader.ReadUInt16BE();
+
+            EffectDef effect;
+            if (effectID == ushort.MaxValue)
+                effect = null;
+            else effect = effects[effectID];
+
+            return new LaserFilterKindEvent() { Position = pos, LaserIndex = laserIndex, Effect = effect };
+        }
+
+        public override void SerializeSubclass(LaserFilterKindEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            int effectID = effects.IndexOf(obj.Effect);
+            if (effectID < 0) effectID = ushort.MaxValue;
+            //Debug.Assert(effectIndex >= 0, "Failed to properly save effect to table, couldn't find");
+
+            writer.WriteUInt8((byte)obj.LaserIndex);
+            writer.WriteUInt16BE((ushort)effectID);
+        }
+    }
+
+    public class LaserFilterGainEventSerializer : ChartObjectSerializer<LaserFilterGainEvent>
+    {
+        public override int ID => StreamIndex.LaserFilterGain;
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            var laserIndex = (LaserIndex)reader.ReadUInt8();
+            float gain = reader.ReadSingleBE();
+            return new LaserFilterGainEvent() { Position = pos, LaserIndex = laserIndex, Gain = gain };
+        }
+
+        public override void SerializeSubclass(LaserFilterGainEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteUInt8((byte)obj.LaserIndex);
+            writer.WriteSingleBE(obj.Gain);
+        }
+    }
+
     public class SlamVolumeEventSerializer : ChartObjectSerializer<SlamVolumeEvent>
     {
         public override int ID => StreamIndex.SlamVolume;
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
-            var evt = new SlamVolumeEvent() { Position = pos };
-            evt.Volume = reader.ReadSingleBE();
-            return evt;
+            return new SlamVolumeEvent() { Position = pos, Volume = reader.ReadSingleBE() };
         }
 
         public override void SerializeSubclass(SlamVolumeEvent obj, BinaryWriter writer, ChartEffectTable effects)

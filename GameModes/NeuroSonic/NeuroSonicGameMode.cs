@@ -8,6 +8,7 @@ using theori.Charting.IO;
 using NeuroSonic.Charting;
 using theori.Charting;
 using NeuroSonic.Charting.IO;
+using System.Collections.Generic;
 
 namespace NeuroSonic
 {
@@ -17,6 +18,9 @@ namespace NeuroSonic
 
         public override bool SupportsStandaloneUsage => true;
         public override bool SupportsSharedUsage => true;
+
+        private readonly Dictionary<(int, Type), ChartObjectSerializer> m_objectSerializer =
+            new Dictionary<(int, Type), ChartObjectSerializer>();
 
         public NeuroSonicGameMode()
             : base("NeuroSonic")
@@ -33,6 +37,13 @@ namespace NeuroSonic
                 case 1: return new ButtonObjectSerializer();
                 case 2: return new AnalogObjectSerializer();
 
+                case StreamIndex.LaserApplication: return new LaserApplicationEventSerializer();
+                case StreamIndex.LaserParams: return new LaserParamsEventSerializer();
+                // NOTE: this case should be identical to PathPointEventSerializer::ID
+                case StreamIndex.Zoom: return new PathPointEventSerializer();
+                case StreamIndex.EffectKind: return new EffectKindEventSerializer();
+                case StreamIndex.LaserFilterKind: return new LaserFilterKindEventSerializer();
+                case StreamIndex.LaserFilterGain: return new LaserFilterGainEventSerializer();
                 case StreamIndex.SlamVolume: return new SlamVolumeEventSerializer();
 
                 default: return null;
@@ -46,6 +57,12 @@ namespace NeuroSonic
                 case ButtonObject _: return new ButtonObjectSerializer();
                 case AnalogObject _: return new AnalogObjectSerializer();
 
+                case LaserApplicationEvent _: return new LaserApplicationEventSerializer();
+                case LaserParamsEvent _: return new LaserParamsEventSerializer();
+                case PathPointEvent _: return new PathPointEventSerializer();
+                case EffectKindEvent _: return new EffectKindEventSerializer();
+                case LaserFilterKindEvent _: return new LaserFilterKindEventSerializer();
+                case LaserFilterGainEvent _: return new LaserFilterGainEventSerializer();
                 case SlamVolumeEvent _: return new SlamVolumeEventSerializer();
 
                 default: return null;

@@ -102,7 +102,7 @@ namespace NeuroSonic.Charting.Conversions
                 
                 var laserFilter = chart[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
                 laserFilter.LaserIndex = LaserIndex.Both;
-                laserFilter.FilterEffect = ksh.FilterDefines[ksh.Metadata.FilterType];
+                laserFilter.Effect = ksh.FilterDefines[ksh.Metadata.FilterType];
 
                 var slamVolume = chart[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
                 if (!hasActiveEffects)
@@ -195,8 +195,8 @@ namespace NeuroSonic.Charting.Conversions
                             {
                                 var laserFilter = chart[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
                                 laserFilter.LaserIndex = LaserIndex.Both;
-                                laserFilter.FilterEffect = (string)setting.Value.Value == "" ? null : ksh.FilterDefines[setting.Value.ToString()];
-                                Logger.Log($"ksh.convert set { key } { laserFilter.FilterEffect?.GetType().Name ?? "nothing" }");
+                                laserFilter.Effect = (string)setting.Value.Value == "" ? null : ksh.FilterDefines[setting.Value.ToString()];
+                                Logger.Log($"ksh.convert set { key } { laserFilter.Effect?.GetType().Name ?? "nothing" }");
                             }
                             else Logger.Log($"ksh.convert effects disabled for { key }");
                         }
@@ -260,7 +260,7 @@ namespace NeuroSonic.Charting.Conversions
 
                         case "tilt":
                         {
-                            var laserApps = chart[StreamIndex.LaserParams].Add<LaserApplicationEvent>(chartPos);
+                            var laserApps = chart[StreamIndex.LaserApplication].Add<LaserApplicationEvent>(chartPos);
 
                             string v = setting.Value.ToString();
                             if (v.StartsWith("keep_"))

@@ -342,7 +342,7 @@ namespace NeuroSonic.GamePlay
                     case LaserFilterGainEvent filterGain: laserGain = filterGain.Gain; break;
                     case LaserFilterKindEvent filterKind:
                     {
-                        m_audioController.SetEffect(6, CurrentQuarterNodeDuration, currentLaserEffectDef = filterKind.FilterEffect, m_audioController.GetEffectMix(6));
+                        m_audioController.SetEffect(6, CurrentQuarterNodeDuration, currentLaserEffectDef = filterKind.Effect, m_audioController.GetEffectMix(6));
                     }
                     break;
 

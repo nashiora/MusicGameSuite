@@ -25,10 +25,10 @@ namespace NeuroSonic.Charting
         public EffectDef Effect { get; set; }
     }
 
-    public class LaserFilterKindEvent : ChartEvent
+    public class LaserFilterKindEvent : ChartEvent, IHasEffectDef
     {
         public LaserIndex LaserIndex;
-        public EffectDef FilterEffect;
+        public EffectDef Effect { get; set; }
     }
 
     public class LaserFilterGainEvent : ChartEvent
