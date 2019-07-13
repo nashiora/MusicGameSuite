@@ -90,7 +90,8 @@ namespace NeuroSonic.Charting
             if (position <= AbsolutePosition) return InitialValue;
             if (position >= AbsoluteEndPosition) return FinalValue;
 
-            return MathL.Lerp(InitialValue, FinalValue, (float)((position - AbsolutePosition).Seconds / AbsoluteDuration.Seconds));
+            float alpha = Shape.Sample((float)((position - AbsolutePosition).Seconds / AbsoluteDuration.Seconds), CurveA, CurveB);
+            return MathL.Lerp(InitialValue, FinalValue, alpha);
         }
 
         public float SampleValueRelative(float value)
@@ -98,7 +99,8 @@ namespace NeuroSonic.Charting
             if (value <= 0) return InitialValue;
             if (value >= 1.0f) return FinalValue;
 
-            return MathL.Lerp(InitialValue, FinalValue, value);
+            float alpha = Shape.Sample(value, CurveA, CurveB);
+            return MathL.Lerp(InitialValue, FinalValue, alpha);
         }
     }
 }
