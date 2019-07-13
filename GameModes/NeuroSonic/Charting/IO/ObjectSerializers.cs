@@ -10,7 +10,7 @@ namespace NeuroSonic.Charting.IO
 {
     public class ButtonObjectSerializer : ChartObjectSerializer<ButtonObject>
     {
-        public override int ID => 1;
+        public ButtonObjectSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -36,7 +36,7 @@ namespace NeuroSonic.Charting.IO
 
     public class AnalogObjectSerializer : ChartObjectSerializer<AnalogObject>
     {
-        public override int ID => 2;
+        public AnalogObjectSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -88,7 +88,7 @@ namespace NeuroSonic.Charting.IO
 
     public class LaserApplicationEventSerializer : ChartObjectSerializer<LaserApplicationEvent>
     {
-        public override int ID => StreamIndex.LaserApplication;
+        public LaserApplicationEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -103,7 +103,7 @@ namespace NeuroSonic.Charting.IO
 
     public class LaserParamsEventSerializer : ChartObjectSerializer<LaserParamsEvent>
     {
-        public override int ID => StreamIndex.LaserParams;
+        public LaserParamsEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -124,8 +124,7 @@ namespace NeuroSonic.Charting.IO
 
     public class PathPointEventSerializer : ChartObjectSerializer<PathPointEvent>
     {
-        // Zoom is the smallest of the path point values, not that it matters
-        public override int ID => StreamIndex.Zoom;
+        public PathPointEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -140,7 +139,7 @@ namespace NeuroSonic.Charting.IO
 
     public class EffectKindEventSerializer : ChartObjectSerializer<EffectKindEvent>
     {
-        public override int ID => StreamIndex.EffectKind;
+        public EffectKindEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -168,7 +167,7 @@ namespace NeuroSonic.Charting.IO
 
     public class LaserFilterKindEventSerializer : ChartObjectSerializer<LaserFilterKindEvent>
     {
-        public override int ID => StreamIndex.LaserFilterKind;
+        public LaserFilterKindEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -196,7 +195,7 @@ namespace NeuroSonic.Charting.IO
 
     public class LaserFilterGainEventSerializer : ChartObjectSerializer<LaserFilterGainEvent>
     {
-        public override int ID => StreamIndex.LaserFilterGain;
+        public LaserFilterGainEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -214,7 +213,7 @@ namespace NeuroSonic.Charting.IO
 
     public class SlamVolumeEventSerializer : ChartObjectSerializer<SlamVolumeEvent>
     {
-        public override int ID => StreamIndex.SlamVolume;
+        public SlamVolumeEventSerializer(int id) : base(id) { }
 
         public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
@@ -224,6 +223,63 @@ namespace NeuroSonic.Charting.IO
         public override void SerializeSubclass(SlamVolumeEvent obj, BinaryWriter writer, ChartEffectTable effects)
         {
             writer.WriteSingleBE(obj.Volume);
+        }
+    }
+
+    public class SpinImpulseEventSerializer : ChartObjectSerializer<SpinImpulseEvent>
+    {
+        public SpinImpulseEventSerializer(int id) : base(id) { }
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            return new SpinImpulseEvent() { Position = pos, Direction = (AngularDirection)reader.ReadUInt8() };
+        }
+
+        public override void SerializeSubclass(SpinImpulseEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteUInt8((byte)obj.Direction);
+        }
+    }
+
+    public class SwingImpulseEventSerializer : ChartObjectSerializer<SwingImpulseEvent>
+    {
+        public SwingImpulseEventSerializer(int id) : base(id) { }
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            var evt = new SwingImpulseEvent() { Position = pos };
+            evt.Direction = (AngularDirection)reader.ReadUInt8();
+            evt.Amplitude = reader.ReadSingleBE();
+            return evt;
+        }
+
+        public override void SerializeSubclass(SwingImpulseEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteUInt8((byte)obj.Direction);
+            writer.WriteSingleBE(obj.Amplitude);
+        }
+    }
+
+    public class WobbleImpulseEventSerializer : ChartObjectSerializer<WobbleImpulseEvent>
+    {
+        public WobbleImpulseEventSerializer(int id) : base(id) { }
+
+        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        {
+            var evt = new WobbleImpulseEvent() { Position = pos };
+            evt.Direction = (LinearDirection)reader.ReadUInt8();
+            evt.Amplitude = reader.ReadSingleBE();
+            evt.Frequency = reader.ReadUInt16BE();
+            evt.Decay = (Decay)reader.ReadUInt8();
+            return evt;
+        }
+
+        public override void SerializeSubclass(WobbleImpulseEvent obj, BinaryWriter writer, ChartEffectTable effects)
+        {
+            writer.WriteUInt8((byte)obj.Direction);
+            writer.WriteSingleBE(obj.Amplitude);
+            writer.WriteUInt16BE((ushort)obj.Frequency);
+            writer.WriteUInt8((byte)obj.Decay);
         }
     }
 }

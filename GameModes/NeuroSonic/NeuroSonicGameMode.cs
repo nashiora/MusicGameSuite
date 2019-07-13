@@ -19,12 +19,41 @@ namespace NeuroSonic
         public override bool SupportsStandaloneUsage => true;
         public override bool SupportsSharedUsage => true;
 
-        private readonly Dictionary<(int, Type), ChartObjectSerializer> m_objectSerializer =
+        private readonly Dictionary<(int, Type), ChartObjectSerializer> m_objectSerializers =
             new Dictionary<(int, Type), ChartObjectSerializer>();
 
         public NeuroSonicGameMode()
             : base("NeuroSonic")
         {
+            void AddSerializer<TObj>(ChartObjectSerializer<TObj> ser)
+                where TObj : ChartObject
+            {
+                int actId = ser.ID;
+                var actType = typeof(TObj);
+
+#if DEBUG
+                foreach (var (oid, otype) in m_objectSerializers.Keys)
+                {
+                    System.Diagnostics.Debug.Assert(oid != actId, "Cannot have two duplicate IDs boi");
+                    System.Diagnostics.Debug.Assert(otype != actType, "Cannot have two duplicate types boi");
+                }
+#endif
+
+                m_objectSerializers[(actId, actType)] = ser;
+            }
+
+            AddSerializer(new ButtonObjectSerializer(1));
+            AddSerializer(new AnalogObjectSerializer(2));
+            AddSerializer(new LaserApplicationEventSerializer(3));
+            AddSerializer(new LaserParamsEventSerializer(4));
+            AddSerializer(new PathPointEventSerializer(5));
+            AddSerializer(new EffectKindEventSerializer(6));
+            AddSerializer(new LaserFilterKindEventSerializer(7));
+            AddSerializer(new LaserFilterGainEventSerializer(8));
+            AddSerializer(new SlamVolumeEventSerializer(9));
+            AddSerializer(new SpinImpulseEventSerializer(10));
+            AddSerializer(new SwingImpulseEventSerializer(11));
+            AddSerializer(new WobbleImpulseEventSerializer(12));
         }
 
         public override void InvokeStandalone(string[] args) => Plugin.NSC_Main(args);
@@ -32,41 +61,20 @@ namespace NeuroSonic
 
         public override ChartObjectSerializer GetSerializerByID(int id)
         {
-            switch (id)
+            foreach (var (oid, otype) in m_objectSerializers.Keys)
             {
-                case 1: return new ButtonObjectSerializer();
-                case 2: return new AnalogObjectSerializer();
-
-                case StreamIndex.LaserApplication: return new LaserApplicationEventSerializer();
-                case StreamIndex.LaserParams: return new LaserParamsEventSerializer();
-                // NOTE: this case should be identical to PathPointEventSerializer::ID
-                case StreamIndex.Zoom: return new PathPointEventSerializer();
-                case StreamIndex.EffectKind: return new EffectKindEventSerializer();
-                case StreamIndex.LaserFilterKind: return new LaserFilterKindEventSerializer();
-                case StreamIndex.LaserFilterGain: return new LaserFilterGainEventSerializer();
-                case StreamIndex.SlamVolume: return new SlamVolumeEventSerializer();
-
-                default: return null;
+                if (oid == id) return m_objectSerializers[(oid, otype)];
             }
+            return null;
         }
 
         public override ChartObjectSerializer GetSerializerFor(ChartObject obj)
         {
-            switch (obj)
+            foreach (var (oid, otype) in m_objectSerializers.Keys)
             {
-                case ButtonObject _: return new ButtonObjectSerializer();
-                case AnalogObject _: return new AnalogObjectSerializer();
-
-                case LaserApplicationEvent _: return new LaserApplicationEventSerializer();
-                case LaserParamsEvent _: return new LaserParamsEventSerializer();
-                case PathPointEvent _: return new PathPointEventSerializer();
-                case EffectKindEvent _: return new EffectKindEventSerializer();
-                case LaserFilterKindEvent _: return new LaserFilterKindEventSerializer();
-                case LaserFilterGainEvent _: return new LaserFilterGainEventSerializer();
-                case SlamVolumeEvent _: return new SlamVolumeEventSerializer();
-
-                default: return null;
+                if (otype == obj.GetType()) return m_objectSerializers[(oid, otype)];
             }
+            return null;
         }
     }
 }

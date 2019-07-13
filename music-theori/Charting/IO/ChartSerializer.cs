@@ -35,7 +35,12 @@ namespace theori.Charting.IO
         /// <summary>
         /// A locally unique value > 0
         /// </summary>
-        public abstract int ID { get; }
+        public readonly int ID;
+
+        protected ChartObjectSerializer(int id)
+        {
+            ID = id;
+        }
 
         public abstract void SerializeSubclass(ChartObject obj, BinaryWriter writer, ChartEffectTable effects);
 
@@ -45,6 +50,8 @@ namespace theori.Charting.IO
     public abstract class ChartObjectSerializer<T> : ChartObjectSerializer
         where T : ChartObject
     {
+        protected ChartObjectSerializer(int id) : base(id) { }
+
         public sealed override void SerializeSubclass(ChartObject obj, BinaryWriter writer, ChartEffectTable effects) => SerializeSubclass(obj as T, writer, effects);
         public abstract void SerializeSubclass(T obj, BinaryWriter writer, ChartEffectTable effects);
     }
