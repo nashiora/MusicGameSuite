@@ -288,7 +288,7 @@ namespace NeuroSonic.Charting.Conversions
                                         }
 
                                         var point = chart[StreamIndex.Roll].Add<PathPointEvent>(chartPos);
-                                        point.Value = manualValue / 360.0f;
+                                        point.Value = -manualValue * 14 / 360.0f;
 
                                         lastTiltEvent = point;
                                     }
