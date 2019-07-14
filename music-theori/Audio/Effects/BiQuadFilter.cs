@@ -26,11 +26,21 @@ namespace theori.Audio.Effects
         {
             int numSamples = count / 2;
 
-            for(int i = 0; i < numSamples; i++)
+            float mix = Mix;
+
+            float b0 = this.b0;
+            float b1 = this.b1;
+            float b2 = this.b2;
+            float a0 = this.a0;
+            float a1 = this.a1;
+            float a2 = this.a2;
+
+            for (int i = 0; i < numSamples; i++)
             {
+                int oi = offset + i;
                 for (uint c = 0; c < 2; c++)
                 {
-                    float src = buffer[offset + i * 2 + c];
+                    float src = buffer[oi * 2 + c];
 
                     float filtered =
 				        (b0 / a0) * src +
@@ -48,7 +58,7 @@ namespace theori.Audio.Effects
 			        za[c, 0] = filtered;
 
                     //sample = filtered;
-                    buffer[offset + i * 2 + c] = src * (1 - Mix) + filtered * Mix;
+                    buffer[oi * 2 + c] = src * (1 - mix) + filtered * mix;
                 }
             }
         }
