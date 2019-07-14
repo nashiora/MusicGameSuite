@@ -6,7 +6,7 @@
 trigger:
   batch: true
   branches:
-    include: develop
+    include: 'develop'
 
 pool:
   vmImage: 'windows-latest'
