@@ -188,6 +188,7 @@
     <Compile Include="Platform\IPlatform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rect.cs" />
+    <Compile Include="Scripting\ScriptWindowInterface.cs" />
     <Compile Include="tick_t.cs" />
     <Compile Include="Time.cs" />
     <Compile Include="time_t.cs" />

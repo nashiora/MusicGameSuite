@@ -15,5 +15,6 @@ function Update(delta, total)
 end
 
 function Draw()
-	g2d.Image(BackTexture, 0, 0, 1280, 720);
+	local width, height = window.GetClientSize();
+	g2d.Image(BackTexture, 0, 0, width, height);
 end

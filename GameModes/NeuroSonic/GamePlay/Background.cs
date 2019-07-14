@@ -33,6 +33,7 @@ namespace NeuroSonic.GamePlay
             m_script = new LuaScript();
 
             m_script.LoadFile(Plugin.DefaultResourceLocator.OpenFileStream("scripts/game/main.lua"));
+            m_script["window"] = new ScriptWindowInterface();
             m_script["res"] = m_resources;
 
             m_script.CallIfExists("AsyncLoad");

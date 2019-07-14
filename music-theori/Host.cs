@@ -296,6 +296,9 @@ namespace theori
 
             LuaScript.RegisterType<BasicSpriteRenderer>();
             LuaScript.RegisterType<ClientResourceManager>();
+
+            LuaScript.RegisterType<ScriptWindowInterface>();
+
             return true;
         }
 
