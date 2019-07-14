@@ -2,12 +2,13 @@
 
 using theori.Graphics;
 
+using static MoonSharp.Interpreter.DynValue;
+
 namespace theori.Scripting
 {
     [MoonSharpUserData]
     public sealed class ScriptWindowInterface
     {
-        public DynValue GetClientSize() =>
-            DynValue.NewTuple(DynValue.NewNumber(Window.Width), DynValue.NewNumber(Window.Height));
+        public DynValue GetClientSize() => NewTuple(NewNumber(Window.Width), NewNumber(Window.Height));
     }
 }
