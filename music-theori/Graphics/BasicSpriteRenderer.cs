@@ -51,6 +51,8 @@ namespace theori.Graphics
 
         #region Lua Bound Functions
 
+        //public Texture LoadTextureAsync(string resourcePath) => m_resources.QueueTextureLoad(resourcePath);
+
         public void Flush() => Process(true);
 
         public void BeginFrame()
@@ -114,6 +116,17 @@ namespace theori.Graphics
 
             var p = new MaterialParams();
             p["MainTexture"] = Texture.Empty;
+            p["Color"] = m_drawColor;
+
+            Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
+        }
+
+        public void Image(Texture texture, float x, float y, float w, float h)
+        {
+            var transform = Transform.Scale(w, h, 1) * Transform.Translation(x, y, 0);
+
+            var p = new MaterialParams();
+            p["MainTexture"] = texture;
             p["Color"] = m_drawColor;
 
             Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);

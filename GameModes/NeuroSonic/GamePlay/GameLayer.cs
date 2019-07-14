@@ -44,8 +44,7 @@ namespace NeuroSonic.GamePlay
         private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
 
-        private Sprite m_background;
-        private Material m_backgroundMaterial;
+        private ScriptableBackground m_background;
 
         private CriticalLine m_critRoot;
         private ComboDisplay m_comboDisplay;
@@ -82,6 +81,7 @@ namespace NeuroSonic.GamePlay
             m_autoPlay = autoPlay;
 
             m_highwayView = new HighwayView(m_locator);
+            m_background = new ScriptableBackground(m_locator);
         }
 
         public override void Destroy()
@@ -89,6 +89,7 @@ namespace NeuroSonic.GamePlay
             base.Destroy();
 
             m_highwayView.Dispose();
+            m_background.Dispose();
             m_resources.Dispose();
 
             if (m_debugOverlay != null)
@@ -105,8 +106,9 @@ namespace NeuroSonic.GamePlay
         {
             if (!m_highwayView.AsyncLoad())
                 return false;
+            if (!m_background.AsyncLoad())
+                return false;
 
-            m_backgroundMaterial = m_resources.QueueMaterialLoad("materials/game_background");
             m_slamSample = m_resources.QueueAudioSampleLoad("audio/slam");
 
             if (!m_resources.LoadAll())
@@ -118,6 +120,8 @@ namespace NeuroSonic.GamePlay
         public override bool AsyncFinalize()
         {
             if (!m_highwayView.AsyncFinalize())
+                return false;
+            if (!m_background.AsyncFinalize())
                 return false;
 
             if (!m_resources.FinalizeLoad())
@@ -138,6 +142,7 @@ namespace NeuroSonic.GamePlay
             base.Init();
 
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
+            m_background.Init();
 
             m_playback = new SlidingChartPlayback(m_chart);
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
@@ -171,20 +176,6 @@ namespace NeuroSonic.GamePlay
             };
 
             m_highwayView.ViewDuration = m_playback.LookAhead;
-
-            BackgroundGui = new Panel()
-            {
-                Children = new GuiElement[]
-                {
-                    m_background = new Sprite(null)
-                    {
-                        RelativeSizeAxes = Axes.Both,
-                        Size = Vector2.One,
-
-                        Material = m_resources.GetMaterial("materials/game_background"),
-                    },
-                }
-            };
 
             ForegroundGui = new Panel()
             {
@@ -608,6 +599,8 @@ namespace NeuroSonic.GamePlay
                 m_critRoot.Position = critRootPosition;
                 m_critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_highwayControl.CritLineEffectRoll * 25;
             }
+
+            m_background.Update(delta, total);
         }
 
         private void UpdateEffects()
@@ -701,6 +694,7 @@ namespace NeuroSonic.GamePlay
 
         public override void Render()
         {
+            m_background.Render();
             m_highwayView.Render();
         }
     }

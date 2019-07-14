@@ -7,7 +7,11 @@ layout (location = 0) out vec4 target;
 uniform sampler2D MainTexture;
 uniform vec4 Color;
 
+uniform float AspectRatio;
+uniform float HorizonHeight;
+
 void main()
-{	
-	target = vec4(0.25, 0.7, 1, 1);
+{
+	vec4 mainColor = texture(MainTexture, frag_TexCoord);
+	target = mainColor * vec4(0.05, 0.0125, 0.05, 1);
 }

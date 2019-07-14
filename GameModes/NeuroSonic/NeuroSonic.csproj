@@ -83,6 +83,7 @@
     <Compile Include="ChartSelect\DifficultySlot.cs" />
     <Compile Include="ChartSelect\Landscape\LandscapeChartSelectLayer.cs" />
     <Compile Include="Editor\ChartEditorLayer.cs" />
+    <Compile Include="GamePlay\Background.cs" />
     <Compile Include="GamePlay\BakedLaserTilt.cs" />
     <Compile Include="GamePlay\ComboDisplay.cs" />
     <Compile Include="GamePlay\CriticalLine.cs" />
@@ -138,6 +139,7 @@
     <Folder Include="ChartSelect\Portrait\" />
     <Folder Include="GamePlay\Shared\" />
     <Folder Include="GamePlay\Standalone\" />
+    <Folder Include="Resources\textures\game\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -160,6 +162,7 @@
     <EmbeddedResource Include="Resources\materials\laser_entry.fs" />
     <EmbeddedResource Include="Resources\scripts\chart_select\main.lua" />
     <EmbeddedResource Include="Resources\materials\game_background.fs" />
+    <EmbeddedResource Include="Resources\scripts\game\main.lua" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\textures\bt_chip.png" />
@@ -198,6 +201,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\audio\slam.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\textures\game_bg\background.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

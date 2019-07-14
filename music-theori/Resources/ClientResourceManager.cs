@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 
+using MoonSharp.Interpreter;
+
 using OpenGL;
 
 using theori.Audio;
@@ -10,6 +12,7 @@ using theori.Graphics;
 
 namespace theori.Resources
 {
+    [MoonSharpUserData]
     public sealed class ClientResourceManager : Disposable
     {
         abstract class AsyncResourceLoader
@@ -169,6 +172,7 @@ namespace theori.Resources
         private readonly Dictionary<string, Disposable> m_resources = new Dictionary<string, Disposable>();
         private readonly List<Disposable> m_managed = new List<Disposable>();
 
+        [MoonSharpHidden]
         public ClientResourceManager(ClientResourceLocator locator)
         {
             m_locator = locator;
@@ -185,12 +189,14 @@ namespace theori.Resources
             m_managed.Clear();
         }
 
+        [MoonSharpHidden]
         public void Manage(Disposable resource)
         {
             if (m_managed.Contains(resource)) return;
             m_managed.Add(resource);
         }
 
+        [MoonSharpHidden]
         public T Manage<T>(T resource)
             where T : Disposable
         {
@@ -240,6 +246,7 @@ namespace theori.Resources
         public AudioSample QueueAudioSampleLoad(string resourcePath) =>
             QueueAudioLoad(resourcePath, AudioSample.CreateUninitialized());
 
+        [MoonSharpHidden]
         public bool LoadAll()
         {
             bool success = true;
@@ -254,6 +261,7 @@ namespace theori.Resources
             return success;
         }
 
+        [MoonSharpHidden]
         public bool FinalizeLoad()
         {
             bool success = true;
@@ -309,9 +317,12 @@ namespace theori.Resources
             return resource as T;
         }
 
+        [MoonSharpHidden]
         public Texture AquireTexture(string resourcePath) => Aquire(resourcePath, LoadRawTexture);
+        [MoonSharpHidden]
         public Material AquireMaterial(string resourcePath) => Aquire(resourcePath, LoadRawMaterial);
 
+        [MoonSharpHidden]
         public Texture LoadRawTexture(string resourcePath)
         {
             var textureStream = m_locator.OpenTextureStream(resourcePath, out string fileExtension);
@@ -323,6 +334,7 @@ namespace theori.Resources
                 return Texture.FromStream2D(textureStream);
         }
 
+        [MoonSharpHidden]
         public Material LoadRawMaterial(string resourcePath)
         {
             // materials do NOT own their stream

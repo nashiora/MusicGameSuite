@@ -79,6 +79,14 @@ namespace theori.Scripting
             return m_script.Call(this[name], args);
         }
 
+        public DynValue CallIfExists(string name, params object[] args)
+        {
+            var target = this[name];
+            if (target is Closure || target is CallbackFunction)
+                return m_script.Call(target, args);
+            else return DynValue.Nil;
+        }
+
         public DynValue Call(object val, params object[] args)
         {
             return m_script.Call(val, args);

@@ -292,7 +292,10 @@ namespace theori
 
         public static bool InitScriptingSystem()
         {
+            LuaScript.RegisterType<Texture>();
+
             LuaScript.RegisterType<BasicSpriteRenderer>();
+            LuaScript.RegisterType<ClientResourceManager>();
             return true;
         }
 
