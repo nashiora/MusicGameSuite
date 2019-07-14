@@ -17,7 +17,7 @@ namespace theori.Graphics
         private readonly ClientResourceManager m_resources;
         private readonly Material m_basicMaterial;
 
-        private Vector4 m_drawColor = Vector4.One;
+        private Vector4 m_drawColor = Vector4.One, m_imageColor = Vector4.One;
         private Transform m_transform = Transform.Identity;
 
         private readonly Stack<Transform> m_savedTransforms = new Stack<Transform>();
@@ -121,13 +121,20 @@ namespace theori.Graphics
             Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
         }
 
+        public void SetImageColor(float r, float g, float b) => SetImageColor(r, g, b, 255);
+
+        public void SetImageColor(float r, float g, float b, float a)
+        {
+            m_imageColor = new Vector4(r, g, b, a) / 255.0f;
+        }
+
         public void Image(Texture texture, float x, float y, float w, float h)
         {
             var transform = Transform.Scale(w, h, 1) * Transform.Translation(x, y, 0);
 
             var p = new MaterialParams();
             p["MainTexture"] = texture;
-            p["Color"] = m_drawColor;
+            p["Color"] = m_imageColor;
 
             Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
         }
