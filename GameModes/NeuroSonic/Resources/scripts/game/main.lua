@@ -1,8 +1,8 @@
 ﻿
-local BackTexture;
+local Centerpiece;
 
 function AsyncLoad()
-	BackTexture = res.QueueTextureLoad("textures/game_bg/background");
+	Centerpiece = res.QueueTextureLoad("textures/game_bg/centerpiece");
 end
 
 function AsyncFinalize()
@@ -16,5 +16,6 @@ end
 
 function Draw()
 	local width, height = window.GetClientSize();
-	g2d.Image(BackTexture, 0, 0, width, height);
+	local centerSize = width * 0.6;
+	g2d.Image(Centerpiece, (width - centerSize) / 2, height * HorizonHeight - centerSize * 0.8, centerSize, centerSize);
 end

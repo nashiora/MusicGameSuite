@@ -363,7 +363,7 @@ namespace NeuroSonic.GamePlay
             Camera.Position = CameraOffset;
             Camera.Rotation = Quaternion.CreateFromYawPitchRoll(0, cameraPitch, 0);
 
-            HorizonHeight = Camera.Project(WorldTransform, Camera.Position + new Vector3(0, 0, -1)).Y;
+            HorizonHeight = Camera.ProjectNormalized(Transform.Identity, Camera.Position + new Vector3(0, 0, -1)).Y;
 
             Vector3 V3Project(Vector3 a, Vector3 b) => b * (Vector3.Dot(a, b) / Vector3.Dot(b, b));
 

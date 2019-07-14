@@ -600,6 +600,7 @@ namespace NeuroSonic.GamePlay
                 m_critRoot.Rotation = MathL.ToDegrees(critRootRotation) + m_highwayControl.CritLineEffectRoll * 25;
             }
 
+            m_background.HorizonHeight = m_highwayView.HorizonHeight;
             m_background.Update(delta, total);
         }
 

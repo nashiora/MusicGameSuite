@@ -148,17 +148,21 @@ namespace theori.Graphics
             Rotation = Quaternion.CreateFromRotationMatrix(Matrix4x4.CreateLookAt(Position, point, up ?? Vector3.UnitY));
         }
 
-        public Vector2 Project(Transform worldTransform, Vector3 worldPosition)
+        public Vector2 ProjectNormalized(Transform worldTransform, Vector3 worldPosition)
         {
             var w4 = new Vector4(worldPosition, 1.0f);
 
             var clipSpace = ProjectionMatrix * (ViewMatrix * (worldTransform * w4));
             var w = new Vector3(clipSpace.X, clipSpace.Y, clipSpace.Z) / clipSpace.W;
 
-            int x = (int)MathL.Round((1 + w.X) * Window.Width / 2.0f);
-            int y = (int)MathL.Round((1 - w.Y) * Window.Height / 2.0f);
+            return new Vector2((1 + w.X) / 2.0f, (1 - w.Y) / 2.0f);
+        }
 
-            return new Vector2(x, y);
+        // TODO(local): we shouldn't assume window sized viewport
+        public Vector2 Project(Transform worldTransform, Vector3 worldPosition)
+        {
+            Vector2 result = ProjectNormalized(worldTransform, worldPosition);
+            return result * new Vector2(Window.Width, Window.Height);
         }
 
         private Transform ComputeViewMatrix()

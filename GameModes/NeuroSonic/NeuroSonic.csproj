@@ -205,5 +205,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\textures\game_bg\background.png" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\textures\game_bg\centerpiece.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -64,6 +64,8 @@ namespace NeuroSonic.GamePlay
 
         public void Update(float delta, float total)
         {
+            m_script["HorizonHeight"] = HorizonHeight;
+
             m_script.Call("Update", delta, total);
         }
 
