@@ -21,6 +21,7 @@ SDL2 and freetype are required and included as 32-bit DLLs (with support for 64-
 ### Building and Running
 
 Setup should be as simple as cloning the repository and opening the solution file, making sure all NuGet packages are installed and `nsc-Win32` is the start-up project.
+Due to SharpFont, you can only run the x86 builds. Don't try to build x64 unless you plan to fix the issue.
 
 You'll need at least one `.ksh` file with associated music file to see this in action.
 The client has the ability to load .ksh files and convert them to .theori binary files and .theori-set metadata files but you won't just have these lying around.
