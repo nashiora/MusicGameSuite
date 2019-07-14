@@ -601,6 +601,10 @@ namespace NeuroSonic.GamePlay
             }
 
             m_background.HorizonHeight = m_highwayView.HorizonHeight;
+            m_background.CombinedTilt = m_highwayControl.LaserRoll + m_highwayControl.Roll * 360;
+            m_background.EffectRotation = m_highwayControl.EffectRoll * 360;
+            m_background.SpinTimer = m_highwayControl.SpinTimer;
+            m_background.SwingTimer = m_highwayControl.SwingTimer;
             m_background.Update(delta, total);
         }
 

@@ -78,6 +78,12 @@ namespace theori.Graphics
             m_transform = m_savedTransforms.Pop();
         }
 
+        public void ResetTransform()
+        {
+            m_savedTransforms.Clear();
+            m_transform = Transform.Identity;
+        }
+
         public void Translate(float x, float y)
         {
             m_transform = m_transform * Transform.Translation(x, y, 0);

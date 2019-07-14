@@ -11,7 +11,11 @@ namespace NeuroSonic.GamePlay
 {
     public class ScriptableBackground : Disposable
     {
-        public virtual float HorizonHeight { get; set; }
+        public float HorizonHeight { get; set; }
+        public float CombinedTilt { get; set; }
+        public float EffectRotation { get; set; }
+        public float SpinTimer { get; set; }
+        public float SwingTimer { get; set; }
 
         private LuaScript m_script;
 
@@ -65,6 +69,10 @@ namespace NeuroSonic.GamePlay
         public void Update(float delta, float total)
         {
             m_script["HorizonHeight"] = HorizonHeight;
+            m_script["CombinedTilt"] = CombinedTilt;
+            m_script["EffectRotation"] = EffectRotation;
+            m_script["SpinTimer"] = SpinTimer;
+            m_script["SwingTimer"] = SwingTimer;
 
             m_script.Call("Update", delta, total);
         }

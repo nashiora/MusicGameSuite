@@ -229,6 +229,9 @@ namespace NeuroSonic.GamePlay
         public LaserApplication LaserApplication { set => m_laserApplication = value; }
         public Damping LaserDamping { set => m_laserDamping = value; }
 
+        public float SpinTimer => m_spin == null ? 0 : (m_spin.Params.Direction == AngularDirection.Clockwise ? -1 : 1) * (float)((m_position - m_spin.StartTime) / m_spin.Params.Duration);
+        public float SwingTimer => m_swing == null ? 0 : (m_swing.Params.Direction == AngularDirection.Clockwise ? -1 : 1) * (float)((m_position - m_swing.StartTime) / m_swing.Params.Duration);
+
         public void ShakeCamera(float dir)
         {
             var s = new Vector3(0.05f, 0.02f, 0) * dir;
