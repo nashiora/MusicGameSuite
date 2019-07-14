@@ -17,6 +17,8 @@ namespace theori.Resources
             protected readonly ClientResourceManager m_resourceManager;
             protected readonly string m_resourcePath;
 
+            public string ResourceName => m_resourcePath;
+
             protected AsyncResourceLoader(ClientResourceManager resourceManager, string resourcePath)
             {
                 m_resourceManager = resourceManager;
@@ -87,7 +89,17 @@ namespace theori.Resources
                 using (var geometryStream = m_resourceManager.m_locator.OpenShaderStream(m_resourcePath, ".gs", out bool missingGeometry))
                 {
                     if ((missingVertex || vertexStream == null) && (missingFragment || fragmentStream == null))
+                    {
+                        if (!missingVertex) missingVertex = vertexStream == null;
+                        if (!missingFragment) missingFragment = fragmentStream == null;
+                        if (missingVertex != missingFragment)
+                        {
+                            string kind = missingVertex ? "vertex" : "fragment";
+                            Logger.Log($"Missing { kind } shader for { ResourceName }");
+                        }
+                        else Logger.Log($"Missing vertex and fragment shader for { ResourceName }");
                         return false;
+                    }
 
                     m_sources[0] = new StreamReader(vertexStream).ReadToEnd();
                     m_sources[1] = new StreamReader(fragmentStream).ReadToEnd();
@@ -235,6 +247,7 @@ namespace theori.Resources
             {
                 if (!loader.Load())
                 {
+                    Logger.Log($"Failed to load resource { loader.ResourceName }");
                     success = false;
                 }
             }
@@ -248,6 +261,7 @@ namespace theori.Resources
             {
                 if (!loader.Finalize())
                 {
+                    Logger.Log($"Failed to finalize resource { loader.ResourceName }");
                     success = false;
                 }
             }

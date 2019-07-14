@@ -88,7 +88,7 @@ namespace NeuroSonic.GamePlay
         public float TargetEffectOffset { get; set; }
 
         public Vector3 CameraOffset { get; set; }
-        
+
         const float SLAM_DUR_TICKS = 1 / 32.0f;
         time_t SlamDurationTime(ChartObject obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
 

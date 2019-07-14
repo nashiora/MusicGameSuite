@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 
 using OpenGL;
+using theori.Graphics;
 
 namespace theori.Gui
 {
@@ -33,6 +34,9 @@ namespace theori.Gui
             }
         }
 
+        public Material Material = null;
+        public MaterialParams MaterialParams = new MaterialParams();
+
         public Sprite(Texture texture)
         {
             Texture = texture;
@@ -41,7 +45,10 @@ namespace theori.Gui
         public override void Render(GuiRenderQueue rq)
         {
             base.Render(rq);
-            rq.DrawRect(CompleteTransform, new Rect(Vector2.Zero, DrawSize), Texture ?? Texture.Empty, Color);
+
+            if (Material != null)
+                rq.DrawRect(CompleteTransform, new Rect(Vector2.Zero, DrawSize), Texture ?? Texture.Empty, Material, MaterialParams, Color);
+            else rq.DrawRect(CompleteTransform, new Rect(Vector2.Zero, DrawSize), Texture ?? Texture.Empty, Color);
         }
     }
 }

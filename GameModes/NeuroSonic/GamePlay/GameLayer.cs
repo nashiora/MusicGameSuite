@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using NeuroSonic.Charting;
-using NeuroSonic.GamePlay.Scoring;
 
 using theori;
 using theori.Audio;
@@ -12,6 +10,9 @@ using theori.Graphics;
 using theori.Gui;
 using theori.IO;
 using theori.Resources;
+
+using NeuroSonic.Charting;
+using NeuroSonic.GamePlay.Scoring;
 
 namespace NeuroSonic.GamePlay
 {
@@ -42,6 +43,9 @@ namespace NeuroSonic.GamePlay
 
         private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
+
+        private Sprite m_background;
+        private Material m_backgroundMaterial;
 
         private CriticalLine m_critRoot;
         private ComboDisplay m_comboDisplay;
@@ -102,6 +106,7 @@ namespace NeuroSonic.GamePlay
             if (!m_highwayView.AsyncLoad())
                 return false;
 
+            m_backgroundMaterial = m_resources.QueueMaterialLoad("materials/game_background");
             m_slamSample = m_resources.QueueAudioSampleLoad("audio/slam");
 
             if (!m_resources.LoadAll())
@@ -166,6 +171,20 @@ namespace NeuroSonic.GamePlay
             };
 
             m_highwayView.ViewDuration = m_playback.LookAhead;
+
+            BackgroundGui = new Panel()
+            {
+                Children = new GuiElement[]
+                {
+                    m_background = new Sprite(null)
+                    {
+                        RelativeSizeAxes = Axes.Both,
+                        Size = Vector2.One,
+
+                        Material = m_resources.GetMaterial("materials/game_background"),
+                    },
+                }
+            };
 
             ForegroundGui = new Panel()
             {
