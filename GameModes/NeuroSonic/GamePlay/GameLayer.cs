@@ -126,15 +126,12 @@ namespace NeuroSonic.GamePlay
                 var setInfo = m_chartInfo.Set;
 
                 var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-                using (var stream = File.OpenRead(Path.Combine(chartsDir, setInfo.FilePath, m_chartInfo.FileName)))
-                {
-                    m_chart = serializer.DeserializeChart(m_chartInfo, stream);
+                m_chart = serializer.LoadFromFile(chartsDir, m_chartInfo);
 
-                    string audioFile = Path.Combine(chartsDir, setInfo.FilePath, m_chart.Info.SongFileName);
-                    m_audio = AudioTrack.FromFile(audioFile);
-                    m_audio.Channel = Host.Mixer.MasterChannel;
-                    m_audio.Volume = m_chart.Info.SongVolume / 100.0f;
-                }
+                string audioFile = Path.Combine(chartsDir, setInfo.FilePath, m_chart.Info.SongFileName);
+                m_audio = AudioTrack.FromFile(audioFile);
+                m_audio.Channel = Host.Mixer.MasterChannel;
+                m_audio.Volume = m_chart.Info.SongVolume / 100.0f;
             }
 
             if (!m_highwayView.AsyncLoad())

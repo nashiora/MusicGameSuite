@@ -7,7 +7,7 @@ namespace theori.Charting.IO
     {
         string FormatExtension { get; }
 
-        void SerializeChart(Chart chartInfo, Stream outStream);
-        Chart DeserializeChart(ChartInfo chartInfo, Stream inStream);
+        void SaveToFile(string parentDirectory, Chart chart);
+        Chart LoadFromFile(string parentDirectory, ChartInfo chartInfo);
     }
 }

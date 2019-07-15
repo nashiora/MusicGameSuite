@@ -219,10 +219,15 @@ namespace theori.Charting.IO
             }
         }
 
-        public Chart DeserializeChart(ChartInfo chartInfo, Stream inStream)
+        public Chart LoadFromFile(string parentDirectory, ChartInfo chartInfo)
         {
-            var reader = new BinaryReader(inStream, Encoding.UTF8);
+            string filePath = Path.Combine(parentDirectory, chartInfo.Set.FilePath, chartInfo.FileName);
+            using (var reader = new BinaryReader(File.OpenRead(filePath), Encoding.UTF8))
+                return DeserializeChart(chartInfo, reader);
+        }
 
+        private Chart DeserializeChart(ChartInfo chartInfo, BinaryReader reader)
+        {
             uint magicCheck = reader.ReadUInt32BE();
             if (magicCheck != MAGIC)
                 throw new ChartFormatException($"Invalid input stream given.");
@@ -293,10 +298,15 @@ namespace theori.Charting.IO
             return chart;
         }
 
-        public void SerializeChart(Chart chart, Stream outStream)
+        public void SaveToFile(string parentDirectory, Chart chart)
         {
-            var writer = new BinaryWriter(outStream);
+            string filePath = Path.Combine(parentDirectory, chart.Info.Set.FilePath, chart.Info.FileName);
+            using (var writer = new BinaryWriter(File.Open(filePath, FileMode.Create), Encoding.UTF8))
+                SerializeChart(chart, writer);
+        }
 
+        private void SerializeChart(Chart chart, BinaryWriter writer)
+        {
             writer.WriteUInt32BE(MAGIC);
             writer.WriteUInt8(VERSION);
 
