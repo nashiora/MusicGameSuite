@@ -17,7 +17,7 @@ namespace theori.Charting
 
         private int? m_onlineIDBacking;
         /// <summary>
-        /// The ID for the chart set
+        /// The online ID for the chart set, or null if this hasn't been uploaded.
         /// </summary>
         public int? OnlineID
         {
@@ -26,9 +26,14 @@ namespace theori.Charting
         }
 
         /// <summary>
-        /// Relative to the selected chart storage directory.
+        /// Parent path relative to the selected chart storage directory.
         /// </summary>
         public string FilePath { get; set; }
+
+        /// <summary>
+        /// The name of the chart set file.
+        /// </summary>
+        public string FileName { get; set; }
 
         public List<ChartInfo> Charts { get; set; } = new List<ChartInfo>();
 

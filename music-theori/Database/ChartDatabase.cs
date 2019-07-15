@@ -93,16 +93,18 @@ namespace theori.Database
                 id INTEGER PRIMARY KEY,
                 uploadID INTEGER,
                 filePath TEXT NOT NULL,
-                songTitle TEXT NOT NULL,
-                songArtist TEXT NOT NULL,
-                songFileName TEXT NOT NULL
+                fileName TEXT NOT NULL,
+                lwt INTEGER NOT NULL
             )");
 
             Exec($@"
             CREATE TABLE Charts (
                 id INTEGER PRIMARY KEY,
                 fileName TEXT NOT NULL,
-                lwt INTEGER NOT NULL,
+                songTitle TEXT NOT NULL,
+                songArtist TEXT NOT NULL,
+                songFileName TEXT NOT NULL,
+                songVolume REAL NOT NULL,
                 charter TEXT NOT NULL,
                 jacketFileName TEXT,
                 jacketArtist TEXT,
