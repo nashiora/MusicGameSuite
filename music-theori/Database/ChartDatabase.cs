@@ -89,12 +89,18 @@ namespace theori.Database
             Exec($"DROP TABLE IF EXISTS Charts");
             Exec($"DROP TABLE IF EXISTS Scores");
 
+            // lwt = last write time, and should likely be epoch time (the usual 1970 one)
+            //  rather than C#'s (which starts from the year 0001) if we plan for other applications
+            //  reading in the database themselves.
+            // If we don't care, then it's fine that it's C#'s epoch instead.
+            // C# gives easy access to DateTime ticks, which are 100 nanoseconds each and count
+            //  from 1/1/0001.
             Exec($@"CREATE TABLE Sets (
                 id INTEGER PRIMARY KEY,
+                lwt INTEGER NOT NULL,
                 uploadID INTEGER,
                 filePath TEXT NOT NULL,
-                fileName TEXT NOT NULL,
-                lwt INTEGER NOT NULL
+                fileName TEXT NOT NULL
             )");
 
             Exec($@"

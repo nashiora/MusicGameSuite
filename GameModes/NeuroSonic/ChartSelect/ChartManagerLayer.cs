@@ -146,12 +146,13 @@ namespace NeuroSonic.ChartSelect
 
                 string setFile = setFiles[0];
 
-                var setSerializer = new ChartSetSerializer();
+                string fullChartsDir = Path.GetFullPath(m_chartsDir);
+                string setDirectory = Path.GetFileName(fullChartsDir);
+                if (theoriDirectory.Contains(fullChartsDir))
+                    setDirectory = setFile.Substring(theoriDirectory.Length + 1);
 
-                ChartSetInfo setInfo;
-                using (var setStream = File.OpenRead(setFile))
-                    setInfo = setSerializer.DeserializeChartSetInfo(setStream);
-                setInfo.FilePath = theoriDirectory;
+                var setSerializer = new ChartSetSerializer();
+                ChartSetInfo setInfo = setSerializer.LoadFromFile(m_chartsDir, theoriDirectory, setFile);
 
                 var chartInfos = (from chartInfo in setInfo.Charts
                                   where chartInfo.FileName == Path.GetFileName(theoriFile)
@@ -196,30 +197,20 @@ namespace NeuroSonic.ChartSelect
             var primaryChart = primaryKshChart.ToVoltex();
 
             string setDir = Directory.GetParent(primaryKshFile).FullName;
+            // Since we can't know where the parent 'charts' directory might be for this chart is,
+            //  or even if it exists, when converting this way we only care that the first directory
+            //  up is the name of the set directory rather than the whole path thru a 'charts' directory.
+            // A more feature-complete converter will instead ask where the root charts directory is and do this more accurately.
             string setName = Path.GetFileName(setDir);
 
-            List<(string, Chart)> chartFiles =
-                new List<(string, Chart)> { (primaryKshFile, primaryChart) };
-
+            var chartFiles = new List<(string, Chart)> { (primaryKshFile, primaryChart) };
             foreach (string kshChartFile in Directory.EnumerateFiles(setDir, "*.ksh"))
             {
-                // we're filtering out invalid charts, as :theori will only support one song per set.
-                // skipping files with non-matching meta and logging the issue for now.
                 if (Path.GetFileName(kshChartFile) == Path.GetFileName(primaryKshFile)) continue;
 
                 KshChartMetadata kshMeta;
                 using (var reader = new StreamReader(File.OpenRead(kshChartFile)))
                     kshMeta = KshChartMetadata.Create(reader);
-
-                // don't worry about checking the nofx one, as we'll only keep the primary file anyway.
-                /*
-                if ((kshMeta.MusicFile, kshMeta.Title, kshMeta.Artist) !=
-                    (primaryKshMeta.MusicFile, primaryKshMeta.Title, primaryKshMeta.Artist))
-                {
-                    Logger.Log($"Skipping '{ Path.GetFileName(kshChartFile) }' chart file in the set '{ setDir }'.\n:theori and NeuroSonic only support a single song for each set, and the chosen set does not comply.\nOnly charts of the same song will be added to this converted set.");
-                    continue;
-                }
-                */
 
                 var kshChart = KshChart.CreateFromFile(kshChartFile);
                 var chart = kshChart.ToVoltex();
@@ -233,6 +224,7 @@ namespace NeuroSonic.ChartSelect
                 OnlineID = null, // no online stuff, it's not uploaded
 
                 FilePath = setName,
+                FileName = ".theori-set",
             };
 
             string nscChartDirectory = Path.Combine(m_chartsDir, setName);
@@ -261,8 +253,7 @@ namespace NeuroSonic.ChartSelect
             var setSerializer = new ChartSetSerializer();
             var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
 
-            using (var setInfoStream = File.Open(Path.Combine(nscChartDirectory, ".theori-set"), FileMode.Create))
-                setSerializer.SerializeSetInfo(chartSetInfo, setInfoStream);
+            setSerializer.SaveToFile(m_chartsDir, chartSetInfo);
 
             foreach (var (_, chart) in chartFiles)
             {

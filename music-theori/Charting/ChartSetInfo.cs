@@ -15,6 +15,11 @@ namespace theori.Charting
         /// </summary>
         public int ID { get; set; }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public long LastWriteTime { get; set; }
+
         private int? m_onlineIDBacking;
         /// <summary>
         /// The online ID for the chart set, or null if this hasn't been uploaded.

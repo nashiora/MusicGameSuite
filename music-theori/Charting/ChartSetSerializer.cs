@@ -7,13 +7,29 @@ namespace theori.Charting
 {
     public sealed class ChartSetSerializer
     {
-        public ChartSetInfo DeserializeChartSetInfo(Stream inStream)
+        public ChartSetInfo LoadFromFile(string parentDirectory, string directory, string fileName)
         {
-            var setInfo = new ChartSetInfo();
+            string filePath = Path.Combine(parentDirectory, directory, fileName);
+            var fsi = new FileInfo(filePath);
+            fsi.Refresh(); // TODO(local): is this needed?
 
+            long lastWriteTime = fsi.LastWriteTimeUtc.Ticks;
+            var setInfo = new ChartSetInfo()
+            {
+                LastWriteTime = lastWriteTime,
+                FilePath = directory,
+                FileName = fileName,
+            };
+
+            using (var reader = new StreamReader(File.OpenRead(filePath)))
+                DeserializeChartSetInfo(reader, setInfo);
+
+            return setInfo;
+        }
+
+        private void DeserializeChartSetInfo(StreamReader reader, ChartSetInfo setInfo)
+        {
             ChartInfo chartInfo = null;
-
-            var reader = new StreamReader(inStream);
             string line;
 
             while ((line = reader.ReadLine()) != null)
@@ -50,14 +66,24 @@ namespace theori.Charting
                     }
                 }
             }
-
-            return setInfo;
         }
 
-        public void SerializeSetInfo(ChartSetInfo setInfo, Stream outStream)
+        public void SaveToFile(string parentDirectory, ChartSetInfo setInfo)
         {
-            var writer = new StreamWriter(outStream);
+            string filePath = Path.Combine(parentDirectory, setInfo.FilePath, setInfo.FileName);
+            Directory.CreateDirectory(Path.Combine(parentDirectory, setInfo.FilePath));
 
+            using (var writer = new StreamWriter(File.Open(filePath, FileMode.Create)))
+                SerializeSetInfo(writer, setInfo);
+
+            var fsi = new FileInfo(filePath);
+            fsi.Refresh(); // TODO(local): is this needed?
+
+            setInfo.LastWriteTime = fsi.LastWriteTimeUtc.Ticks;
+        }
+
+        private void SerializeSetInfo(StreamWriter writer, ChartSetInfo setInfo)
+        {
             foreach (var chartInfo in setInfo.Charts)
             {
                 writer.WriteLine($"[chart-info]");
@@ -98,8 +124,6 @@ namespace theori.Charting
                 if (string.IsNullOrWhiteSpace(value)) return;
                 writer.WriteLine($"{ key }={ value }");
             }
-
-            writer.Flush();
         }
     }
 }
