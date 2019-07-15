@@ -247,17 +247,16 @@ namespace NeuroSonic.Charting.KShootMania
                 case "illustrator": Illustrator = value; return;
 
                 case "difficulty":
-                    {
-                        var dif = Difficulty.Light;
-                        if (value == "challenge")
-                            dif = Difficulty.Challenge;
-                        else if (value == "extended")
-                            dif = Difficulty.Extended;
-                        else if (value == "infinite")
-                            dif = Difficulty.Infinite;
-                        Difficulty = dif;
-                    }
-                    return;
+                {
+                    var dif = Difficulty.Light;
+                    if (value == "challenge")
+                        dif = Difficulty.Challenge;
+                    else if (value == "extended")
+                        dif = Difficulty.Extended;
+                    else if (value == "infinite")
+                        dif = Difficulty.Infinite;
+                    Difficulty = dif;
+                } return;
                 case "level": Level = int.Parse(value); return;
                         
                 case "t": BeatsPerMinute = value; return;
@@ -270,18 +269,18 @@ namespace NeuroSonic.Charting.KShootMania
                     return;
 
                 case "m":
+                {
+                    if (value.TrySplit(';', out string nofx, out string fx))
                     {
-                        if (value.TrySplit(';', out string nofx, out string fx))
-                        {
-                            MusicFileNoFx = nofx;
-                            MusicFile = fx;
+                        MusicFileNoFx = nofx;
+                        MusicFile = fx;
 
-                            if (fx.TrySplit(';', out fx, out string _))
-                                ; // do something with the last file
+                        if (fx.TrySplit(';', out fx, out string _))
+                        { // do something with the last file
                         }
-                        else MusicFileNoFx = value;
                     }
-                    return;
+                    else MusicFileNoFx = value;
+                } return;
 
                 case "mvol": MusicVolume = int.Parse(value); return;
                         

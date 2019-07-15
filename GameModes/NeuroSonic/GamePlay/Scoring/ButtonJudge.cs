@@ -27,12 +27,12 @@ namespace NeuroSonic.GamePlay.Scoring
             }
         }
 
-        public const int TOTAL_MISS_MILLIS = 144 * 2;
-        public const int TOTAL_NEAR_MILLIS = 108 * 2;
-        public const int TOTAL_CRIT_MILLIS = 42 * 2;
-        public const int TOTAL_PERF_MILLIS = 21 * 2;
+        public const int TOTAL_MISS_MILLIS = 150 * 2;
+        public const int TOTAL_NEAR_MILLIS = 100 * 2;
+        public const int TOTAL_CRIT_MILLIS = 50 * 2;
+        public const int TOTAL_PERF_MILLIS = 25 * 2;
 
-        public const int TOTAL_HOLD_MILLIS = 21 * 2;
+        public const int TOTAL_HOLD_MILLIS = 12 * 2;
 
         private const double MISS_RADIUS = (TOTAL_MISS_MILLIS / 2) / 1000.0;
         private const double NEAR_RADIUS = (TOTAL_NEAR_MILLIS / 2) / 1000.0;

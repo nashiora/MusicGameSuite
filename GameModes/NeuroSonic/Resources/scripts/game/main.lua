@@ -55,9 +55,12 @@ function AsyncLoad()
 	ParticlesTex[1] = res.QueueTextureLoad("textures/game_bg/particle0");
 	ParticlesTex[2] = res.QueueTextureLoad("textures/game_bg/particle1");
 	ParticlesTex[3] = res.QueueTextureLoad("textures/game_bg/particle2");
+
+	return true;
 end
 
 function AsyncFinalize()
+	return true;
 end
 
 function Init()
@@ -65,13 +68,13 @@ function Init()
 		local side = (i == 1 and -1 or 1);
 		
 		table.insert(ParticleSpawners, CreateParticleSpawner(0.50, 0.35, ParticlesTex[1],  95, side * 0.35, -0.35, 12, 0.65));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.00, ParticlesTex[1], 125, side * 0.50,  0.55, 18, 1.00));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.00, ParticlesTex[1], 125, side * 0.50,  0.55, 14, 1.00));
 		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.15, ParticlesTex[2], 120, side * 0.75,  0.95, 20, 0.70));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.15, ParticlesTex[2], 120, side * 0.75,  0.95, 12, 0.70));
 		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.35, ParticlesTex[3], 110, side * 0.70,  0.75, 22, 0.75));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.20, ParticlesTex[3],  90, side * 0.90,  1.25, 22, 0.85));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.05, ParticlesTex[3],  75, side * 0.80, -0.15, 22, 0.80));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.35, ParticlesTex[3], 110, side * 0.70,  0.75, 12, 0.75));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.20, ParticlesTex[3],  90, side * 0.90,  1.25, 14, 0.85));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.05, ParticlesTex[3],  75, side * 0.80, -0.15, 10, 0.80));
 	end
 end
 
@@ -112,6 +115,7 @@ function Draw()
 	g2d.RestoreTransform();
 
 	g2d.SaveTransform();
+	g2d.Rotate(-CombinedTilt * 0.25);
 	g2d.Translate(originx, originy);
 
 	for _, particle in next, Particles do

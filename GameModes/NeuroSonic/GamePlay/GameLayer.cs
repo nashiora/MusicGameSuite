@@ -13,6 +13,8 @@ using theori.Resources;
 
 using NeuroSonic.Charting;
 using NeuroSonic.GamePlay.Scoring;
+using theori.Charting.IO;
+using System.IO;
 
 namespace NeuroSonic.GamePlay
 {
@@ -49,6 +51,7 @@ namespace NeuroSonic.GamePlay
         private CriticalLine m_critRoot;
         private ComboDisplay m_comboDisplay;
 
+        private ChartInfo m_chartInfo;
         private Chart m_chart;
         private SlidingChartPlayback m_playback;
         private MasterJudge m_judge;
@@ -70,11 +73,24 @@ namespace NeuroSonic.GamePlay
 
         #endregion
 
+        internal GameLayer(ClientResourceLocator resourceLocator, ChartInfo chartInfo, AutoPlay autoPlay = AutoPlay.None)
+        {
+            m_locator = resourceLocator;
+            m_resources = new ClientResourceManager(resourceLocator);
+
+            m_chartInfo = chartInfo;
+            m_autoPlay = autoPlay;
+
+            m_highwayView = new HighwayView(m_locator);
+            m_background = new ScriptableBackground(m_locator);
+        }
+
         internal GameLayer(ClientResourceLocator resourceLocator, Chart chart, AudioTrack audio, AutoPlay autoPlay = AutoPlay.None)
         {
             m_locator = resourceLocator;
             m_resources = new ClientResourceManager(resourceLocator);
 
+            m_chartInfo = chart.Info;
             m_chart = chart;
             m_audio = audio;
 
@@ -104,6 +120,23 @@ namespace NeuroSonic.GamePlay
 
         public override bool AsyncLoad()
         {
+            if (m_chart == null)
+            {
+                string chartsDir = Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory);
+                var setInfo = m_chartInfo.Set;
+
+                var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
+                using (var stream = File.OpenRead(Path.Combine(chartsDir, setInfo.FilePath, m_chartInfo.FileName)))
+                {
+                    m_chart = serializer.DeserializeChart(m_chartInfo, stream);
+
+                    string audioFile = Path.Combine(chartsDir, setInfo.FilePath, m_chart.Info.SongFileName);
+                    m_audio = AudioTrack.FromFile(audioFile);
+                    m_audio.Channel = Host.Mixer.MasterChannel;
+                    m_audio.Volume = m_chart.Info.SongVolume / 100.0f;
+                }
+            }
+
             if (!m_highwayView.AsyncLoad())
                 return false;
             if (!m_background.AsyncLoad())
@@ -225,22 +258,22 @@ namespace NeuroSonic.GamePlay
                 firstObjectTime = MathL.Min((double)firstObjectTime, m_chart.ObjectStreams[s].FirstObject?.AbsolutePosition.Seconds ?? double.MaxValue);
 
             m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 2);
+            //m_audioController.Play();
+        }
+
+        public void Play()
+        {
             m_audioController.Play();
         }
 
         public override void Suspended()
         {
-            if (m_debugOverlay != null)
-            {
-                Host.RemoveOverlay(m_debugOverlay);
-                m_debugOverlay = null;
-            }
-            m_audioController?.Stop();
+            throw new Exception("Cannot suspend gameplay layer");
         }
 
         public override void Resumed()
         {
-            m_audioController?.Play();
+            throw new Exception("Cannot suspend gameplay layer");
         }
 
         private void PlaybackObjectBegin(ChartObject obj)

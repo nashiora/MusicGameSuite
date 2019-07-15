@@ -17,6 +17,8 @@ using NeuroSonic.GamePlay;
 using NeuroSonic.Charting.KShootMania;
 using NeuroSonic.Charting.Conversions;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace NeuroSonic.ChartSelect
 {
@@ -26,13 +28,23 @@ namespace NeuroSonic.ChartSelect
 
         private string m_chartsDir = Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory);
 
+        private Thread m_loadThread = null;
+        private Layer m_nextLayer = null;
+
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", OpenKSH));
-            AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", OpenTheori));
+            AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", () => CreateThread(OpenKSH)));
+            AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", () => CreateThread(OpenTheori)));
             AddSpacing();
-            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", ConvertKSH));
-            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", ConvertKSHAndOpen));
+            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", () => CreateThread(ConvertKSH)));
+            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", () => CreateThread(ConvertKSHAndOpen)));
+
+            void CreateThread(ThreadStart function)
+            {
+                m_loadThread = new Thread(function);
+                m_loadThread.SetApartmentState(ApartmentState.STA);
+                m_loadThread.Start();
+            }
         }
 
         public override void Init()
@@ -104,8 +116,8 @@ namespace NeuroSonic.ChartSelect
                 if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
                     autoPlay = AutoPlay.ButtonsAndLasers;
 
-                var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
-                Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
+                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, chart, audio);
+                m_nextLayer = loader;
             }
         }
 
@@ -153,6 +165,10 @@ namespace NeuroSonic.ChartSelect
                 Debug.Assert(chartInfos.Length == 1, "Chart set deserialization returned multiple sets with the same file name!");
                 var selected = chartInfos.Single();
 
+                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected);
+                m_nextLayer = loader;
+
+#if false
                 var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
                 using (var stream = File.OpenRead(Path.Combine(m_chartsDir, setInfo.FilePath, selected.FileName)))
                 {
@@ -170,6 +186,7 @@ namespace NeuroSonic.ChartSelect
                     var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
                     Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
                 }
+#endif
             }
         }
 
@@ -283,6 +300,10 @@ namespace NeuroSonic.ChartSelect
                 string primaryKshFile = dialogResult.FilePath;
                 var chartSetInfo = ConvertKSHAndSave(primaryKshFile, out ChartInfo selected);
 
+                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected);
+                m_nextLayer = loader;
+
+#if false
                 var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
                 using (var stream = File.OpenRead(Path.Combine(m_chartsDir, chartSetInfo.FilePath, selected.FileName)))
                 {
@@ -300,6 +321,25 @@ namespace NeuroSonic.ChartSelect
                     var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
                     Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
                 }
+#endif
+            }
+        }
+
+        public override void Update(float delta, float total)
+        {
+            base.Update(delta, total);
+
+            if (m_loadThread != null)
+            {
+                if (m_loadThread.ThreadState == System.Threading.ThreadState.Stopped)
+                    m_loadThread = null;
+                return;
+            }
+
+            if (m_nextLayer != null)
+            {
+                Host.PushLayer(m_nextLayer);
+                m_nextLayer = null;
             }
         }
     }

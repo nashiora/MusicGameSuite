@@ -89,6 +89,7 @@
     <Compile Include="GamePlay\CriticalLine.cs" />
     <Compile Include="GamePlay\GameDebugOverlay.cs" />
     <Compile Include="GamePlay\GameLayer.cs" />
+    <Compile Include="GamePlay\GameLoadingLayer.cs" />
     <Compile Include="GamePlay\HighwayControl.cs" />
     <Compile Include="GamePlay\HighwayView.cs" />
     <Compile Include="GamePlay\LaserRollSampler.cs" />
@@ -163,6 +164,7 @@
     <EmbeddedResource Include="Resources\scripts\chart_select\main.lua" />
     <EmbeddedResource Include="Resources\materials\game_background.fs" />
     <EmbeddedResource Include="Resources\scripts\game\main.lua" />
+    <EmbeddedResource Include="Resources\scripts\game\loader.lua" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\textures\bt_chip.png" />

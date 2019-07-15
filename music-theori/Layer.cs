@@ -151,7 +151,9 @@ namespace theori
             if (m_loader == null) return;
 
             m_loader.Update();
-            if (m_loader.IsCompleted)
+            if (m_loader.Failed)
+                Host.RemoveLayer(this);
+            else if (m_loader.IsCompleted)
             {
                 if (m_loader.IsFinalizeSuccessful)
                     Host.AddLayerAbove(this, m_nextLayer);

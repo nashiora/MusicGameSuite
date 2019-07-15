@@ -47,8 +47,6 @@ namespace NeuroSonic.Charting.Conversions
             public float CurveA, CurveB;
             public int CurveResolution;
             
-            public EffectDef EffectDef;
-
             public TempLaserState(tick_t pos, ControlPoint cp)
             {
                 StartPosition = pos;
@@ -435,6 +433,7 @@ namespace NeuroSonic.Charting.Conversions
                                 StartAlpha = alpha.Alpha,
                                 HiResTickCount = (192 * lastCp.BeatCount / lastCp.BeatKind) / tickRef.MaxIndex,
                                 PreviousSlamDuration = prevSlamDuration,
+                                CurveResolution = 0,
                             };
 
                             for (int i = tick.Comments.Count - 1; i >= 0; i--)

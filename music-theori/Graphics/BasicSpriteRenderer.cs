@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 using MoonSharp.Interpreter;
@@ -10,59 +11,71 @@ using theori.Resources;
 namespace theori.Graphics
 {
     [MoonSharpUserData]
-    public sealed class BasicSpriteRenderer : RenderQueue
+    public sealed class BasicSpriteRenderer : Disposable
     {
-        private readonly Mesh m_rectMesh = Host.StaticResources.Manage(Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, Anchor.TopLeft));
+        private Vector2? m_viewport;
 
-        private readonly ClientResourceManager m_resources;
-        private readonly Material m_basicMaterial;
+        private Mesh m_rectMesh = Host.StaticResources.Manage(Mesh.CreatePlane(Vector3.UnitX, Vector3.UnitY, 1, 1, Anchor.TopLeft));
+
+        private ClientResourceManager m_resources;
+        private Material m_basicMaterial;
 
         private Vector4 m_drawColor = Vector4.One, m_imageColor = Vector4.One;
         private Transform m_transform = Transform.Identity;
 
         private readonly Stack<Transform> m_savedTransforms = new Stack<Transform>();
 
-        [MoonSharpHidden]
-        public BasicSpriteRenderer(ClientResourceLocator locator, Vector2 viewportSize)
-            : base(new RenderState
-            {
-                ProjectionMatrix = (Transform)Matrix4x4.CreateOrthographicOffCenter(0, viewportSize.X, viewportSize.Y, 0, -10, 10),
-                CameraMatrix = Transform.Identity,
-                ViewportSize = ((int)viewportSize.X, (int)viewportSize.Y),
-            })
-        {
-            m_resources = new ClientResourceManager(locator);
-            m_basicMaterial = m_resources.AquireMaterial("materials/basic");
-        }
+        private RenderQueue m_queue;
 
         [MoonSharpHidden]
-        public override void Process(bool clear)
+        public BasicSpriteRenderer(ClientResourceLocator locator = null, Vector2? viewportSize = null)
         {
-            base.Process(clear);
+            m_viewport = viewportSize;
+            m_resources = new ClientResourceManager(locator ?? ClientResourceLocator.Default);
+            m_basicMaterial = m_resources.AquireMaterial("materials/basic");
         }
 
         protected override void DisposeManaged()
         {
-            base.DisposeManaged();
+            Flush();
 
-            m_rectMesh.Dispose();
-            m_resources.Dispose();
+            m_queue?.Dispose();
+            m_queue = null;
+
+            m_rectMesh?.Dispose();
+            m_rectMesh = null;
+
+            m_resources?.Dispose();
+            m_resources = null;
+
+            m_basicMaterial = null;
         }
 
         #region Lua Bound Functions
 
-        //public Texture LoadTextureAsync(string resourcePath) => m_resources.QueueTextureLoad(resourcePath);
-
-        public void Flush() => Process(true);
+        public void Flush() => m_queue?.Process(true);
 
         public void BeginFrame()
         {
             m_transform = Transform.Identity;
+            m_drawColor = Vector4.One;
+            m_imageColor = Vector4.One;
+
+            Vector2 viewportSize = m_viewport ?? new Vector2(Window.Width, Window.Height);
+            m_queue = new RenderQueue(new RenderState
+            {
+                ProjectionMatrix = (Transform)Matrix4x4.CreateOrthographicOffCenter(0, viewportSize.X, viewportSize.Y, 0, -10, 10),
+                CameraMatrix = Transform.Identity,
+                ViewportSize = ((int)viewportSize.X, (int)viewportSize.Y),
+            });
         }
 
         public void EndFrame()
         {
             Flush();
+
+            m_queue.Dispose();
+            m_queue = null;
 
             m_savedTransforms.Clear();
         }
@@ -124,7 +137,7 @@ namespace theori.Graphics
             p["MainTexture"] = Texture.Empty;
             p["Color"] = m_drawColor;
 
-            Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
+            m_queue.Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
         }
 
         public void SetImageColor(float r, float g, float b) => SetImageColor(r, g, b, 255);
@@ -142,7 +155,7 @@ namespace theori.Graphics
             p["MainTexture"] = texture;
             p["Color"] = m_imageColor;
 
-            Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
+            m_queue.Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
         }
 
         #endregion

@@ -128,6 +128,55 @@ namespace theori
             layer.lifetimeState = Layer.LayerLifetimeState.Alive;
         }
 
+        public static void AddLayerBelow(Layer belowThis, Layer layer)
+        {
+            if (layer.lifetimeState != Layer.LayerLifetimeState.Uninitialized)
+            {
+                throw new Exception("Layer has already been in the layer stack. Cannot re-initialize.");
+            }
+
+            if (!layers.Contains(belowThis))
+            {
+                throw new Exception("Cannot add a layer above one which is not in the layer stack.");
+            }
+
+            int index = layers.IndexOf(belowThis);
+            layers.Insert(index, layer);
+
+            if (layer.BlocksParentLayer)
+            {
+                for (int i = index - 1; i >= 0; i--)
+                {
+                    var nextLayer = layers[i];
+                    nextLayer.Suspend();
+
+                    if (nextLayer.BlocksParentLayer)
+                    {
+                        // if it blocks the previous layers then this has happened already for higher layers.
+                        break;
+                    }
+                }
+            }
+
+            if (belowThis.BlocksParentLayer)
+            {
+                for (int i = index; i >= 0; i--)
+                {
+                    var nextLayer = layers[i];
+                    nextLayer.Suspend();
+
+                    if (nextLayer.BlocksParentLayer)
+                    {
+                        // if it blocks the previous layers then this has happened already for higher layers.
+                        break;
+                    }
+                }
+            }
+
+            layer.Init();
+            layer.lifetimeState = Layer.LayerLifetimeState.Alive;
+        }
+
         /// <summary>
         /// Removes the topmost layer from the layer stack and destroys it.
         /// </summary>

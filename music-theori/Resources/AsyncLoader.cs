@@ -47,7 +47,7 @@ namespace theori.Resources
             get
             {
                 foreach (var task in m_loadables.Values)
-                    if (!task.IsLoadCompleted) return false;
+                    if (!task.IsLoadSuccessful) return false;
                 return true;
             }
         }
@@ -63,6 +63,18 @@ namespace theori.Resources
         }
 
         public bool IsCompleted => m_completed;
+
+        public bool Failed
+        {
+            get
+            {
+                if (IsLoadCompleted && !IsLoadSuccessful)
+                    return true;
+                if (IsCompleted && !IsFinalizeSuccessful)
+                    return true;
+                return false;
+            }
+        }
 
         public AsyncLoader()
         {
@@ -100,6 +112,7 @@ namespace theori.Resources
                 return;
             }
 
+            // finalize once per frame
             if (m_loadableEnumerator == null)
                 m_loadableEnumerator = m_loadables.Values.GetEnumerator();
 
