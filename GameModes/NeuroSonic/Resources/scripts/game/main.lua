@@ -67,14 +67,24 @@ function Init()
 	for i = 1, 2 do
 		local side = (i == 1 and -1 or 1);
 		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.50, 0.35, ParticlesTex[1],  95, side * 0.35, -0.35, 12, 0.65));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.00, ParticlesTex[1], 125, side * 0.50,  0.55, 14, 1.00));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.50, 0.35, ParticlesTex[1],  95, side * 0.35, -0.35, 20, 1.00));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.00, ParticlesTex[1], 125, side * 0.50,  0.55, 18, 1.00));
 		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.15, ParticlesTex[2], 120, side * 0.75,  0.95, 12, 0.70));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.15, ParticlesTex[2], 120, side * 0.75,  0.95, 22, 1.00));
 		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.35, ParticlesTex[3], 110, side * 0.70,  0.75, 12, 0.75));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.20, ParticlesTex[3],  90, side * 0.90,  1.25, 14, 0.85));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.05, ParticlesTex[3],  75, side * 0.80, -0.15, 10, 0.80));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.35, ParticlesTex[3], 110, side * 0.70,  0.75, 18, 0.90));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.20, ParticlesTex[3],  90, side * 0.90,  1.25, 20, 1.00));
+		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.05, ParticlesTex[3],  75, side * 0.80, -0.15, 22, 1.10));
+		
+		for i = 1, 10 do
+			local y = -3.0 + (i - 1) * 0.6;
+			local x = -4.0 - 0.5 * (5 - i);
+			if (i % 2 == 0) then
+				x = x + 0.35;
+			end
+
+			table.insert(ParticleSpawners, CreateParticleSpawner(0.7, (i % 3) * 0.15, ParticlesTex[3], 85, side * x, y, 25, 2.00 - (i % 4) * 0.1));
+		end
 	end
 end
 
