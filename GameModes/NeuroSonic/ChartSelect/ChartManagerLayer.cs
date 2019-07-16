@@ -47,45 +47,6 @@ namespace NeuroSonic.ChartSelect
             }
         }
 
-        public override void Init()
-        {
-            base.Init();
-
-            ForegroundGui.AddChild(new Panel()
-            {
-                RelativeSizeAxes = Axes.X,
-                RelativePositionAxes = Axes.Both,
-
-                Position = new Vector2(0, 1),
-                Size = new Vector2(1, 0),
-
-                Children = new GuiElement[]
-                {
-                    new Panel()
-                    {
-                        RelativePositionAxes = Axes.X,
-
-                        Position = new Vector2(0.5f, 0),
-
-                        Children = new GuiElement[]
-                        {
-                            new TextLabel(Font.Default16, "Only charts with the same primary audio file will be added to the same set.")
-                            {
-                                TextAlignment = Anchor.BottomCenter,
-                                Position = new Vector2(-10, -70),
-                            },
-
-                            new TextLabel(Font.Default16, "For old charts and most converts this means that only the selected diff will be added to the set!")
-                            {
-                                TextAlignment = Anchor.BottomCenter,
-                                Position = new Vector2(-10, -40),
-                            },
-                        }
-                    },
-                }
-            });
-        }
-
         private void OpenKSH()
         {
             var dialog = new OpenFileDialogDesc("Open Chart",
