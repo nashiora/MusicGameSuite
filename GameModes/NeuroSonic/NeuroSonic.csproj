@@ -81,7 +81,6 @@
     <Compile Include="ChartSelect\ChartManagerLayer.cs" />
     <Compile Include="ChartSelect\ChartSelectLayer.cs" />
     <Compile Include="ChartSelect\DifficultySlot.cs" />
-    <Compile Include="ChartSelect\Landscape\LandscapeChartSelectLayer.cs" />
     <Compile Include="Editor\ChartEditorLayer.cs" />
     <Compile Include="GamePlay\Background.cs" />
     <Compile Include="GamePlay\BakedLaserTilt.cs" />

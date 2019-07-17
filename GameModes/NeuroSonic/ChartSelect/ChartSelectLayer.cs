@@ -1,22 +1,61 @@
-﻿using System.IO;
-
-using theori;
-using theori.Audio;
+﻿using theori;
 using theori.IO;
 using theori.Resources;
-
-using NeuroSonic.GamePlay;
-using NeuroSonic.Charting.Conversions;
+using theori.Scripting;
 
 namespace NeuroSonic.ChartSelect
 {
-    public abstract class ChartSelectLayer : NscLayer
+    public class ChartSelectLayer : NscLayer
     {
-        protected readonly ClientResourceLocator m_locator;
+        private readonly ClientResourceLocator m_locator;
+
+        private ClientResourceManager m_resources;
+
+        private AsyncLoader m_loader;
+        private LuaScript m_script;
 
         public ChartSelectLayer(ClientResourceLocator locator)
         {
             m_locator = locator;
+            m_resources = new ClientResourceManager(locator);
+        }
+
+        public override void Init()
+        {
+            base.Init();
+
+            m_script = new LuaScript();
+            m_script.LoadFile(m_locator.OpenFileStream("scripts/chart_select/main.lua"));
+            m_script.InitResourceLoading(m_locator);
+            m_script.InitSpriteRenderer(m_locator);
+
+            m_loader = new AsyncLoader();
+
+            m_script.CallIfExists("Init");
+        }
+
+        public override void Destroy()
+        {
+            base.Destroy();
+
+            m_script.Dispose();
+            m_script = null;
+
+            m_resources.Dispose();
+            m_resources = null;
+        }
+
+        public override void Update(float delta, float total)
+        {
+            base.Update(delta, total);
+
+            m_loader.LoadAll();
+            m_script.Update(delta, total);
+        }
+
+        public override void Render()
+        {
+            m_script.Draw();
         }
 
         public override bool KeyPressed(KeyInfo info)
@@ -43,5 +82,6 @@ namespace NeuroSonic.ChartSelect
 
             return true;
         }
+
     }
 }
