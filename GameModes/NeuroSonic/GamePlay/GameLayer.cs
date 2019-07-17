@@ -173,6 +173,7 @@ namespace NeuroSonic.GamePlay
             }
 
             m_guiScript = new LuaScript();
+            m_guiScript.InitResourceLoading(m_locator);
 
             m_gameTable = m_guiScript.NewTable();
             m_guiScript["game"] = m_gameTable;
@@ -192,6 +193,9 @@ namespace NeuroSonic.GamePlay
 
             m_guiScript.LoadFile(m_locator.OpenFileStream("scripts/game/main.lua"));
 
+            if (!m_guiScript.LuaAsyncLoad())
+                return false;
+
             if (!m_highwayView.AsyncLoad())
                 return false;
             if (!m_background.AsyncLoad())
@@ -207,7 +211,8 @@ namespace NeuroSonic.GamePlay
 
         public override bool AsyncFinalize()
         {
-            m_guiScript.InitResourceLoading(m_locator);
+            if (!m_guiScript.LuaAsyncFinalize())
+                return false;
             m_guiScript.InitSpriteRenderer(m_locator);
 
             if (!m_highwayView.AsyncFinalize())

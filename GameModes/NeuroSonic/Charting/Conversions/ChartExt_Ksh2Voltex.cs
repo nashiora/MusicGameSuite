@@ -103,9 +103,7 @@ namespace NeuroSonic.Charting.Conversions
                 laserFilter.Effect = ksh.FilterDefines[ksh.Metadata.FilterType];
 
                 var slamVolume = chart[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
-                if (!hasActiveEffects)
-                    slamVolume.Volume = 0.0f;
-                else slamVolume.Volume = ksh.Metadata.SlamVolume / 100.0f;
+                slamVolume.Volume = ksh.Metadata.SlamVolume / 100.0f;
             }
 
             var lastCp = chart.ControlPoints.Root;
@@ -216,13 +214,9 @@ namespace NeuroSonic.Charting.Conversions
 
                         case "chokkakuvol":
                         {
-                            if (hasActiveEffects)
-                            {
-                                var slamVoume = chart[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(chartPos);
-                                slamVoume.Volume = setting.Value.ToInt() / 100.0f;
-                                Logger.Log($"ksh.convert set { key } { setting.Value }");
-                            }
-                            else Logger.Log($"ksh.convert effects disabled for { key }");
+                            var slamVoume = chart[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(chartPos);
+                            slamVoume.Volume = setting.Value.ToInt() / 100.0f;
+                            Logger.Log($"ksh.convert set { key } { setting.Value }");
                         } break;
 
                         case "laserrange_l": { laserIsExtended[0] = true; } break;
