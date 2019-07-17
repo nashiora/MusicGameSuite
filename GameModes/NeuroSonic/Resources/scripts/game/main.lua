@@ -5,6 +5,14 @@ local LayoutScale;
 
 local ViewportWidth, ViewportHeight;
 
+local IntroAnimTimer = 0.0;
+
+local Layouts = {
+	Landscape = { },
+	WideLandscape = { },
+	Portrait = { },
+};
+
 local function CalculateLayout()
 	ViewportWidth, ViewportHeight = g2d.GetViewportSize();
 	Layout = ViewportWidth > ViewportHeight and "Landscape" or "Portrait";
@@ -36,6 +44,7 @@ end
 
 function Init()
 	CalculateLayout();
+	game.Begin();
 end
 
 function Update(delta, total)
@@ -46,10 +55,27 @@ function Update(delta, total)
 		end
 	end
 
-	--
+	Layouts[Layout]:Update(delta, total);
 end
 
-local function DrawGameStatus(x, y)
+function Draw()
+	g2d.SaveTransform();
+	DoLayoutTransform();
+
+	Layouts[Layout]:Draw();
+
+	g2d.RestoreTransform();
+end
+
+-- Landscape Layout
+
+function Layouts.Landscape.Update(self, delta, total)
+end
+
+function Layouts.Landscape.DrawChartInfo(self)
+	local x, y = 10, 10;
+	-- TODO(local): animations
+
 	g2d.SaveTransform();
 	g2d.Translate(x, y);
 
@@ -71,33 +97,40 @@ local function DrawGameStatus(x, y)
 	g2d.FillRect(10 + jacketPadding, 10 + 2 * jacketPadding + jacketSize, jacketSize, diffPlateHeight);
 
 	g2d.SetColor(0, 0, 0);
-	g2d.SetFont(nil, 8);
+	g2d.SetFont(nil, 12);
 	g2d.Write(game.meta.DifficultyName .. " " .. game.meta.DifficultyLevel, 10 + 2 * jacketPadding, 10 + 2 * jacketPadding + jacketSize + diffPlateHeight / 2);
 
 	g2d.RestoreTransform();
 end
 
-function Draw()
-	g2d.SaveTransform();
-	DoLayoutTransform();
-
-	if (Layout == "Landscape") then
-		DrawGameStatus(10, 10);
+function Layouts.Landscape.Draw(self)
+	self:DrawChartInfo();
 	
-		-- Score
-		g2d.SetColor(60, 60, 60, 225);
-		g2d.FillRect(LayoutWidth - 10 - 300, 10, 300, 120);
+	-- Score
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(LayoutWidth - 10 - 300, 10, 300, 120);
 	
-		-- Gauge
-		g2d.SetColor(60, 60, 60, 225);
-		g2d.FillRect(LayoutWidth * 3 / 4 - 35, LayoutHeight / 2 - 200, 70, 400);
+	-- Gauge
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(LayoutWidth * 3 / 4 - 35, LayoutHeight / 2 - 200, 70, 400);
 		
-		-- Chart Info
-		g2d.SetColor(60, 60, 60, 225);
-		g2d.FillRect(10, LayoutHeight - 10 - 160, 300, 160);
-	elseif (Layout == "Portrait") then
-	else -- if (Layout == "Wide-Landscape") then
-	end
+	-- Chart Info
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(10, LayoutHeight - 10 - 160, 300, 160);
+end
 
-	g2d.RestoreTransform();
+-- Wide Landscape Layout
+
+function Layouts.WideLandscape.Update(self, delta, total)
+end
+
+function Layouts.WideLandscape.Draw(self)
+end
+
+-- Portrait Layout
+
+function Layouts.Portrait.Update(self, delta, total)
+end
+
+function Layouts.Portrait.Draw(self)
 end

@@ -161,7 +161,7 @@ namespace NeuroSonic.GamePlay
                     if (result == null || !result.CastToBool())
                     {
                         Host.RemoveLayer(this);
-                        m_game?.Play();
+                        //m_game?.Begin();
 
                         return;
                     }
