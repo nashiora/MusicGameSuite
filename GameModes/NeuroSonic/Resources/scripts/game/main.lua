@@ -38,7 +38,7 @@ function AsyncLoad()
 	return true;
 end
 
-function AsyuncFinalize()
+function AsyncFinalize()
 	return true;
 end
 
