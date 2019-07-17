@@ -38,7 +38,7 @@ steps:
   displayName: 'Copy Files to: $(build.artifactstagingdirectory)'
   inputs:
     SourceFolder: '$(system.defaultworkingdirectory)'
-    Contents: '**\bin\$(BuildConfiguration)\**'
+    Contents: '**\bin\$(buildPlatform)\$(buildConfiguration)\**'
     TargetFolder: '$(build.artifactstagingdirectory)'
   condition: succeededOrFailed()
 
