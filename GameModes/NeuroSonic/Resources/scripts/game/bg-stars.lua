@@ -108,7 +108,7 @@ function Update(delta, total)
 end
 
 function Draw()
-	local width, height = window.GetClientSize();
+	local width, height = g2d.GetViewportSize();
 	local originx, originy = width / 2, height * HorizonHeight;
 
 	local centerSize = width * 0.6;

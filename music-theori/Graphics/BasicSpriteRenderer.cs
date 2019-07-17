@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using MoonSharp.Interpreter;
-
+using MoonSharp.Interpreter.Interop;
 using OpenGL;
 
 using theori.Resources;
+
+using static MoonSharp.Interpreter.DynValue;
 
 namespace theori.Graphics
 {
@@ -137,6 +139,14 @@ namespace theori.Graphics
             m_transform = m_transform * new Transform(shear);
         }
 
+        [MoonSharpVisible(true)]
+        private DynValue GetViewportSize()
+        {
+            if (m_viewport is Vector2 v)
+                return NewTuple(NewNumber(v.X), NewNumber(v.Y));
+            else return NewTuple(NewNumber(Window.Width), NewNumber(Window.Height));
+        }
+
         public void SetColor(float r, float g, float b) => SetColor(r, g, b, 255);
 
         public void SetColor(float r, float g, float b, float a)
@@ -176,7 +186,7 @@ namespace theori.Graphics
         public void SetFont(Font font, int size)
         {
             if (font == null) font = Font.GetDefault(size);
-
+            m_font = font;
         }
 
         public void Write(string text, float x, float y)

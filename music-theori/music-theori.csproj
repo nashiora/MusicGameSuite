@@ -219,9 +219,10 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Logging\" />
-    <Folder Include="Resources\scripts\" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Resources\scripts\lib\vectors.lua" />
+    <EmbeddedResource Include="Resources\scripts\lib\standard.lua" />
     <None Include="x86\freetype6.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

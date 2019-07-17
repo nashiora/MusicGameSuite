@@ -15,6 +15,8 @@ using NeuroSonic.Charting;
 using NeuroSonic.GamePlay.Scoring;
 using theori.Charting.IO;
 using System.IO;
+using MoonSharp.Interpreter;
+using theori.Scripting;
 
 namespace NeuroSonic.GamePlay
 {
@@ -31,6 +33,39 @@ namespace NeuroSonic.GamePlay
 
     public sealed class GameLayer : NscLayer
     {
+        [MoonSharpUserData]
+        class LuaStaticGameData
+        {
+            public string SongTitle;
+            public string SongArtist;
+
+            public string DifficultyName;
+            public string DifficultyNameShort = null;
+            public double DifficultyLevel;
+            public Vector3 DifficultyColor;
+
+            /// <summary>
+            /// Intended to be "1, 2, F"
+            /// </summary>
+            public string PlayKind = "N";
+        }
+
+        class LuaDynamicGameData
+        {
+            public double CurrentBpm = 120.0;
+            public double CurrentHiSpeed = 1.0;
+
+            public double Progress = 0.0;
+            public double Gauge = 0.0;
+            public int Score = 0;
+        }
+
+        static GameLayer()
+        {
+            UserData.RegisterType<LuaStaticGameData>();
+            UserData.RegisterType<LuaDynamicGameData>();
+        }
+
         public override int TargetFrameRate => 288;
 
         public override bool BlocksParentLayer => true;
@@ -42,6 +77,9 @@ namespace NeuroSonic.GamePlay
 
         private readonly ClientResourceLocator m_locator;
         private readonly ClientResourceManager m_resources;
+
+        private LuaScript m_guiScript;
+        private Table m_gameTable;
 
         private HighwayControl m_highwayControl;
         private HighwayView m_highwayView;
@@ -134,6 +172,26 @@ namespace NeuroSonic.GamePlay
                 m_audio.Volume = m_chart.Info.SongVolume / 100.0f;
             }
 
+            m_guiScript = new LuaScript();
+
+            m_gameTable = m_guiScript.NewTable();
+            m_guiScript["game"] = m_gameTable;
+
+            m_gameTable["meta"] = new LuaStaticGameData()
+            {
+                SongTitle = m_chart.Info.SongTitle,
+                SongArtist = m_chart.Info.SongArtist,
+
+                DifficultyName = m_chart.Info.DifficultyName,
+                DifficultyNameShort = m_chart.Info.DifficultyNameShort,
+                DifficultyLevel = m_chart.Info.DifficultyLevel,
+                DifficultyColor = (m_chart.Info.DifficultyColor ?? new Vector3(1, 1, 1)) * 255,
+
+                PlayKind = "N",
+            };
+
+            m_guiScript.LoadFile(m_locator.OpenFileStream("scripts/game/main.lua"));
+
             if (!m_highwayView.AsyncLoad())
                 return false;
             if (!m_background.AsyncLoad())
@@ -149,6 +207,9 @@ namespace NeuroSonic.GamePlay
 
         public override bool AsyncFinalize()
         {
+            m_guiScript.InitResourceLoading(m_locator);
+            m_guiScript.InitSpriteRenderer(m_locator);
+
             if (!m_highwayView.AsyncFinalize())
                 return false;
             if (!m_background.AsyncFinalize())
@@ -170,6 +231,8 @@ namespace NeuroSonic.GamePlay
         public override void Init()
         {
             base.Init();
+
+            m_guiScript.CallIfExists("Init");
 
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
             m_background.Init();
@@ -545,6 +608,19 @@ namespace NeuroSonic.GamePlay
             m_highwayView.CreateKeyBeam(streamIndex, color);
         }
 
+        private void SetLuaDynamicData()
+        {
+            m_gameTable["scoring"] = new LuaDynamicGameData()
+            {
+                CurrentBpm = m_chart.ControlPoints.MostRecent(m_audioController.Position).BeatsPerMinute,
+                CurrentHiSpeed = 1.0,
+
+                Progress = MathL.Clamp01((double)(m_audioController.Position / m_chart.LastObjectTime)),
+                Gauge = 0.0,
+                Score = m_judge.Score,
+            };
+        }
+
         public override void Update(float delta, float total)
         {
             base.Update(delta, total);
@@ -666,6 +742,8 @@ namespace NeuroSonic.GamePlay
             m_background.SpinTimer = m_highwayControl.SpinTimer;
             m_background.SwingTimer = m_highwayControl.SwingTimer;
             m_background.Update(delta, total);
+
+            m_guiScript.Update(delta, total);
         }
 
         private void UpdateEffects()
@@ -761,6 +839,11 @@ namespace NeuroSonic.GamePlay
         {
             m_background.Render();
             m_highwayView.Render();
+        }
+
+        public override void LateRender()
+        {
+            m_guiScript.Draw();
         }
     }
 }

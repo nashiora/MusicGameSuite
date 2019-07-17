@@ -56,7 +56,7 @@ function Update(delta, total)
 end
 
 function Draw()
-	local width, height = window.GetClientSize();
+	local width, height = g2d.GetViewportSize();
 	local originx, originy = width / 2, height / 2;
 
 	local bgRotation = (1 - AnimTimer) * 45;

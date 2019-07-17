@@ -18,6 +18,9 @@ using CSCore;
 using CSCore.Codecs;
 
 using OpenGL;
+using System.Numerics;
+using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop;
 
 namespace theori
 {
@@ -341,7 +344,13 @@ namespace theori
 
         public static bool InitScriptingSystem()
         {
+            LuaScript.RegisterType<Vector2>();
+            LuaScript.RegisterType<Vector3>();
+            LuaScript.RegisterType<Vector4>();
+
+            LuaScript.RegisterType<Font>();
             LuaScript.RegisterType<Texture>();
+            LuaScript.RegisterType<TextRasterizer>();
 
             LuaScript.RegisterType<BasicSpriteRenderer>();
             LuaScript.RegisterType<ClientResourceManager>();

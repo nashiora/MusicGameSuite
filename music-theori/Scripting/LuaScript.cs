@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
@@ -12,17 +13,25 @@ namespace theori.Scripting
 {
     public class LuaScript : Disposable
     {
+        private static ClientResourceLocator scriptLocator;
+
         public static void RegisterType<T>() => UserData.RegisterType<T>();
         public static void RegisterType(Type type) => UserData.RegisterType(type);
 
         public static void RegisterAssembly(Assembly assembly = null, bool includeExtensionTypes = false) =>
             UserData.RegisterAssembly(assembly, includeExtensionTypes);
 
+        static LuaScript()
+        {
+            scriptLocator = new ClientResourceLocator(null, null);
+            scriptLocator.AddManifestResourceLoader(ManifestResourceLoader.GetResourceLoader(typeof(LuaScript).Assembly, "theori.Resources"));
+        }
+
         private readonly Script m_script;
 
-        private ClientResourceLocator m_locator;
-        private ClientResourceManager m_resources;
+        private readonly Dictionary<Type, DynValue> m_luaConverters = new Dictionary<Type, DynValue>();
 
+        private ClientResourceManager m_resources;
         private BasicSpriteRenderer m_renderer;
 
 #if false
@@ -35,7 +44,12 @@ namespace theori.Scripting
         public object this[string globalKey]
         {
             get => m_script.Globals[globalKey];
-            set => m_script.Globals[globalKey] = value;
+            set
+            {
+                if (value != null && m_luaConverters.TryGetValue(value.GetType(), out var converter))
+                    m_script.Globals[globalKey] = m_script.Call(converter, value);
+                else m_script.Globals[globalKey] = value;
+            }
         }
 #endif
 
@@ -65,7 +79,6 @@ namespace theori.Scripting
             m_resources?.Dispose();
             m_renderer?.Dispose();
 
-            m_locator = null;
             m_resources = null;
             this["res"] = null;
 
@@ -75,12 +88,25 @@ namespace theori.Scripting
 
         public void InitTheoriLibrary()
         {
-            this["window"] = new ScriptWindowInterface();
+            Vector2 NewVec2(float x, float y) => new Vector2(x, y);
+            this["vec2"] = (Func<float, float, Vector2>)NewVec2;
+
+            Vector3 NewVec3(float x, float y, float z) => new Vector3(x, y, z);
+            this["vec3"] = (Func<float, float, float, Vector3>)NewVec3;
+
+            Vector4 NewVec4(float x, float y, float z, float w) => new Vector4(x, y, z, w);
+            this["vec4"] = (Func<float, float, float, float, Vector4>)NewVec4;
+
+            LoadFile(scriptLocator.OpenFileStream("scripts/lib/standard.lua"));
+            var converters = LoadFile(scriptLocator.OpenFileStream("scripts/lib/vectors.lua"));
+
+            m_luaConverters[typeof(Vector2)] = (DynValue)converters.Tuple.GetValue(0);
+            m_luaConverters[typeof(Vector3)] = (DynValue)converters.Tuple.GetValue(1);
+            m_luaConverters[typeof(Vector4)] = (DynValue)converters.Tuple.GetValue(2);
         }
 
         public void InitResourceLoading(ClientResourceLocator locator)
         {
-            m_locator = locator;
             m_resources = new ClientResourceManager(locator);
             this["res"] = m_resources;
         }
@@ -179,5 +205,11 @@ namespace theori.Scripting
         {
             return m_script.Call(val, args);
         }
+
+        #region New
+
+        public Table NewTable() => new Table(m_script);
+
+        #endregion
     }
 }
