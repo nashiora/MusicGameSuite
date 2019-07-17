@@ -21,6 +21,23 @@ namespace theori.Charting
         public readonly ObjectStream[] ObjectStreams;
         public readonly ControlPointList ControlPoints;
 
+        public time_t LastObjectTime
+        {
+            get
+            {
+                time_t lastTime = double.MinValue;
+                foreach (var stream in ObjectStreams)
+                {
+                    if (stream.Count == 0) continue;
+
+                    time_t t = stream.LastObject.AbsolutePosition;
+                    if (t > lastTime)
+                        lastTime = t;
+                }
+                return lastTime;
+            }
+        }
+
         public ObjectStream this[int stream] => ObjectStreams[stream];
 
         private time_t m_offset;
@@ -400,6 +417,37 @@ namespace theori.Charting
             public ControlPoint this[int index] => m_controlPoints[index];
 
             public ControlPoint Root => m_controlPoints[0];
+
+            public double ModeBeatsPerMinute
+            {
+                get
+                {
+                    Dictionary<double, time_t> durations = new Dictionary<double, time_t>();
+
+                    time_t chartEnd = m_chart.LastObjectTime;
+                    time_t longestTime = -1;
+
+                    double result = 120.0;
+                    foreach (var point in m_controlPoints)
+                    {
+                        double bpm = point.BeatsPerMinute;
+                        if (!durations.ContainsKey(bpm))
+                            durations[bpm] = 0.0;
+
+                        if (point.HasNext)
+                            durations[bpm] += point.Next.AbsolutePosition - point.AbsolutePosition;
+                        else durations[bpm] += chartEnd - point.AbsolutePosition;
+
+                        if (durations[bpm] > longestTime)
+                        {
+                            longestTime = durations[bpm];
+                            result = bpm;
+                        }
+                    }
+
+                    return result;
+                }
+            }
 
             internal ControlPointList(Chart chart)
             {

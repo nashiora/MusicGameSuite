@@ -99,6 +99,7 @@ namespace NeuroSonic.GamePlay.Scoring
         }
 
         protected abstract void AdvancePosition(time_t position);
+        public abstract int CalculateNumScorableTicks();
         protected abstract void ObjectEnteredJudgement(ChartObject obj);
         protected abstract void ObjectExitedJudgement(ChartObject obj);
     }

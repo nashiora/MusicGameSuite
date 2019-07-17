@@ -175,6 +175,25 @@ namespace NeuroSonic.GamePlay
             m_background.Init();
 
             m_playback = new SlidingChartPlayback(m_chart);
+            var hispeedKind = Plugin.Config.GetEnum<HiSpeedMod>(NscConfigKey.HiSpeedModKind);
+            switch (hispeedKind)
+            {
+                case HiSpeedMod.Default:
+                {
+                    double hiSpeed = Plugin.Config.GetFloat(NscConfigKey.HiSpeed);
+                    m_playback.LookAhead = 8 * 60.0 / (m_chart.ControlPoints.ModeBeatsPerMinute * hiSpeed);
+                } break;
+                case HiSpeedMod.MMod:
+                {
+                    var modSpeed = Plugin.Config.GetFloat(NscConfigKey.ModSpeed);
+                    double hiSpeed = modSpeed / m_chart.ControlPoints.ModeBeatsPerMinute;
+                    m_playback.LookAhead = 8 * 60.0 / (m_chart.ControlPoints.ModeBeatsPerMinute * hiSpeed);
+                } break;
+                case HiSpeedMod.CMod:
+                {
+                } goto case HiSpeedMod.Default; //break;
+            }
+
             m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
             {
                 if (dir == PlayDirection.Forward)
@@ -329,6 +348,9 @@ namespace NeuroSonic.GamePlay
             }
         }
 
+        private time_t totalInacc = 0.0;
+        private int numAccs = 0;
+
         private void Judge_OnTickProcessed(ChartObject obj, time_t position, JudgeResult result)
         {
             //Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
@@ -343,6 +365,14 @@ namespace NeuroSonic.GamePlay
             {
                 if (result.Kind != JudgeKind.Miss)
                     CreateKeyBeam(obj.Stream, result.Kind, result.Difference < 0.0);
+            }
+
+            if (!(result.Kind == JudgeKind.Miss || result.Kind == JudgeKind.Bad))
+            {
+                totalInacc += result.Difference;
+                numAccs++;
+
+                Logger.Log($"Average inacc: { MathL.Floor(totalInacc.Seconds * 1000 / numAccs) } ms");
             }
         }
 

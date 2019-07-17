@@ -1,4 +1,5 @@
-﻿using theori;
+﻿using System;
+using theori;
 using theori.Charting;
 
 namespace NeuroSonic.GamePlay.Scoring
@@ -22,7 +23,11 @@ namespace NeuroSonic.GamePlay.Scoring
             }
         }
 
-        public int Score { get; private set; }
+        public int Score => (int)(m_tickValue * 10_000_000L / m_maxTickValue);
+        public double Accuracy => m_expectedTickValue == 0 ? 1.0 : (double)m_tickValue / m_expectedTickValue;
+
+        private int m_maxTickValue, m_tickValue, m_expectedTickValue;
+        private int m_maxTickWorth = 2;
 
         private readonly StreamJudge[] m_judges = new StreamJudge[8];
 
@@ -33,7 +38,31 @@ namespace NeuroSonic.GamePlay.Scoring
             Chart = chart;
 
             for (int i = 0; i < 6; i++)
-                m_judges[i] = new ButtonJudge(chart, i);
+            {
+                var judge = new ButtonJudge(chart, i);
+                judge.OnTickProcessed += ButtonJudge_OnTickProcessed;
+                m_maxTickValue += judge.CalculateNumScorableTicks();
+                m_judges[i] = judge;
+            }
+
+            m_maxTickValue *= m_maxTickWorth;
+        }
+
+        private void ButtonJudge_OnTickProcessed(ChartObject obj, time_t when, JudgeResult result)
+        {
+            m_expectedTickValue += m_maxTickWorth;
+            switch (result.Kind)
+            {
+                case JudgeKind.Passive:
+                case JudgeKind.Critical:
+                case JudgeKind.Perfect:
+                    m_tickValue += 2;
+                    break;
+
+                case JudgeKind.Near:
+                    m_tickValue += 1;
+                    break;
+            }
         }
 
         private void AdvancePosition(time_t position)

@@ -26,6 +26,9 @@ namespace theori.Graphics
         private readonly Stack<Transform> m_savedTransforms = new Stack<Transform>();
 
         private RenderQueue m_queue;
+        private Font m_font = Font.Default16;
+
+        private readonly Dictionary<Font, TextRasterizer> m_rasterizers = new Dictionary<Font, TextRasterizer>();
 
         [MoonSharpHidden]
         public BasicSpriteRenderer(ClientResourceLocator locator = null, Vector2? viewportSize = null)
@@ -33,6 +36,16 @@ namespace theori.Graphics
             m_viewport = viewportSize;
             m_resources = new ClientResourceManager(locator ?? ClientResourceLocator.Default);
             m_basicMaterial = m_resources.AquireMaterial("materials/basic");
+        }
+
+        private TextRasterizer GetRasterizerForFont(Font font)
+        {
+            if (!m_rasterizers.TryGetValue(font, out var rasterizer))
+            {
+                rasterizer = new TextRasterizer(font, null);
+                m_rasterizers[font] = rasterizer;
+            }
+            return rasterizer;
         }
 
         protected override void DisposeManaged()
@@ -60,6 +73,8 @@ namespace theori.Graphics
             m_transform = Transform.Identity;
             m_drawColor = Vector4.One;
             m_imageColor = Vector4.One;
+
+            SetFont(null, 16);
 
             Vector2 viewportSize = m_viewport ?? new Vector2(Window.Width, Window.Height);
             m_queue = new RenderQueue(new RenderState
@@ -154,6 +169,26 @@ namespace theori.Graphics
             var p = new MaterialParams();
             p["MainTexture"] = texture;
             p["Color"] = m_imageColor;
+
+            m_queue.Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
+        }
+
+        public void SetFont(Font font, int size)
+        {
+            if (font == null) font = Font.GetDefault(size);
+
+        }
+
+        public void Write(string text, float x, float y)
+        {
+            var rasterizer = GetRasterizerForFont(m_font);
+            rasterizer.Text = text;
+
+            var transform = Transform.Scale(rasterizer.Width, rasterizer.Height, 1) * Transform.Translation(x, y, 0);
+
+            var p = new MaterialParams();
+            p["MainTexture"] = rasterizer.Texture;
+            p["Color"] = m_drawColor;
 
             m_queue.Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
         }

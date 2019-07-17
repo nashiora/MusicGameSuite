@@ -56,9 +56,14 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public event Action<ChartObject, time_t, JudgeResult> OnTickProcessed;
 
+        private readonly tick_t m_holdTickStep;
+        private readonly tick_t m_holdTickMargin;
+
         public ButtonJudge(Chart chart, int streamIndex)
             : base(chart, streamIndex)
         {
+            m_holdTickStep = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 2);
+            m_holdTickMargin = 2 * m_holdTickStep;
         }
 
         protected override time_t JudgementRadius => MAX_RADIUS;
@@ -171,6 +176,18 @@ namespace NeuroSonic.GamePlay.Scoring
             }
         }
 
+        public override int CalculateNumScorableTicks()
+        {
+            int tickCount = 0;
+            foreach (var obj in Chart[StreamIndex])
+            {
+                if (obj.IsInstant)
+                    tickCount++;
+                else tickCount += MathL.Max(1, MathL.FloorToInt((double)(obj.Duration - m_holdTickMargin) / (double)m_holdTickStep));
+            }
+            return tickCount;
+        }
+
         protected override void ObjectEnteredJudgement(ChartObject obj)
         {
             if (AutoPlay && !obj.IsInstant)
@@ -183,19 +200,17 @@ namespace NeuroSonic.GamePlay.Scoring
             }
             else
             {
-                tick_t step = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
-                tick_t margin = 2 * step;
 
-                int numTicks = MathL.FloorToInt((double)(obj.Duration - margin) / (double)step);
+                int numTicks = MathL.FloorToInt((double)(obj.Duration - m_holdTickMargin) / (double)m_holdTickStep);
 
                 if (numTicks == 0)
                     m_ticks.Add(new Tick(obj, obj.AbsolutePosition + obj.AbsoluteDuration / 2, true));
                 else
                 {
-                    tick_t pos = obj.Position + margin;
+                    tick_t pos = obj.Position + m_holdTickMargin / 2;
                     for (int i = 0; i < numTicks; i++)
                     {
-                        time_t timeAtTick = Chart.CalcTimeFromTick(pos + i * step);
+                        time_t timeAtTick = Chart.CalcTimeFromTick(pos + i * m_holdTickStep);
                         m_ticks.Add(new Tick(obj, timeAtTick, true));
                     }
                 }

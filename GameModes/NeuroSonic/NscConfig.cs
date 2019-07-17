@@ -100,8 +100,9 @@ namespace NeuroSonic
             Set(NscConfigKey.StandaloneChartsDirectory, "charts");
             Set(NscConfigKey.Skin, "Default");
             Set(NscConfigKey.Laser0Color, 200);
-            Set(NscConfigKey.Laser1Color, 330);
+            Set(NscConfigKey.Laser1Color, 300);
 
+            // TODO(local): change this to Keyboard for both by default
             // Input settings
             Set(NscConfigKey.ButtonInputDevice, InputDevice.Controller);
             Set(NscConfigKey.LaserInputDevice, InputDevice.Controller);

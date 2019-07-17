@@ -170,6 +170,11 @@ namespace NeuroSonic.GamePlay.Scoring
         {
         }
 
+        public override int CalculateNumScorableTicks()
+        {
+            return 0;
+        }
+
         protected override void ObjectEnteredJudgement(ChartObject obj)
         {
         }
