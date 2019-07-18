@@ -72,9 +72,25 @@ end
 function Layouts.Landscape.Update(self, delta, total)
 end
 
+function Layouts.Landscape.DrawHeader(self)
+	local w, h = LayoutWidth / 2, 20;
+	local x, y = (LayoutWidth - w) / 2, 0;
+
+	g2d.SaveTransform();
+	g2d.Translate(x, y);
+
+	g2d.SetColor(255, 255, 255);
+	g2d.FillRect(0, 0, w, h);
+
+	g2d.SetColor(0, 0, 0);
+	g2d.SetFont(nil, 16);
+	g2d.Write(game.meta.SongTitle .. " / " .. game.meta.SongArtist, 0, 0);
+
+	g2d.RestoreTransform();
+end
+
 function Layouts.Landscape.DrawChartInfo(self)
 	local x, y = 10, 10;
-	-- TODO(local): animations
 
 	g2d.SaveTransform();
 	g2d.Translate(x, y);
@@ -105,6 +121,7 @@ end
 
 function Layouts.Landscape.Draw(self)
 	self:DrawChartInfo();
+	self:DrawHeader();
 	
 	-- Score
 	g2d.SetColor(60, 60, 60, 225);
