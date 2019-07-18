@@ -84,7 +84,8 @@ function Layouts.Landscape.DrawHeader(self)
 
 	g2d.SetColor(0, 0, 0);
 	g2d.SetFont(nil, 16);
-	g2d.Write(game.meta.SongTitle .. " / " .. game.meta.SongArtist, 0, 0);
+	g2d.SetTextAlign(Anchor.MiddleCenter);
+	g2d.Write(game.meta.SongTitle .. " / " .. game.meta.SongArtist, w / 2, h / 2);
 
 	g2d.RestoreTransform();
 end
@@ -114,6 +115,7 @@ function Layouts.Landscape.DrawChartInfo(self)
 
 	g2d.SetColor(0, 0, 0);
 	g2d.SetFont(nil, 12);
+	g2d.SetTextAlign(Anchor.MiddleLeft);
 	g2d.Write(game.meta.DifficultyName .. " " .. game.meta.DifficultyLevel, 10 + 2 * jacketPadding, 10 + 2 * jacketPadding + jacketSize + diffPlateHeight / 2);
 
 	g2d.RestoreTransform();
