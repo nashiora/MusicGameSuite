@@ -344,6 +344,8 @@ namespace theori
 
         public static bool InitScriptingSystem()
         {
+            LuaScript.RegisterType<Anchor>();
+
             LuaScript.RegisterType<Vector2>();
             LuaScript.RegisterType<Vector3>();
             LuaScript.RegisterType<Vector4>();
