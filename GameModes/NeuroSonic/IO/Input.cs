@@ -66,15 +66,8 @@ namespace NeuroSonic.IO
             layers.Add(layer);
         }
 
-        public static void UnRegister(NscLayer layer)
-        {
-            layers.Remove(layer);
-        }
-
-        public static void Update()
-        {
-            Controller?.Update();
-        }
+        public static void UnRegister(NscLayer layer) => layers.Remove(layer);
+        public static void Update() => Controller?.Update();
 
         public static bool IsButtonDown(ControllerInput input) => Controller?.IsButtonDown(input) ?? false;
         public static float AxisDelta(ControllerInput input) => Controller?.AxisDelta(input) ?? 0.0f;

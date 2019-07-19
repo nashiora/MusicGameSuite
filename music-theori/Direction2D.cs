@@ -8,9 +8,9 @@ namespace theori
         None = 0,
 
         Left  = 0b0001,
-        Right = 0b0011,
+        Right = 0b0010,
 
-        Upd   = 0b0100,
-        Down  = 0b1100,
+        Up    = 0b0100,
+        Down  = 0b1000,
     }
 }
