@@ -136,6 +136,7 @@
     <Compile Include="Configuration\GameConfig.cs" />
     <Compile Include="Database\ChartDatabase.cs" />
     <Compile Include="Database\IHasPrimaryKey.cs" />
+    <Compile Include="Direction2D.cs" />
     <Compile Include="Extensions\MatrixExt.cs" />
     <Compile Include="Extensions\NumericExt.cs" />
     <Compile Include="Extensions\ShaderProgramExt.cs" />

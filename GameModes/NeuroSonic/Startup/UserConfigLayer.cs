@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using theori;
 using theori.Graphics;
 using theori.Gui;
 using theori.IO;
@@ -12,19 +13,35 @@ namespace NeuroSonic.Startup
 {
     public class UserConfigLayer : BaseMenuLayer
     {
+        class Nav
+        {
+            public Direction2D Dir;
+            public bool Modified;
+
+            public Nav(KeyInfo key)
+            {
+            }
+        }
+
         protected override string Title => "Config";
 
         private int m_hsKindIndex, m_hsValueIndex;
         private int m_voIndex, m_ioIndex;
         private int m_llHue, m_rlHue;
 
-        private Action<KeyInfo>[] m_configActions;
+        private Action<Nav>[] m_configActions;
 
         private HiSpeedMod m_hiSpeedKind;
         private TextLabel[] m_hsKinds;
 
         private float m_hiSpeed, m_modSpeed;
         private TextLabel m_hs;
+
+        private int m_voffValue;
+        private TextLabel m_voff;
+
+        private int m_ioffValue;
+        private TextLabel m_ioff;
 
         private int m_activeIndex = -1;
 
@@ -48,6 +65,8 @@ namespace NeuroSonic.Startup
             m_hiSpeedKind = Plugin.Config.GetEnum<HiSpeedMod>(NscConfigKey.HiSpeedModKind);
             m_hiSpeed = Plugin.Config.GetFloat(NscConfigKey.HiSpeed);
             m_modSpeed = Plugin.Config.GetFloat(NscConfigKey.ModSpeed);
+            m_voffValue = Plugin.Config.GetInt(NscConfigKey.VideoOffset);
+            m_ioffValue = Plugin.Config.GetInt(NscConfigKey.InputOffset);
 
             ForegroundGui.AddChild(new Panel()
             {
@@ -58,7 +77,6 @@ namespace NeuroSonic.Startup
                     new Panel()
                     {
                         Position = new Vector2(0, 0),
-
                         Children = m_hsKinds = new TextLabel[]
                         {
                             new TextLabel(Font.Default24, "Multiplier")   { Position = new Vector2(0, 0) },
@@ -70,10 +88,27 @@ namespace NeuroSonic.Startup
                     new Panel()
                     {
                         Position = new Vector2(0, SPACING),
-
                         Children = new TextLabel[]
                         {
-                            m_hs = new TextLabel(Font.Default24, "Multiplier")   { Position = new Vector2(0, 0) },
+                            m_hs = new TextLabel(Font.Default24, "0")   { Position = new Vector2(0, 0) },
+                        }
+                    },
+
+                    new Panel()
+                    {
+                        Position = new Vector2(0, SPACING * 2),
+                        Children = new TextLabel[]
+                        {
+                            m_voff = new TextLabel(Font.Default24, "0")   { Position = new Vector2(0, 0) },
+                        }
+                    },
+
+                    new Panel()
+                    {
+                        Position = new Vector2(0, SPACING * 3),
+                        Children = new TextLabel[]
+                        {
+                            m_ioff = new TextLabel(Font.Default24, "0")   { Position = new Vector2(0, 0) },
                         }
                     },
                 }
@@ -86,7 +121,7 @@ namespace NeuroSonic.Startup
             };
         }
 
-        private void KeyPressed_HiSpeedKind(KeyInfo key)
+        private void KeyPressed_HiSpeedKind(Nav key)
         {
             KeyCode code = key.KeyCode;
             if (code != KeyCode.LEFT && code != KeyCode.RIGHT) return;
@@ -96,7 +131,7 @@ namespace NeuroSonic.Startup
             Plugin.Config.Set(NscConfigKey.HiSpeedModKind, m_hiSpeedKind);
         }
 
-        private void KeyPressed_HiSpeed(KeyInfo key)
+        private void KeyPressed_HiSpeed(Nav key)
         {
             KeyCode code = key.KeyCode;
             if (code != KeyCode.LEFT && code != KeyCode.RIGHT) return;
@@ -152,6 +187,20 @@ namespace NeuroSonic.Startup
             }
         }
 
+        private void UpdateVideoOffset()
+        {
+            bool active = m_activeIndex == m_voIndex;
+            m_voff.Color = active ? new Vector4(1, 1, 1, 1) : new Vector4(0.5f, 0.5f, 0.5f, 1);
+            m_voff.Text = $"{m_voffValue}";
+        }
+
+        private void UpdateInputOffset()
+        {
+            bool active = m_activeIndex == m_ioIndex;
+            m_ioff.Color = active ? new Vector4(1, 1, 1, 1) : new Vector4(0.5f, 0.5f, 0.5f, 1);
+            m_voff.Text = $"{m_ioffValue}";
+        }
+
         public override bool KeyPressed(KeyInfo key)
         {
             if (m_activeIndex >= 0)
@@ -161,7 +210,7 @@ namespace NeuroSonic.Startup
                     case KeyCode.RETURN:
                     case KeyCode.ESCAPE: m_activeIndex = -1; break;
 
-                    default: m_configActions[m_activeIndex](key); break;
+                    default: m_configActions[m_activeIndex](new Nav(key)); break;
                 }
 
                 return true;
@@ -191,6 +240,8 @@ namespace NeuroSonic.Startup
 
             UpdateHiSpeedKinds();
             UpdateHiSpeed();
+            UpdateVideoOffset();
+            UpdateInputOffset();
         }
     }
 }
