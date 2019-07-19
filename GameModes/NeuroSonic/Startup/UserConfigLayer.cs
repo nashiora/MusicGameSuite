@@ -18,10 +18,13 @@ namespace NeuroSonic.Startup
         private int m_voIndex, m_ioIndex;
         private int m_llHue, m_rlHue;
 
-        private Action<KeyCode>[] m_configActions;
+        private Action<KeyInfo>[] m_configActions;
 
         private HiSpeedMod m_hiSpeedKind;
         private TextLabel[] m_hsKinds;
+
+        private float m_hiSpeed, m_modSpeed;
+        private TextLabel m_hs;
 
         private int m_activeIndex = -1;
 
@@ -43,6 +46,8 @@ namespace NeuroSonic.Startup
             const int SPACING = MenuItem.SPACING;
 
             m_hiSpeedKind = Plugin.Config.GetEnum<HiSpeedMod>(NscConfigKey.HiSpeedModKind);
+            m_hiSpeed = Plugin.Config.GetFloat(NscConfigKey.HiSpeed);
+            m_modSpeed = Plugin.Config.GetFloat(NscConfigKey.ModSpeed);
 
             ForegroundGui.AddChild(new Panel()
             {
@@ -61,22 +66,61 @@ namespace NeuroSonic.Startup
                             new TextLabel(Font.Default24, "Constant Mod") { Position = new Vector2(300, 0) },
                         }
                     },
+
+                    new Panel()
+                    {
+                        Position = new Vector2(0, SPACING),
+
+                        Children = new TextLabel[]
+                        {
+                            m_hs = new TextLabel(Font.Default24, "Multiplier")   { Position = new Vector2(0, 0) },
+                        }
+                    },
                 }
             });
 
-            m_configActions = new Action<KeyCode>[]
+            m_configActions = new Action<KeyInfo>[]
             {
                 KeyPressed_HiSpeedKind,
+                KeyPressed_HiSpeed,
             };
         }
 
-        private void KeyPressed_HiSpeedKind(KeyCode key)
+        private void KeyPressed_HiSpeedKind(KeyInfo key)
         {
-            if (key != KeyCode.LEFT && key != KeyCode.RIGHT) return;
-            int dir = key == KeyCode.LEFT ? -1 : 1;
+            KeyCode code = key.KeyCode;
+            if (code != KeyCode.LEFT && code != KeyCode.RIGHT) return;
+            int dir = code == KeyCode.LEFT ? -1 : 1;
 
             m_hiSpeedKind = (HiSpeedMod)((int)(m_hiSpeedKind + dir + 3) % 3);
             Plugin.Config.Set(NscConfigKey.HiSpeedModKind, m_hiSpeedKind);
+        }
+
+        private void KeyPressed_HiSpeed(KeyInfo key)
+        {
+            KeyCode code = key.KeyCode;
+            if (code != KeyCode.LEFT && code != KeyCode.RIGHT) return;
+            int dir = code == KeyCode.LEFT ? -1 : 1;
+
+            bool ctrl = key.Mods.HasFlag(KeyMod.LCTRL) || key.Mods.HasFlag(KeyMod.RCTRL);
+
+            switch (m_hiSpeedKind)
+            {
+                case HiSpeedMod.Default:
+                {
+                    float amt = ctrl ? 1 : 5;
+                    m_hiSpeed = MathL.Round(((m_hiSpeed * 10) + dir * amt) / amt) * amt / 10;
+                    Plugin.Config.Set(NscConfigKey.HiSpeed, m_hiSpeed);
+                } break;
+
+                case HiSpeedMod.MMod:
+                case HiSpeedMod.CMod:
+                {
+                    float amt = ctrl ? 5 : 25;
+                    m_modSpeed = MathL.Round((m_modSpeed + dir * amt) / amt) * amt;
+                    Plugin.Config.Set(NscConfigKey.ModSpeed, m_modSpeed);
+                } break;
+            }
         }
 
         private void UpdateHiSpeedKinds()
@@ -94,6 +138,20 @@ namespace NeuroSonic.Startup
             }
         }
 
+        private void UpdateHiSpeed()
+        {
+            bool active = m_activeIndex == m_hsValueIndex;
+            m_hs.Color = active ? new Vector4(1, 1, 1, 1) : new Vector4(0.5f, 0.5f, 0.5f, 1);
+
+            switch (m_hiSpeedKind)
+            {
+                case HiSpeedMod.Default: m_hs.Text = $"{m_hiSpeed:F1}"; break;
+
+                case HiSpeedMod.MMod:
+                case HiSpeedMod.CMod: m_hs.Text = $"{(int)m_modSpeed}"; break;
+            }
+        }
+
         public override bool KeyPressed(KeyInfo key)
         {
             if (m_activeIndex >= 0)
@@ -103,7 +161,7 @@ namespace NeuroSonic.Startup
                     case KeyCode.RETURN:
                     case KeyCode.ESCAPE: m_activeIndex = -1; break;
 
-                    default: m_configActions[m_activeIndex](key.KeyCode); break;
+                    default: m_configActions[m_activeIndex](key); break;
                 }
 
                 return true;
@@ -132,6 +190,7 @@ namespace NeuroSonic.Startup
             base.Update(delta, total);
 
             UpdateHiSpeedKinds();
+            UpdateHiSpeed();
         }
     }
 }
