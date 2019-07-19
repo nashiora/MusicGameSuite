@@ -137,7 +137,7 @@ namespace NeuroSonic.Startup
                 case KeyCode.UP: NavigateUp(); break;
                 case KeyCode.DOWN: NavigateDown(); break;
 
-                case KeyCode.RETURN: m_items[ItemIndex].Action(); break;
+                case KeyCode.RETURN: m_items[ItemIndex].Action?.Invoke(); break;
 
                 // stick our false thing here, returning true is the default for handled keys
                 default:
@@ -163,7 +163,7 @@ namespace NeuroSonic.Startup
 
                     if (key.KeyCode == Plugin.Config.GetEnum<KeyCode>(NscConfigKey.Key_Start))
                     {
-                        m_items[ItemIndex].Action();
+                        m_items[ItemIndex].Action?.Invoke();
                         return true;
                     }
 
@@ -177,7 +177,7 @@ namespace NeuroSonic.Startup
         {
             switch (input)
             {
-                case ControllerInput.Start: m_items[ItemIndex].Action(); break;
+                case ControllerInput.Start: m_items[ItemIndex].Action?.Invoke(); break;
                 case ControllerInput.Back: OnExit(); break;
 
                 case ControllerInput.BT0: NavigateUp(); break;
