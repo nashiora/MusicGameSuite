@@ -104,6 +104,9 @@ namespace NeuroSonic.Startup
         private time_t m_totalInputInacc, m_totalVideoInacc;
         private int m_inputInaccCount, m_videoInaccCount;
 
+        private int InputOffset => m_inputInaccCount == 0 ? 0 : MathL.RoundToInt(m_totalInputInacc.Seconds * 1000 / m_inputInaccCount);
+        private int VideoOffset => m_videoInaccCount == 0 ? 0 : MathL.RoundToInt(m_totalVideoInacc.Seconds * 1000 / m_videoInaccCount);
+
         public override void Destroy()
         {
             base.Destroy();
@@ -228,8 +231,10 @@ namespace NeuroSonic.Startup
 
                 case KeyCode.RETURN:
                 {
-                    Plugin.Config.Set(NscConfigKey.InputOffset, MathL.RoundToInt(m_totalInputInacc.Seconds * 1000 / m_inputInaccCount));
-                    Plugin.Config.Set(NscConfigKey.VideoOffset, MathL.RoundToInt(m_totalVideoInacc.Seconds * 1000 / m_videoInaccCount));
+                    Plugin.Config.Set(NscConfigKey.InputOffset, InputOffset);
+                    Plugin.Config.Set(NscConfigKey.VideoOffset, VideoOffset);
+
+                    Host.PopToParent(this);
                 } break;
 
                 case KeyCode.SPACE:
@@ -273,15 +278,8 @@ namespace NeuroSonic.Startup
             m_inputLabel.Color = m_inputValueLabel.Color =  m_calcInputOffset ? Vector4.One : new Vector4(0.5f, 0.5f, 0.5f, 1);
             m_videoLabel.Color = m_videoValueLabel.Color = !m_calcInputOffset ? Vector4.One : new Vector4(0.5f, 0.5f, 0.5f, 1);
 
-            SetValue(m_inputValueLabel, m_totalInputInacc, m_inputInaccCount);
-            SetValue(m_videoValueLabel, m_totalVideoInacc, m_videoInaccCount);
-
-            void SetValue(TextLabel label, time_t inacc, int count)
-            {
-                if (count == 0)
-                    label.Text = "0";
-                else label.Text = $"{ MathL.RoundToInt(inacc.Seconds * 1000 / count) }";
-            }
+            m_inputValueLabel.Text = $"{ InputOffset }";
+            m_videoValueLabel.Text = $"{ VideoOffset }";
         }
 
         public override void Render()
