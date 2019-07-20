@@ -50,7 +50,7 @@ namespace theori
             if (!IsSuspended) return;
             IsSuspended = false;
 
-            Resume();
+            Resumed();
         }
 
         internal void RenderInternal()

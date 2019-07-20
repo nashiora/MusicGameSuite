@@ -115,12 +115,14 @@
     </Compile>
     <Compile Include="Startup\BaseMenuLayer.cs" />
     <Compile Include="Startup\BindingConfigurationLayer.cs" />
+    <Compile Include="Startup\CalibrationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
     <Compile Include="NeuroSonicGameMode.cs" />
     <Compile Include="NscConfig.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Startup\NeuroSonicStandaloneStartup.cs" />
+    <Compile Include="Startup\UserConfigLayer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Libraries\System-Additions\System-Additions.csproj">
