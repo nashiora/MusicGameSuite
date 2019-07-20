@@ -215,7 +215,7 @@ namespace NeuroSonic.Startup
             int sampleRate = master.SampleRate;
             int channels = master.Channels;
             double frequency = 432 * 2;
-            double bpm = 100;
+            double bpm = 150;
 
             m_click = new ClickTrack(sampleRate, channels, frequency, bpm);
             m_click.Channel = master;
@@ -302,7 +302,7 @@ namespace NeuroSonic.Startup
 
                     float alpha = (float)(clickProgress / beatDur).Seconds;
 
-                    int range = 3;
+                    int range = 1;
                     for (int i = -range; i <= range; i++)
                         DrawAt(alpha + i);
 
