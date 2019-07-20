@@ -82,6 +82,7 @@ namespace NeuroSonic.Startup
         private Sprite m_rlHueSprite;
         private TextLabel m_rlHue;
 
+        private int m_maxConfigIndex;
         private int m_activeIndex = -1;
 
         protected override void GenerateMenuItems()
@@ -92,6 +93,9 @@ namespace NeuroSonic.Startup
             AddMenuItem(new MenuItem(m_ioIndex = NextOffset, Strings.Term_InputOffset, null));
             AddMenuItem(new MenuItem(m_llHueIndex = NextOffset, Strings.Term_Gameplay_LeftLaserHue, null));
             AddMenuItem(new MenuItem(m_rlHueIndex = NextOffset, Strings.Term_Gameplay_RightLaserHue, null));
+            m_maxConfigIndex = NextOffset;
+            AddSpacing();
+            AddMenuItem(new MenuItem(NextOffset, "Timing Calibration", null));
         }
 
         public override void Destroy()
@@ -351,7 +355,7 @@ namespace NeuroSonic.Startup
 
                 return true;
             }
-            else
+            else if (ItemIndex < m_maxConfigIndex)
             {
                 if (key.KeyCode == KeyCode.RETURN)
                 {
@@ -377,7 +381,7 @@ namespace NeuroSonic.Startup
 
                 return true;
             }
-            else
+            else if (ItemIndex < m_maxConfigIndex)
             {
                 if (input == ControllerInput.Start)
                 {

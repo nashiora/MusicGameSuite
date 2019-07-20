@@ -115,14 +115,14 @@ namespace NeuroSonic.Startup
         protected void NavigateUp()
         {
             m_items[ItemIndex].Hilited = false;
-            ItemIndex = Math.Max(0, ItemIndex - 1);
+            ItemIndex = (ItemIndex - 1 + m_items.Count) % m_items.Count;
             m_items[ItemIndex].Hilited = true;
         }
 
         protected void NavigateDown()
         {
             m_items[ItemIndex].Hilited = false;
-            ItemIndex = Math.Min(m_items.Count - 1, ItemIndex + 1);
+            ItemIndex = (ItemIndex + 1 + m_items.Count) % m_items.Count;
             m_items[ItemIndex].Hilited = true;
         }
 
