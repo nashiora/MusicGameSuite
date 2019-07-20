@@ -115,6 +115,7 @@
     </Compile>
     <Compile Include="Startup\BaseMenuLayer.cs" />
     <Compile Include="Startup\BindingConfigurationLayer.cs" />
+    <Compile Include="Startup\CalibrationLayer.cs" />
     <Compile Include="Startup\InputMethodConfigLayer.cs" />
     <Compile Include="NeuroSonicGameMode.cs" />
     <Compile Include="NscConfig.cs" />

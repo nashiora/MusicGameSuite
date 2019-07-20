@@ -95,7 +95,7 @@ namespace NeuroSonic.Startup
             AddMenuItem(new MenuItem(m_rlHueIndex = NextOffset, Strings.Term_Gameplay_RightLaserHue, null));
             m_maxConfigIndex = NextOffset;
             AddSpacing();
-            AddMenuItem(new MenuItem(NextOffset, "Timing Calibration", null));
+            AddMenuItem(new MenuItem(NextOffset, "Timing Calibration", OpenCalibration));
         }
 
         public override void Destroy()
@@ -103,6 +103,11 @@ namespace NeuroSonic.Startup
             base.Destroy();
 
             Plugin.SaveNscConfig();
+        }
+
+        private void OpenCalibration()
+        {
+            Host.PushLayer(new CalibrationLayer());
         }
 
         public override void Init()
