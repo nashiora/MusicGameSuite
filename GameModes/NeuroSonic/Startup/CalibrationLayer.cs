@@ -1,7 +1,10 @@
 ﻿using System;
-
+using System.Numerics;
+using NeuroSonic.Properties;
 using theori;
 using theori.Audio;
+using theori.Graphics;
+using theori.Gui;
 using theori.IO;
 
 namespace NeuroSonic.Startup
@@ -25,6 +28,8 @@ namespace NeuroSonic.Startup
 
             public override time_t Length => throw new NotImplementedException();
 
+            public time_t BeatDuration { get; }
+
             private readonly double m_frequency;
             private readonly double m_samplesPerBeat, m_clickDurationSamples;
             private long m_singleChannelSampleIndex = 0;
@@ -36,6 +41,8 @@ namespace NeuroSonic.Startup
                 m_sampleRate = sampleRate;
                 m_channels = channels;
                 m_frequency = frequency;
+
+                BeatDuration = 60 / beatsPerMinute;
 
                 m_samplesPerBeat = 60 * sampleRate / beatsPerMinute;
                 m_clickDurationSamples = sampleRate * CLICK_DURATION_SECONDS;
@@ -50,7 +57,12 @@ namespace NeuroSonic.Startup
                 double attack = 0.0005 * sampleRate;
 
                 int numSamples = count / channels;
-                if (Silenced) goto end;
+                if (Silenced)
+                {
+                    for (int i = 0; i < numSamples; i++)
+                        buffer[offset + i * channels] = buffer[offset + i * channels + 1] = 0;
+                    goto end;
+                }
 
                 // do this kinda naive first
                 for (int i = 0; i < numSamples; i++)
@@ -82,6 +94,15 @@ namespace NeuroSonic.Startup
         private string Title => "Calibration";
 
         private ClickTrack m_click;
+        private BasicSpriteRenderer m_renderer;
+
+        private TextLabel m_inputLabel, m_videoLabel;
+        private TextLabel m_inputValueLabel, m_videoValueLabel;
+
+        private bool m_calcInputOffset = true;
+
+        private time_t m_totalInputInacc, m_totalVideoInacc;
+        private int m_inputInaccCount, m_videoInaccCount;
 
         public override void Destroy()
         {
@@ -89,20 +110,114 @@ namespace NeuroSonic.Startup
 
             m_click.Channel = null;
             m_click = null;
+
+            m_renderer.Dispose();
+            m_renderer = null;
         }
 
         public override void Init()
         {
             base.Init();
 
+            ForegroundGui = new Panel()
+            {
+                Children = new GuiElement[]
+                {
+                    new TextLabel(Font.Default32, Title)
+                    {
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.5f, 20),
+                        TextAlignment = Anchor.TopCenter,
+                    },
+
+                    m_inputLabel = new TextLabel(Font.Default24, "Input Offset")
+                    {
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.25f, 20),
+                        TextAlignment = Anchor.TopCenter,
+                    },
+
+                    m_videoLabel = new TextLabel(Font.Default24, "Video Offset")
+                    {
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.75f, 20),
+                        TextAlignment = Anchor.TopCenter,
+                    },
+
+                    m_inputValueLabel = new TextLabel(Font.Default24, "0")
+                    {
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.25f, 50),
+                        TextAlignment = Anchor.TopCenter,
+                    },
+
+                    m_videoValueLabel = new TextLabel(Font.Default24, "0")
+                    {
+                        RelativePositionAxes = Axes.X,
+                        Position = new Vector2(0.75f, 50),
+                        TextAlignment = Anchor.TopCenter,
+                    },
+
+                    new Panel()
+                    {
+                        RelativeSizeAxes = Axes.X,
+                        RelativePositionAxes = Axes.Both,
+
+                        Position = new Vector2(0, 1),
+                        Size = new Vector2(1, 0),
+
+                        Children = new GuiElement[]
+                        {
+                            new TextLabel(Font.Default16, "[Left / FX-L] Select Input Offset")
+                            {
+                                TextAlignment = Anchor.BottomLeft,
+                                Position = new Vector2(10, -10),
+                            },
+
+                            new TextLabel(Font.Default16, "Press the Spacebar or any BT to either clicks or the scrolling bars")
+                            {
+                                RelativePositionAxes = Axes.X,
+                                TextAlignment = Anchor.BottomCenter,
+                                Position = new Vector2(0.5f, -70),
+                            },
+
+                            new TextLabel(Font.Default16, "Press the Enter or START to save the values to your config")
+                            {
+                                RelativePositionAxes = Axes.X,
+                                TextAlignment = Anchor.BottomCenter,
+                                Position = new Vector2(0.5f, -40),
+                            },
+
+                            new Panel()
+                            {
+                                RelativePositionAxes = Axes.X,
+
+                                Position = new Vector2(1, 0),
+
+                                Children = new GuiElement[]
+                                {
+                                    new TextLabel(Font.Default16, "Select Video Offset [Right / FX-R]")
+                                    {
+                                        TextAlignment = Anchor.BottomRight,
+                                        Position = new Vector2(-10, -10),
+                                    },
+                                }
+                            },
+                        }
+                    },
+                }
+            };
+
             var master = Host.Mixer.MasterChannel;
             int sampleRate = master.SampleRate;
             int channels = master.Channels;
-            double frequency = 432;
-            double bpm = 90;
+            double frequency = 432 * 2;
+            double bpm = 100;
 
             m_click = new ClickTrack(sampleRate, channels, frequency, bpm);
             m_click.Channel = master;
+
+            m_renderer = new BasicSpriteRenderer();
         }
 
         public override bool KeyPressed(KeyInfo key)
@@ -110,9 +225,103 @@ namespace NeuroSonic.Startup
             switch (key.KeyCode)
             {
                 case KeyCode.ESCAPE: Host.PopToParent(this); break;
+
+                case KeyCode.RETURN:
+                {
+                    Plugin.Config.Set(NscConfigKey.InputOffset, MathL.RoundToInt(m_totalInputInacc.Seconds * 1000 / m_inputInaccCount));
+                    Plugin.Config.Set(NscConfigKey.VideoOffset, MathL.RoundToInt(m_totalVideoInacc.Seconds * 1000 / m_videoInaccCount));
+                } break;
+
+                case KeyCode.SPACE:
+                {
+                    time_t pos = m_click.Position;
+                    time_t beatDur = m_click.BeatDuration;
+
+                    time_t clickProgress = pos % beatDur;
+                    time_t relPos = (pos + beatDur / 2) % beatDur - beatDur / 2;
+
+                    time_t inacc = relPos;
+
+                    if (m_calcInputOffset)
+                    {
+                        m_totalInputInacc += inacc;
+                        m_inputInaccCount++;
+                    }
+                    else
+                    {
+                        // Video is calculated as the opposite for reasons, dw
+                        m_totalVideoInacc -= inacc;
+                        m_videoInaccCount++;
+                    }
+                } break;
+
+                case KeyCode.LEFT:  m_calcInputOffset = true;  break;
+                case KeyCode.RIGHT: m_calcInputOffset = false; break;
+
+                default: return false;
             }
 
-            return false;
+            return true;
+        }
+
+        public override void Update(float delta, float total)
+        {
+            base.Update(delta, total);
+
+            m_click.Silenced = !m_calcInputOffset;
+
+            m_inputLabel.Color = m_inputValueLabel.Color =  m_calcInputOffset ? Vector4.One : new Vector4(0.5f, 0.5f, 0.5f, 1);
+            m_videoLabel.Color = m_videoValueLabel.Color = !m_calcInputOffset ? Vector4.One : new Vector4(0.5f, 0.5f, 0.5f, 1);
+
+            SetValue(m_inputValueLabel, m_totalInputInacc, m_inputInaccCount);
+            SetValue(m_videoValueLabel, m_totalVideoInacc, m_videoInaccCount);
+
+            void SetValue(TextLabel label, time_t inacc, int count)
+            {
+                if (count == 0)
+                    label.Text = "0";
+                else label.Text = $"{ MathL.RoundToInt(inacc.Seconds * 1000 / count) }";
+            }
+        }
+
+        public override void Render()
+        {
+            base.Render();
+
+            float w = Window.Width, h = Window.Height;
+
+            m_renderer.BeginFrame();
+            {
+                m_renderer.SetColor(127, 127, 127);
+                m_renderer.FillRect(w / 2 - 1, 150, 2, h - 300);
+
+                if (!m_calcInputOffset)
+                {
+                    time_t pos = m_click.Position;
+                    time_t beatDur = m_click.BeatDuration;
+
+                    time_t clickProgress = pos % beatDur;
+
+                    float alpha = (float)(clickProgress / beatDur).Seconds;
+
+                    int range = 3;
+                    for (int i = -range; i <= range; i++)
+                        DrawAt(alpha + i);
+
+                    void DrawAt(float diff)
+                    {
+                        float a = 0.0f;
+                        if (diff >= 0 && diff <= 0.4f)
+                            a = 1 - diff / 0.4f;
+
+                        m_renderer.SetColor(MathL.Lerp(127, 255, a), MathL.Lerp(127, 255, a), MathL.Lerp(255, 0, a));
+                        float s = MathL.Lerp(2, 20, a);
+
+                        m_renderer.FillRect((w - s) / 2 - (w / (2 * range)) * diff, 150, s, h - 300);
+                    }
+                }
+            }
+            m_renderer.EndFrame();
         }
     }
 }

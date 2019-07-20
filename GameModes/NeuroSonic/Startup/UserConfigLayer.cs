@@ -110,6 +110,14 @@ namespace NeuroSonic.Startup
             Host.PushLayer(new CalibrationLayer());
         }
 
+        public override void Resumed()
+        {
+            base.Resumed();
+
+            m_voffValue = Plugin.Config.GetInt(NscConfigKey.VideoOffset);
+            m_ioffValue = Plugin.Config.GetInt(NscConfigKey.InputOffset);
+        }
+
         public override void Init()
         {
             base.Init();
