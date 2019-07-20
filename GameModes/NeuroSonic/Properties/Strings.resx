@@ -161,4 +161,48 @@
     <value>[Up / Down] or [BT-A / BT-B] Navigate Menu</value>
     <comment>Displays in the bottom left corner instructing the user how to navigate the secret menus</comment>
   </data>
+  <data name="SecretMenu.UserConfigTitle" xml:space="preserve">
+    <value>Config</value>
+    <comment>Title for the Config secret menu screen.</comment>
+  </data>
+  <data name="Term.Gameplay.LeftLaserHue" xml:space="preserve">
+    <value>Left Laser Hue</value>
+    <comment>Used to label the hue of the left laser gameplay element.</comment>
+  </data>
+  <data name="Term.Gameplay.RightLaserHue" xml:space="preserve">
+    <value>Right Laser Hue</value>
+    <comment>Used to label the hue of the right laser gameplay element.</comment>
+  </data>
+  <data name="Term.HiSpeed" xml:space="preserve">
+    <value>HiSpeed</value>
+    <comment>The term used when referring to the speed of notes down the highway; related to the amount of time seen in advance.</comment>
+  </data>
+  <data name="Term.HiSpeedKind" xml:space="preserve">
+    <value>HiSpeed Kind</value>
+    <comment>Used to identify the different kinds of HiSpeed</comment>
+  </data>
+  <data name="Term.HiSpeedKind.ConstantMod" xml:space="preserve">
+    <value>Constant Mod</value>
+    <comment>HiSpeed kind similar to Mode Mod, calculates the hispeed the same way but disallows changes to that speed by the chart.</comment>
+  </data>
+  <data name="Term.HiSpeedKind.ModeMod" xml:space="preserve">
+    <value>Mode Mod</value>
+    <comment>HiSpeed kind which calculates the multiplier based on a given desired BPM divided by the mode BPM. Otherwise functions the same as Multiplier.</comment>
+  </data>
+  <data name="Term.HiSpeedKind.Multiplier" xml:space="preserve">
+    <value>Multiplier</value>
+    <comment>HiSpeed kind which is a multiplier of the BPM. x1.0 by default.</comment>
+  </data>
+  <data name="Term.HiSpeedValue" xml:space="preserve">
+    <value>HiSpeed Value</value>
+    <comment>Used when referring to the value of the HiSpeed, either the multiplier or desired BPM.</comment>
+  </data>
+  <data name="Term.InputOffset" xml:space="preserve">
+    <value>Input Offset</value>
+    <comment>Describes the offset applied to the judgement and scoring from the reported audio clock.</comment>
+  </data>
+  <data name="Term.VideoOffset" xml:space="preserve">
+    <value>Video Offset</value>
+    <comment>Describes the offset applied to the gameplay graphics from the reported audio clock.</comment>
+  </data>
 </root>

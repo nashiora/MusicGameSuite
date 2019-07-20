@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using NeuroSonic.IO;
+using NeuroSonic.Properties;
 using theori;
 using theori.Graphics;
 using theori.Gui;
@@ -53,7 +54,7 @@ namespace NeuroSonic.Startup
             }
         }
 
-        protected override string Title => "Config";
+        protected override string Title => Strings.SecretMenu_UserConfigTitle;
 
         private int m_hsKindIndex, m_hsValueIndex;
         private int m_voIndex, m_ioIndex;
@@ -85,12 +86,12 @@ namespace NeuroSonic.Startup
 
         protected override void GenerateMenuItems()
         {
-            AddMenuItem(new MenuItem(m_hsKindIndex = NextOffset, "HiSpeed Kind", null));
-            AddMenuItem(new MenuItem(m_hsValueIndex = NextOffset, "HiSpeed Value", null));
-            AddMenuItem(new MenuItem(m_voIndex = NextOffset, "Video Offset", null));
-            AddMenuItem(new MenuItem(m_ioIndex = NextOffset, "Input Offset", null));
-            AddMenuItem(new MenuItem(m_llHueIndex = NextOffset, "Left Laser Hue", null));
-            AddMenuItem(new MenuItem(m_rlHueIndex = NextOffset, "Right Laser Hue", null));
+            AddMenuItem(new MenuItem(m_hsKindIndex = NextOffset, Strings.Term_HiSpeedKind, null));
+            AddMenuItem(new MenuItem(m_hsValueIndex = NextOffset, Strings.Term_HiSpeedValue, null));
+            AddMenuItem(new MenuItem(m_voIndex = NextOffset, Strings.Term_VideoOffset, null));
+            AddMenuItem(new MenuItem(m_ioIndex = NextOffset, Strings.Term_InputOffset, null));
+            AddMenuItem(new MenuItem(m_llHueIndex = NextOffset, Strings.Term_Gameplay_LeftLaserHue, null));
+            AddMenuItem(new MenuItem(m_rlHueIndex = NextOffset, Strings.Term_Gameplay_RightLaserHue, null));
         }
 
         public override void Destroy()
@@ -123,18 +124,18 @@ namespace NeuroSonic.Startup
                 {
                     new Panel()
                     {
-                        Position = new Vector2(0, 0),
+                        Position = new Vector2(0, SPACING * m_hsKindIndex),
                         Children = m_hsKinds = new TextLabel[]
                         {
-                            new TextLabel(Font.Default24, "Multiplier")   { Position = new Vector2(0, 0) },
-                            new TextLabel(Font.Default24, "Mode Mod")     { Position = new Vector2(150, 0) },
-                            new TextLabel(Font.Default24, "Constant Mod") { Position = new Vector2(300, 0) },
+                            new TextLabel(Font.Default24, Strings.Term_HiSpeedKind_Multiplier)   { Position = new Vector2(0, 0) },
+                            new TextLabel(Font.Default24, Strings.Term_HiSpeedKind_ModeMod)     { Position = new Vector2(150, 0) },
+                            new TextLabel(Font.Default24, Strings.Term_HiSpeedKind_ConstantMod) { Position = new Vector2(300, 0) },
                         }
                     },
 
                     new Panel()
                     {
-                        Position = new Vector2(0, SPACING),
+                        Position = new Vector2(0, SPACING * m_hsValueIndex),
                         Children = new TextLabel[]
                         {
                             m_hs = new TextLabel(Font.Default24, "0")   { Position = new Vector2(0, 0) },
@@ -143,7 +144,7 @@ namespace NeuroSonic.Startup
 
                     new Panel()
                     {
-                        Position = new Vector2(0, SPACING * 2),
+                        Position = new Vector2(0, SPACING * m_voIndex),
                         Children = new TextLabel[]
                         {
                             m_voff = new TextLabel(Font.Default24, "0")   { Position = new Vector2(0, 0) },
@@ -152,7 +153,7 @@ namespace NeuroSonic.Startup
 
                     new Panel()
                     {
-                        Position = new Vector2(0, SPACING * 3),
+                        Position = new Vector2(0, SPACING * m_ioIndex),
                         Children = new TextLabel[]
                         {
                             m_ioff = new TextLabel(Font.Default24, "0")   { Position = new Vector2(0, 0) },
@@ -161,7 +162,7 @@ namespace NeuroSonic.Startup
 
                     new Panel()
                     {
-                        Position = new Vector2(0, SPACING * 4),
+                        Position = new Vector2(0, SPACING * m_llHueIndex),
                         Children = new GuiElement[]
                         {
                             m_llHueSprite = new Sprite(null) { Size = new Vector2(SPACING - 10) },
@@ -171,7 +172,7 @@ namespace NeuroSonic.Startup
 
                     new Panel()
                     {
-                        Position = new Vector2(0, SPACING * 5),
+                        Position = new Vector2(0, SPACING * m_rlHueIndex),
                         Children = new GuiElement[]
                         {
                             m_rlHueSprite = new Sprite(null) { Size = new Vector2(SPACING - 10) },

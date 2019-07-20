@@ -158,5 +158,104 @@ namespace NeuroSonic.Properties {
                 return ResourceManager.GetString("SecretMenu.UpDownNavHint", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Config.
+        /// </summary>
+        public static string SecretMenu_UserConfigTitle {
+            get {
+                return ResourceManager.GetString("SecretMenu.UserConfigTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Left Laser Hue.
+        /// </summary>
+        public static string Term_Gameplay_LeftLaserHue {
+            get {
+                return ResourceManager.GetString("Term.Gameplay.LeftLaserHue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Right Laser Hue.
+        /// </summary>
+        public static string Term_Gameplay_RightLaserHue {
+            get {
+                return ResourceManager.GetString("Term.Gameplay.RightLaserHue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HiSpeed.
+        /// </summary>
+        public static string Term_HiSpeed {
+            get {
+                return ResourceManager.GetString("Term.HiSpeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HiSpeed Kind.
+        /// </summary>
+        public static string Term_HiSpeedKind {
+            get {
+                return ResourceManager.GetString("Term.HiSpeedKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Constant Mod.
+        /// </summary>
+        public static string Term_HiSpeedKind_ConstantMod {
+            get {
+                return ResourceManager.GetString("Term.HiSpeedKind.ConstantMod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mode Mod.
+        /// </summary>
+        public static string Term_HiSpeedKind_ModeMod {
+            get {
+                return ResourceManager.GetString("Term.HiSpeedKind.ModeMod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiplier.
+        /// </summary>
+        public static string Term_HiSpeedKind_Multiplier {
+            get {
+                return ResourceManager.GetString("Term.HiSpeedKind.Multiplier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to HiSpeed Value.
+        /// </summary>
+        public static string Term_HiSpeedValue {
+            get {
+                return ResourceManager.GetString("Term.HiSpeedValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Input Offset.
+        /// </summary>
+        public static string Term_InputOffset {
+            get {
+                return ResourceManager.GetString("Term.InputOffset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Video Offset.
+        /// </summary>
+        public static string Term_VideoOffset {
+            get {
+                return ResourceManager.GetString("Term.VideoOffset", resourceCulture);
+            }
+        }
     }
 }
