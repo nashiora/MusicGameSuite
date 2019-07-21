@@ -242,11 +242,7 @@ namespace NeuroSonic.Startup
                     time_t pos = m_click.Position;
                     time_t beatDur = m_click.BeatDuration;
 
-                    time_t clickProgress = pos % beatDur;
-                    time_t relPos = (pos + beatDur / 2) % beatDur - beatDur / 2;
-
-                    time_t inacc = relPos;
-
+                    time_t inacc = (pos + beatDur / 2) % beatDur - beatDur / 2;
                     if (m_calcInputOffset)
                     {
                         m_totalInputInacc += inacc;
@@ -262,6 +258,53 @@ namespace NeuroSonic.Startup
 
                 case KeyCode.LEFT:  m_calcInputOffset = true;  break;
                 case KeyCode.RIGHT: m_calcInputOffset = false; break;
+
+                default: return false;
+            }
+
+            return true;
+        }
+
+        protected internal override bool ControllerButtonPressed(ControllerInput input)
+        {
+            switch (input)
+            {
+                case ControllerInput.Back: Host.PopToParent(this); break;
+
+                case ControllerInput.Start:
+                {
+                    Plugin.Config.Set(NscConfigKey.InputOffset, InputOffset);
+                    Plugin.Config.Set(NscConfigKey.VideoOffset, VideoOffset);
+
+                    Host.PopToParent(this);
+                }
+                break;
+
+                case ControllerInput.BT0:
+                case ControllerInput.BT1:
+                case ControllerInput.BT2:
+                case ControllerInput.BT3:
+                {
+                    time_t pos = m_click.Position;
+                    time_t beatDur = m_click.BeatDuration;
+
+                    time_t inacc = (pos + beatDur / 2) % beatDur - beatDur / 2;
+                    if (m_calcInputOffset)
+                    {
+                        m_totalInputInacc += inacc;
+                        m_inputInaccCount++;
+                    }
+                    else
+                    {
+                        // Video is calculated as the opposite for reasons, dw
+                        m_totalVideoInacc -= inacc;
+                        m_videoInaccCount++;
+                    }
+                }
+                break;
+
+                case ControllerInput.FX0: m_calcInputOffset = true; break;
+                case ControllerInput.FX1: m_calcInputOffset = false; break;
 
                 default: return false;
             }
