@@ -1,8 +1,10 @@
-﻿using theori;
+﻿using Newtonsoft.Json;
+using theori;
 using theori.Charting;
 
 namespace NeuroSonic.Charting
 {
+    [JsonObject(nameof(LaserParams))]
     public struct LaserParams
     {
         /// <summary>
@@ -15,6 +17,7 @@ namespace NeuroSonic.Charting
         public LaserScale Scale;
     }
 
+    [JsonObject(nameof(SpinParams))]
     public struct SpinParams
     {
         /// <summary>
@@ -29,6 +32,7 @@ namespace NeuroSonic.Charting
         public time_t Duration;
     }
 
+    [JsonObject(nameof(SwingParams))]
     public struct SwingParams
     {
         /// <summary>
@@ -47,6 +51,7 @@ namespace NeuroSonic.Charting
         public float Amplitude;
     }
 
+    [JsonObject(nameof(WobbleParams))]
     public struct WobbleParams
     {
         /// <summary>

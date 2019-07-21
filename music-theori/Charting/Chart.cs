@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using theori.GameModes;
 
 namespace theori.Charting
 {
@@ -13,6 +14,8 @@ namespace theori.Charting
         public ChartInfo Info { get; set; } = new ChartInfo();
 
         public readonly int StreamCount;
+
+        public readonly GameMode GameMode;
 
         /// <summary>
         /// Contains StreamCount ObjectStreams.
@@ -100,9 +103,11 @@ namespace theori.Charting
             }
         }
 
-        public Chart(int streamCount)
+        public Chart(int streamCount, GameMode gameMode = null)
         {
             StreamCount = streamCount;
+            GameMode = gameMode;
+
             ObjectStreams = new ObjectStream[streamCount];
             for (int i = 0; i < streamCount; i++)
                 ObjectStreams[i] = new ObjectStream(this, i);

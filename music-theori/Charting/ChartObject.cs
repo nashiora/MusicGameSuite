@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+
+using theori.GameModes;
 
 namespace theori.Charting
 {
@@ -8,9 +12,92 @@ namespace theori.Charting
         Audio.Effects.EffectDef Effect { get; }
     }
 
+    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+    public class ChartObjectTypeAttribute : Attribute
+    {
+        public readonly string Name;
+
+        public ChartObjectTypeAttribute(string name)
+        {
+            Name = name;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class TheoriPropertyAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class TheoriIgnoreAttribute : Attribute
+    {
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class TheoriIgnoreDefaultAttribute : Attribute
+    {
+    }
+
+    [ChartObjectType("Object")]
     public class ChartObject : ILinkable<ChartObject>, IComparable<ChartObject>, ICloneable
     {
         private static long creationIndexCounter = 0;
+
+        private static readonly Dictionary<string, Type> objectTypesById = new Dictionary<string, Type>();
+        private static readonly Dictionary<Type, string> objectIdsByType = new Dictionary<Type, string>();
+
+        public static Type GetObjectTypeById(string id)
+        {
+            if (objectTypesById.TryGetValue(id, out var type))
+                return type;
+            return null;
+        }
+
+        public static string GetObjectId<T>() where T : ChartObject => GetObjectIdByType(typeof(T));
+        public static string GetObjectIdByType(Type type)
+        {
+            if (objectIdsByType.TryGetValue(type, out string id))
+                return id;
+            return null;
+        }
+
+        internal static void RegisterTheoriTypes()
+        {
+            var types = from type in typeof(ChartObject).Assembly.ExportedTypes
+                        where type == typeof(ChartObject) || type.IsSubclassOf(typeof(ChartObject))
+                        select type;
+            RegisterTypes("theori", types);
+        }
+
+        public static void RegisterTypesFromGameMode(GameMode gameMode)
+        {
+            var types = from type in gameMode.GetType().Assembly.ExportedTypes
+                        where type.IsSubclassOf(typeof(ChartObject))
+                        select type;
+            RegisterTypes(gameMode.Name, types);
+        }
+
+        private static void RegisterTypes(string modeName, IEnumerable<Type> types)
+        {
+            foreach (var type in types)
+            {
+                string typeName;
+
+                var typeAttrib = type.GetCustomAttribute<ChartObjectTypeAttribute>();
+                if (typeAttrib != null)
+                    typeName = typeAttrib.Name;
+                else typeName = type.Name;
+
+                string id = $"{ modeName }.{ typeName }";
+                objectTypesById[id] = type;
+                objectIdsByType[type] = id;
+            }
+        }
+
+        static ChartObject()
+        {
+            RegisterTheoriTypes();
+        }
 
         private readonly long m_id = ++creationIndexCounter;
 
@@ -23,7 +110,6 @@ namespace theori.Charting
         /// <summary>
         /// The position, in beats, of this object.
         /// </summary>
-        [SerializeField]
         public tick_t Position
         {
             get => m_position;
@@ -32,16 +118,20 @@ namespace theori.Charting
                 if (value < 0)
                     throw new ArgumentException("Objects cannot have negative positions.", nameof(Position));
 
-                m_position = value;
-                InvalidateTimingCalc();
+                if (SetPropertyField(nameof(Position), ref m_position, value))
+                    InvalidateTimingCalc();
             }
         }
-        
-        [SerializeField]
+
+        [TheoriIgnoreDefault]
         public tick_t Duration
         {
             get => m_duration;
-            set { m_duration = value; InvalidateTimingCalc(); }
+            set
+            {
+                if (SetPropertyField(nameof(Duration), ref m_duration, value))
+                    InvalidateTimingCalc();
+            }
         }
 
         public tick_t EndPosition => Position + Duration;
@@ -82,11 +172,14 @@ namespace theori.Charting
 
         public time_t AbsoluteDuration => AbsoluteEndPosition - AbsolutePosition;
 
+        [TheoriIgnore]
         public int Stream
         {
             get => m_stream;
             set
             {
+                if (m_stream == value) return;
+
                 var chart = Chart;
                 if (chart != null)
                 {
@@ -95,12 +188,14 @@ namespace theori.Charting
                     chart.ObjectStreams[value].Add(this);
                 }
                 else m_stream = value;
+
+                OnPropertyChanged(nameof(Stream));
             }
         }
-        
+
         public bool HasPrevious => Previous != null;
         public bool HasNext => Next != null;
-        
+
         public ChartObject Previous => ((ILinkable<ChartObject>)this).Previous;
         ChartObject ILinkable<ChartObject>.Previous { get; set; }
 
@@ -219,40 +314,15 @@ namespace theori.Charting
             PropertyChanged?.Invoke(this, args);
         }
 
-        protected void SetPropertyField<T>(string propertyName, ref T field, T value)
+        protected bool SetPropertyField<T>(string propertyName, ref T field, T value)
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
-                return;
+                return false;
 
             field = value;
             OnPropertyChanged(propertyName);
-        }
-    }
 
-    public sealed class DictObject : ChartObject
-    {
-        private readonly Dictionary<string, Variant> values = new Dictionary<string, Variant>();
-
-        public Variant this[string name]
-        {
-            get
-            {
-                if (values.TryGetValue(name, out var result))
-                    return result;
-                return Variant.Null;
-            }
-
-            set
-            {
-                if (values.TryGetValue(name, out var result))
-                {
-                    if (value == result)
-                        return;
-                }
-
-                values[name] = value;
-                OnPropertyChanged(name);
-            }
+            return true;
         }
     }
 }

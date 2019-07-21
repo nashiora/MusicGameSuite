@@ -21,6 +21,7 @@ using OpenGL;
 using System.Numerics;
 using MoonSharp.Interpreter;
 using MoonSharp.Interpreter.Interop;
+using theori.Charting;
 
 namespace theori
 {
@@ -386,9 +387,9 @@ namespace theori
 
         #endregion
 
-        public static void RegisterSharedGameMode(GameMode desc)
+        public static void RegisterSharedGameMode(GameMode gameMode)
         {
-            if (!desc.SupportsSharedUsage)
+            if (!gameMode.SupportsSharedUsage)
             {
                 Logger.Log($"{ nameof(RegisterSharedGameMode) } called with a game mode that does not support shared usage.");
                 return;
@@ -397,15 +398,16 @@ namespace theori
             foreach (var mode in sharedGameModes)
             {
                 // simply don't add exact duplicates
-                if (mode == desc) return;
-                if (mode.Name == desc.Name)
+                if (mode == gameMode) return;
+                if (mode.Name == gameMode.Name)
                 {
                     Logger.Log("Attempt to add a game mode with the same name as a previously added game mode. Until unique identification is added, this is illegal.");
                     return;
                 }
             }
 
-            sharedGameModes.Add(desc);
+            sharedGameModes.Add(gameMode);
+            ChartObject.RegisterTypesFromGameMode(gameMode);
         }
 
         private static void ProgramLoop()
@@ -495,11 +497,15 @@ namespace theori
             runProgramLoop = false;
         }
 
-        public static void StartStandalone(GameMode desc, string[] args)
+        public static void StartStandalone(GameMode gameMode, string[] args)
         {
-            if (desc != null)
-                desc.InvokeStandalone(args);
+            if (gameMode != null)
+            {
+                ChartObject.RegisterTypesFromGameMode(gameMode);
+                gameMode.InvokeStandalone(args);
+            }
             else PushLayer(new StandaloneBootLoader(args));
+
             ProgramLoop();
         }
 

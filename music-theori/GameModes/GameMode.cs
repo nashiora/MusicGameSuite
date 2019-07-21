@@ -51,6 +51,8 @@ namespace theori.GameModes
         {
             Name = name;
         }
+        
+        public virtual ChartSerializer CreateSerializer(string chartsDir) => new ChartSerializer(chartsDir, this);
 
         public abstract ChartObjectSerializer GetSerializerByID(int id);
         public abstract ChartObjectSerializer GetSerializerFor(ChartObject obj);

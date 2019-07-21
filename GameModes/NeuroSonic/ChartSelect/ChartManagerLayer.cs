@@ -211,10 +211,16 @@ namespace NeuroSonic.ChartSelect
 
             selected = primaryChart.Info;
 
-            var setSerializer = new ChartSetSerializer();
-            var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
+            var s = new ChartSerializer(m_chartsDir, NeuroSonicGameMode.Instance);
+            foreach (var (_, chart) in chartFiles)
+                s.SaveChartToFile(chart);
 
+            var setSerializer = new ChartSetSerializer();
             setSerializer.SaveToFile(m_chartsDir, chartSetInfo);
+
+            return chartSetInfo;
+
+            var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
             foreach (var (_, chart) in chartFiles)
                 serializer.SaveToFile(m_chartsDir, chart);
 
