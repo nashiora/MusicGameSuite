@@ -95,6 +95,22 @@ namespace theori.Charting.IO
             var chartInfo = chart.Info;
             string chartFile = Path.Combine(ChartsDir, chartInfo.Set.FilePath, chartInfo.FileName);
 
+            var effectTable = new ChartEffectTable();
+            for (int s = 0; s < chart.StreamCount; s++)
+            {
+                var stream = chart[s];
+                foreach (var obj in stream)
+                {
+                    if (obj is IHasEffectDef e)
+                    {
+                        var effect = e.Effect;
+                        if (effect == null || effect.Type == EffectType.None)
+                            continue;
+                        effectTable.Add(effect);
+                    }
+                }
+            }
+
             var stringWriter = new StringWriter();
             using (var writer = new JsonTextWriter(stringWriter))
             {
@@ -103,12 +119,21 @@ namespace theori.Charting.IO
                     writer.WritePropertyName("Effects");
                     writer.WriteStartArray();
                     {
+                        for (int i = 0; i < effectTable.Count; i++)
+                            WriteValue(effectTable[i]);
                     }
                     writer.WriteEndArray();
 
                     writer.WritePropertyName("ControlPoints");
                     writer.WriteStartArray();
                     {
+                        for (int i = 0; i < chart.ControlPoints.Count; i++)
+                        {
+                            var cp = chart.ControlPoints[i];
+                            if (cp == null)
+                                Logger.Log($"Null object in control points at { i }");
+                            else WriteValue(cp);
+                        }
                     }
                     writer.WriteEndArray();
 
@@ -154,12 +179,28 @@ namespace theori.Charting.IO
                         writer.WriteValue(str);
                     else if (obj is tick_t tick)
                         writer.WriteValue((double)tick);
+                    else if (obj is time_t time)
+                        writer.WriteValue((double)time);
                     else if (objType.IsPrimitive)
                         writer.WriteValue(obj);
+                    else if (obj is EffectDef effect)
+                    {
+                        writer.WriteStartObject();
+                        {
+                            writer.WritePropertyName("EffectType");
+                            string name = objType.Name;
+                            if (name.EndsWith(nameof(EffectDef)))
+                                name = name.Substring(0, name.IndexOf(nameof(EffectDef)));
+                            // NOTE(local): use similar naming convention to chart objects in case of allowing game mode created effects
+                            writer.WriteValue($"theori.{ name }");
+                        }
+                        writer.WriteEndObject();
+                    }
                     else
                     {
                         writer.WriteStartObject();
                         {
+                            // NOTE(local): Currently this system assumes all type information can be gathered EXCEPT that of ChartObjects (and EffectDefs)
                             if (obj is ChartObject cobj)
                             {
                                 writer.WritePropertyName("ChartObjectType");
