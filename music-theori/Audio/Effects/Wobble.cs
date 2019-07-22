@@ -59,6 +59,8 @@ namespace theori.Audio.Effects
     {
         public EffectParamF Period;
 
+        public WobbleEffectDef() : base(EffectType.Wobble) { }
+
         public WobbleEffectDef(EffectParamF mix, EffectParamF period)
             : base(EffectType.Wobble, mix)
         {

@@ -69,7 +69,9 @@ namespace theori.Audio.Effects
 
     public sealed class TapeStopEffectDef : EffectDef
     {
-        public EffectParamF Duration { get; }
+        public EffectParamF Duration;
+
+        public TapeStopEffectDef() : base(EffectType.TapeStop) { }
         
         public TapeStopEffectDef(EffectParamF mix, EffectParamF duration)
             : base(EffectType.TapeStop, mix)

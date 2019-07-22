@@ -79,8 +79,10 @@ namespace theori.Audio.Effects
 
     public sealed class RetriggerEffectDef : EffectDef
     {
-        public EffectParamF GateDuration { get; }
-        public EffectParamF Gating { get; }
+        public EffectParamF GateDuration;
+        public EffectParamF Gating;
+
+        public RetriggerEffectDef() : base(EffectType.Retrigger) { }
         
         public RetriggerEffectDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
             : base(EffectType.Retrigger, mix)

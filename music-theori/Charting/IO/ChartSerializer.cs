@@ -183,18 +183,63 @@ namespace theori.Charting.IO
                         writer.WriteValue((double)time);
                     else if (objType.IsPrimitive)
                         writer.WriteValue(obj);
-                    else if (obj is EffectDef effect)
+                    else if (obj is IEffectParam ep)
                     {
-                        writer.WriteStartObject();
+                        switch (ep)
                         {
-                            writer.WritePropertyName("EffectType");
-                            string name = objType.Name;
-                            if (name.EndsWith(nameof(EffectDef)))
-                                name = name.Substring(0, name.IndexOf(nameof(EffectDef)));
-                            // NOTE(local): use similar naming convention to chart objects in case of allowing game mode created effects
-                            writer.WriteValue($"theori.{ name }");
+                            case EffectParamX xp:
+                            {
+                                if (xp.IsRange)
+                                {
+                                    writer.WriteStartObject();
+
+                                    writer.WritePropertyName("MinValue");
+                                    writer.WriteValue(xp.MinValueReal);
+
+                                    writer.WritePropertyName("MaxValue");
+                                    writer.WriteValue(xp.MaxValueReal);
+
+                                    writer.WriteEndObject();
+                                }
+                                else writer.WriteValue(xp.MinValueReal);
+                            } break;
+
+                            case EffectParamI ip:
+                            {
+                                if (ip.IsRange)
+                                {
+                                    writer.WriteStartObject();
+
+                                    writer.WritePropertyName("MinValue");
+                                    writer.WriteValue(ip.MinValue);
+
+                                    writer.WritePropertyName("MaxValue");
+                                    writer.WriteValue(ip.MaxValue);
+
+                                    writer.WriteEndObject();
+                                }
+                                else writer.WriteValue(ip.MinValue);
+                            } break;
+
+                            case EffectParamF fp:
+                            {
+                                if (fp.IsRange)
+                                {
+                                    writer.WriteStartObject();
+
+                                    writer.WritePropertyName("MinValue");
+                                    writer.WriteValue(fp.MinValue);
+
+                                    writer.WritePropertyName("MaxValue");
+                                    writer.WriteValue(fp.MaxValue);
+
+                                    writer.WriteEndObject();
+                                }
+                                else writer.WriteValue(fp.MinValue);
+                            } break;
+
+                            case EffectParamS sp: writer.WriteValue(sp.MinValue); break;
                         }
-                        writer.WriteEndObject();
                     }
                     else
                     {
@@ -206,6 +251,15 @@ namespace theori.Charting.IO
                                 writer.WritePropertyName("ChartObjectType");
                                 var id = ChartObject.GetObjectIdByType(objType);
                                 writer.WriteValue(id);
+                            }
+                            else if (obj is EffectDef effect)
+                            {
+                                writer.WritePropertyName("EffectType");
+                                string name = objType.Name;
+                                if (name.EndsWith(nameof(EffectDef)))
+                                    name = name.Substring(0, name.IndexOf(nameof(EffectDef)));
+                                // NOTE(local): use similar naming convention to chart objects in case of allowing game mode created effects
+                                writer.WriteValue($"theori.{ name }");
                             }
 
                             //var flags = BindingFlags.Instance | BindingFlags.Public;

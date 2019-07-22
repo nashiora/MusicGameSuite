@@ -40,9 +40,11 @@ namespace theori.Audio.Effects
     
     public sealed class BitCrusherEffectDef : EffectDef
     {
-        public EffectParamF Reduction { get; }
+        public EffectParamI Reduction;
+
+        public BitCrusherEffectDef() : base(EffectType.BitCrush) { }
         
-        public BitCrusherEffectDef(EffectParamF mix, EffectParamF reduction)
+        public BitCrusherEffectDef(EffectParamF mix, EffectParamI reduction)
             : base(EffectType.BitCrush, mix)
         {
             Reduction = reduction;
@@ -55,7 +57,7 @@ namespace theori.Audio.Effects
             base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is BitCrusher bitCrusher)
             {
-                bitCrusher.Reduction = Reduction.Sample(alpha);
+                bitCrusher.Reduction = Reduction.Sample(alpha) / 44100.0f;
             }
         }
 

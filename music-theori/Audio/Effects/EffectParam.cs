@@ -48,14 +48,19 @@ namespace theori.Audio.Effects
 
         private static float Lerp(float a, float b, float t) => 1.0f / pieces[MathL.RoundToInt(a + (b - a) * t)];
 
+        public readonly int MinValueReal, MaxValueReal;
+
         public EffectParamX(int value)
             : base(1.0f / pieces[ValueToIndex(value)])
         {
+            MinValueReal = MaxValueReal = value;
         }
 
         public EffectParamX(int valueMin, int valueMax)
             : base(ValueToIndex(valueMin), ValueToIndex(valueMax), Lerp)
         {
+            MinValueReal = valueMin;
+            MaxValueReal = valueMax;
         }
     }
 

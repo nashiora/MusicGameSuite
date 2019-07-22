@@ -100,7 +100,7 @@ namespace theori.Charting.IO
                 }
 
                 case EffectType.TapeStop: return new TapeStopEffectDef(mix, ReadValuesF());
-                case EffectType.BitCrush: return new BitCrusherEffectDef(mix, ReadValuesF());
+                case EffectType.BitCrush: return new BitCrusherEffectDef(mix, ReadValuesI());
                 case EffectType.Wobble: return new WobbleEffectDef(mix, ReadValuesF());
 
                 case EffectType.SideChain:
@@ -182,7 +182,7 @@ namespace theori.Charting.IO
                     
                 case BitCrusherEffectDef bc: Debug.Assert(type == EffectType.BitCrush);
                 {
-                    WriteValuesF(bc.Reduction);
+                    WriteValuesI(bc.Reduction);
                 } break;
                     
                 case WobbleEffectDef w: Debug.Assert(type == EffectType.Wobble);

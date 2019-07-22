@@ -71,8 +71,10 @@ namespace theori.Audio.Effects
 
     public sealed class GateEffectDef : EffectDef
     {
-        public EffectParamF GateDuration { get; }
-        public EffectParamF Gating { get; }
+        public EffectParamF GateDuration;
+        public EffectParamF Gating;
+
+        public GateEffectDef() : base(EffectType.Gate) { }
 
         public GateEffectDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
             : base(EffectType.Gate, mix)

@@ -210,9 +210,9 @@ namespace NeuroSonic.Charting.KShootMania
                 {
                     case "BitCrusher":
                     {
-                        float reduction = 4;
-                        if (pars.Length > 0) reduction = float.Parse(pars[0]);
-                        def = new BitCrusherEffectDef(1.0f, reduction / 44100.0f);
+                        int reduction = 4;
+                        if (pars.Length > 0) reduction = int.Parse(pars[0]);
+                        def = new BitCrusherEffectDef(1.0f, reduction);
                     } break;
 
                     case "Retrigger":
@@ -456,7 +456,7 @@ namespace NeuroSonic.Charting.KShootMania
                         {
                             def = new BitCrusherEffectDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
-                                GetEffectParam<EffectParamF>("reduction", 4.0f / 44100.0f)
+                                GetEffectParam<EffectParamI>("reduction", 4)
                                 );
                         }
                         break;

@@ -44,8 +44,10 @@ namespace theori.Audio.Effects
 
     public sealed class SideChainEffectDef : EffectDef
     {
-        public EffectParamF Amount { get; }
-        public EffectParamF Duration { get; }
+        public EffectParamF Amount;
+        public EffectParamF Duration;
+
+        public SideChainEffectDef() : base(EffectType.SideChain) { }
         
         public SideChainEffectDef(EffectParamF mix, EffectParamF amount, EffectParamF dur)
             : base(EffectType.SideChain, mix)

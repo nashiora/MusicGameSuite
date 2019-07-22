@@ -70,6 +70,8 @@ namespace theori.Audio.Effects
         public EffectParamI Offset = 10;
         public EffectParamI Depth = 40;
 
+        public FlangerEffectDef() : base(EffectType.Flanger) { }
+
         public FlangerEffectDef(EffectParamF mix)
             : base(EffectType.Flanger, mix)
         {

@@ -122,6 +122,8 @@ namespace theori.Audio.Effects
 
     public sealed class PhaserEffectDef : EffectDef
     {
+        public PhaserEffectDef() : base(EffectType.Phaser) { }
+
         public PhaserEffectDef(EffectParamF mix)
             : base(EffectType.Phaser, mix)
         {

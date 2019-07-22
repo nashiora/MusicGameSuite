@@ -123,15 +123,30 @@ namespace theori.Audio.Effects
 
     public sealed class BiQuadFilterEffectDef : EffectDef
     {
-        public EffectParamF Q { get; }
+        private EffectType m_filterType;
 
-        public EffectParamF Gain { get; }
-        public EffectParamF Freq { get; }
+        // NOTE(local): this overrides the base type bc deserialization and this interface sucks
+        // this will be a field after we remove the effect type enum
+        public EffectType FilterType
+        {
+            get => m_filterType;
+            set => Type = m_filterType = value;
+        }
+
+        public EffectParamF Q;
+
+        public EffectParamF Gain;
+        public EffectParamF Freq;
+
+        // NOTE(local): this is overwritten when we deserialize, will fix the interface here later
+        public BiQuadFilterEffectDef() : base(EffectType.PeakingFilter) { }
         
         public BiQuadFilterEffectDef(EffectType type, EffectParamF mix,
             EffectParamF q, EffectParamF gain, EffectParamF freq)
             : base(type, mix)
         {
+            FilterType = type;
+
             Q = q;
             Gain = gain;
             Freq = freq;

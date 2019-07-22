@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using theori.Charting;
 
 namespace theori.Audio.Effects
 {
@@ -54,7 +55,7 @@ namespace theori.Audio.Effects
                     
                 case EffectType.BitCrush:
                 {
-                    var reduction = new EffectParamF(0, 45 / 44100.0f, laserEasingCurve);
+                    var reduction = new EffectParamI(0, 45, laserEasingCurve);
                     return new BitCrusherEffectDef(1.0f, reduction);
                 }
 
@@ -62,8 +63,12 @@ namespace theori.Audio.Effects
             }
         }
 
-        public EffectType Type { get; }
-        public EffectParamF Mix { get; }
+        [TheoriIgnore]
+        public EffectType Type;
+
+        public EffectParamF Mix;
+
+        protected EffectDef(EffectType type) { Type = type; }
 
         protected EffectDef(EffectType type, EffectParamF mix)
         {
