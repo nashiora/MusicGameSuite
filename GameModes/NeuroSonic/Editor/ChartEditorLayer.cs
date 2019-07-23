@@ -21,9 +21,6 @@ namespace NeuroSonic.Editor
 
         public override bool AsyncLoad()
         {
-            var chartSerializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-            //chartSerializer.DeserializeChart(m_chartInfo);
-
             return true;
         }
 

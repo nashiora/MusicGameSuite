@@ -130,7 +130,6 @@
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\ChartEvent.cs" />
     <Compile Include="Charting\Entity.cs" />
-    <Compile Include="Charting\IO\BinaryTheoriChartSerializer.cs" />
     <Compile Include="Charting\IO\ChartSerializer.cs" />
     <Compile Include="Charting\IO\IChartSerializer.cs" />
     <Compile Include="Charting\Playback\SlidingChartPlayback.cs" />

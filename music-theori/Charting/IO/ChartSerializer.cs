@@ -61,26 +61,24 @@ namespace theori.Charting.IO
         public abstract void SerializeSubclass(T obj, BinaryWriter writer, ChartEffectTable effects);
     }
 
-    public class ChartSerializer
+    public class ChartSerializer : IChartSerializer
     {
-        public readonly string ChartsDir;
+        public string ParentDirectory { get; }
+        public string FormatExtension => ".theori";
 
         private readonly GameMode m_gameMode;
 
         public ChartSerializer(string chartsDir, GameMode gameMode = null)
         {
-            ChartsDir = chartsDir;
+            ParentDirectory = chartsDir;
             m_gameMode = gameMode;
         }
 
-        public ChartSetInfo LoadSetFromFile()
+        public Chart LoadFromFile(ChartInfo chartInfo)
         {
-            return null;
-        }
+            throw new NotImplementedException();
 
-        public Chart LoadChartFromFile(ChartInfo chartInfo)
-        {
-            string chartFile = Path.Combine(ChartsDir, chartInfo.Set.FilePath, chartInfo.FileName);
+            string chartFile = Path.Combine(ParentDirectory, chartInfo.Set.FilePath, chartInfo.FileName);
 
             Chart chart = null;
             using (var reader = new JsonTextReader(new StreamReader(File.OpenRead(chartFile))))
@@ -90,10 +88,10 @@ namespace theori.Charting.IO
             return chart;
         }
 
-        public void SaveChartToFile(Chart chart)
+        public void SaveToFile(Chart chart)
         {
             var chartInfo = chart.Info;
-            string chartFile = Path.Combine(ChartsDir, chartInfo.Set.FilePath, chartInfo.FileName);
+            string chartFile = Path.Combine(ParentDirectory, chartInfo.Set.FilePath, chartInfo.FileName);
 
             var effectTable = new ChartEffectTable();
             foreach (var lane in chart.Lanes)

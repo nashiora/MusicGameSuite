@@ -130,8 +130,8 @@ namespace NeuroSonic.GamePlay
                 string chartsDir = Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory);
                 var setInfo = m_chartInfo.Set;
 
-                var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-                m_chart = serializer.LoadFromFile(chartsDir, m_chartInfo);
+                var serializer = new ChartSerializer(chartsDir, NeuroSonicGameMode.Instance);
+                m_chart = serializer.LoadFromFile(m_chartInfo);
 
                 string audioFile = Path.Combine(chartsDir, setInfo.FilePath, m_chart.Info.SongFileName);
                 m_audio = AudioTrack.FromFile(audioFile);

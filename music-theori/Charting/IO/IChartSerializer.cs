@@ -6,8 +6,9 @@ namespace theori.Charting.IO
     public interface IChartSerializer
     {
         string FormatExtension { get; }
+        string ParentDirectory { get; }
 
-        void SaveToFile(string parentDirectory, Chart chart);
-        Chart LoadFromFile(string parentDirectory, ChartInfo chartInfo);
+        void SaveToFile(Chart chart);
+        Chart LoadFromFile(ChartInfo chartInfo);
     }
 }
