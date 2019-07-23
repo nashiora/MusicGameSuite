@@ -3,54 +3,59 @@ using theori.Charting;
 
 namespace NeuroSonic.Charting
 {
-    [ChartObjectType("LaserApplication")]
-    public class LaserApplicationEvent : ChartEvent
+    public abstract class HighwayTypedEvent : ChartEvent { }
+    public abstract class ButtonTypedEvent : ChartEvent { }
+    public abstract class LaserTypedEvent : ChartEvent { }
+    public abstract class CameraTypedEvent : ChartEvent { }
+
+    [EntityType("LaserApplication")]
+    public class LaserApplicationEvent : LaserTypedEvent
     {
         public LaserApplication Application = LaserApplication.Additive;
     }
 
-    [ChartObjectType("LaserParams")]
-    public class LaserParamsEvent : ChartEvent
+    [EntityType("LaserParams")]
+    public class LaserParamsEvent : LaserTypedEvent
     {
         public LaserIndex LaserIndex;
         public LaserParams Params;
     }
 
-    [ChartObjectType("PathPoint")]
-    public class PathPointEvent : ChartEvent
+    [EntityType("PathPoint")]
+    public class PathPointEvent : CameraTypedEvent
     {
         public float Value;
     }
 
-    [ChartObjectType("EffectKind")]
-    public class EffectKindEvent : ChartEvent, IHasEffectDef
+    [EntityType("EffectKind")]
+    public class EffectKindEvent : ButtonTypedEvent, IHasEffectDef
     {
         public int EffectIndex;
         public EffectDef Effect { get; set; }
     }
 
-    [ChartObjectType("LaserFilterKind")]
-    public class LaserFilterKindEvent : ChartEvent, IHasEffectDef
+    [EntityType("LaserFilterKind")]
+    public class LaserFilterKindEvent : LaserTypedEvent, IHasEffectDef
     {
         public LaserIndex LaserIndex;
         public EffectDef Effect { get; set; }
     }
 
-    [ChartObjectType("LaserFilterGain")]
-    public class LaserFilterGainEvent : ChartEvent
+    [EntityType("LaserFilterGain")]
+    public class LaserFilterGainEvent : LaserTypedEvent
     {
         public LaserIndex LaserIndex;
         public float Gain;
     }
 
-    [ChartObjectType("SlamVolume")]
-    public class SlamVolumeEvent : ChartEvent
+    [EntityType("SlamVolume")]
+    public class SlamVolumeEvent : LaserTypedEvent
     {
         public float Volume;
     }
 
-    [ChartObjectType("SpinImpulse")]
-    public class SpinImpulseEvent : ChartEvent
+    [EntityType("SpinImpulse")]
+    public class SpinImpulseEvent : HighwayTypedEvent
     {
         public SpinParams Params => new SpinParams()
         {
@@ -61,8 +66,8 @@ namespace NeuroSonic.Charting
         public AngularDirection Direction;
     }
 
-    [ChartObjectType("SwingImpulse")]
-    public class SwingImpulseEvent : ChartEvent
+    [EntityType("SwingImpulse")]
+    public class SwingImpulseEvent : HighwayTypedEvent
     {
         public SwingParams Params => new SwingParams()
         {
@@ -75,8 +80,8 @@ namespace NeuroSonic.Charting
         public float Amplitude;
     }
 
-    [ChartObjectType("WobbleImpulse")]
-    public class WobbleImpulseEvent : ChartEvent
+    [EntityType("WobbleImpulse")]
+    public class WobbleImpulseEvent : HighwayTypedEvent
     {
         public WobbleParams Params => new WobbleParams()
         {

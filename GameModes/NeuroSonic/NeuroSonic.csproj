@@ -79,6 +79,7 @@
     <Compile Include="Charting\IO\ObjectSerializers.cs" />
     <Compile Include="Charting\KShootMania\Chart.cs" />
     <Compile Include="Charting\KShootMania\ChartMetadata.cs" />
+    <Compile Include="Charting\NeuroSonicChartFactory.cs" />
     <Compile Include="Charting\ParamTypes.cs" />
     <Compile Include="Charting\VoltexChartSerializer.cs" />
     <Compile Include="ChartSelect\ChartManagerLayer.cs" />

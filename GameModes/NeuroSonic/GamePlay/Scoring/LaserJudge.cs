@@ -12,14 +12,14 @@ namespace NeuroSonic.GamePlay.Scoring
     {
         public struct Tick
         {
-            public ChartObject AssociatedObject;
+            public Entity AssociatedObject;
 
             public time_t Position;
             public bool IsSegment;
 
             public bool IsAutoTick;
 
-            public Tick(ChartObject obj, time_t pos, bool isSegment, bool isAutoTick = false)
+            public Tick(Entity obj, time_t pos, bool isSegment, bool isAutoTick = false)
             {
                 AssociatedObject = obj;
                 Position = pos;
@@ -148,12 +148,12 @@ namespace NeuroSonic.GamePlay.Scoring
         private float m_targetCursorPosition = 0.0f;
         private AnalogObject m_currentObject;
 
-        public event Action<time_t, ChartObject> OnSlamHit;
+        public event Action<time_t, Entity> OnSlamHit;
 
-        public event Action<time_t, ChartObject> OnLaserActivated;
-        public event Action<time_t, ChartObject> OnLaserDeactivated;
+        public event Action<time_t, Entity> OnLaserActivated;
+        public event Action<time_t, Entity> OnLaserDeactivated;
 
-        public event Action<ChartObject, time_t, JudgeResult> OnTickProcessed;
+        public event Action<Entity, time_t, JudgeResult> OnTickProcessed;
 
         public LaserJudge(Chart chart, int streamIndex)
             : base(chart, streamIndex)
@@ -175,11 +175,11 @@ namespace NeuroSonic.GamePlay.Scoring
             return 0;
         }
 
-        protected override void ObjectEnteredJudgement(ChartObject obj)
+        protected override void ObjectEnteredJudgement(Entity obj)
         {
         }
 
-        protected override void ObjectExitedJudgement(ChartObject obj)
+        protected override void ObjectExitedJudgement(Entity obj)
         {
         }
     }

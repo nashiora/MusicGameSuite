@@ -31,9 +31,9 @@ namespace NeuroSonic.GamePlay
 
     internal abstract class ObjectRenderable3D : System.Disposable
     {
-        public readonly ChartObject Object;
+        public readonly Entity Object;
 
-        protected ObjectRenderable3D(ChartObject obj)
+        protected ObjectRenderable3D(Entity obj)
         {
             Object = obj;
         }
@@ -46,7 +46,7 @@ namespace NeuroSonic.GamePlay
         private float m_glow = -1.0f;
         private int m_glowState = -1;
 
-        protected GlowingRenderState3D(ChartObject obj)
+        protected GlowingRenderState3D(Entity obj)
             : base(obj)
         {
         }
@@ -81,7 +81,7 @@ namespace NeuroSonic.GamePlay
             Debug.Assert(obj.IsChip, "Hold object passed to render state which expects a chip");
 
             string textureName;
-            if (obj.Stream < 4)
+            if ((int)obj.Lane < 4)
             {
                 if (obj.HasSample)
                     textureName = "textures/bt_chip_sample";
@@ -132,7 +132,7 @@ namespace NeuroSonic.GamePlay
             Debug.Assert(obj.IsHold, "Chip object passed to render state which expects a hold");
 
             string holdTextureName;
-            if (obj.Stream < 4)
+            if ((int)obj.Lane < 4)
                 holdTextureName = "textures/bt_hold";
             else
             {

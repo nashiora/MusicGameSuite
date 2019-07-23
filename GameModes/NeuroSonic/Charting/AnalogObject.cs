@@ -37,8 +37,8 @@ namespace NeuroSonic.Charting
         }
     }
 
-    [ChartObjectType("Analog")]
-    public sealed class AnalogObject : ChartObject
+    [EntityType("Analog")]
+    public sealed class AnalogObject : Entity
     {
         private float m_initialValue, m_finalValue;
         private CurveShape m_shape = CurveShape.Linear;
@@ -62,28 +62,28 @@ namespace NeuroSonic.Charting
             set => SetPropertyField(nameof(FinalValue), ref m_finalValue, value);
         }
 
-        [TheoriIgnoreDefault]
+        [EntityIgnoreDefault]
         public CurveShape Shape
         {
             get => m_shape;
             set => SetPropertyField(nameof(Shape), ref m_shape, value);
         }
 
-        [TheoriIgnoreDefault]
+        [EntityIgnoreDefault]
         public float CurveA
         {
             get => m_a;
             set => SetPropertyField(nameof(CurveA), ref m_a, MathL.Clamp(value, 0, 1));
         }
 
-        [TheoriIgnoreDefault]
+        [EntityIgnoreDefault]
         public float CurveB
         {
             get => m_b;
             set => SetPropertyField(nameof(CurveB), ref m_b, MathL.Clamp(value, 0, 1));
         }
 
-        [TheoriIgnoreDefault]
+        [EntityIgnoreDefault]
         public bool RangeExtended
         {
             get => m_extended;

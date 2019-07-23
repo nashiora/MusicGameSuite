@@ -65,7 +65,7 @@ namespace NeuroSonic.GamePlay
         private AudioTrack m_audio;
         private AudioSample m_slamSample;
 
-        private readonly ChartObject[] m_activeObjects = new ChartObject[8];
+        private readonly Entity[] m_activeObjects = new Entity[8];
         private readonly bool[] m_streamHasActiveEffects = new bool[8].Fill(true);
 
         private readonly EffectDef[] m_currentEffects = new EffectDef[8];
@@ -302,11 +302,7 @@ namespace NeuroSonic.GamePlay
                 Host.PopToParent(this);
             };
 
-            time_t firstObjectTime = double.MaxValue;
-            for (int s = 0; s < m_chart.StreamCount; s++)
-                firstObjectTime = MathL.Min((double)firstObjectTime, m_chart.ObjectStreams[s].FirstObject?.AbsolutePosition.Seconds ?? double.MaxValue);
-
-            m_audioController.Position = MathL.Min(0.0, (double)firstObjectTime - 2);
+            m_audioController.Position = MathL.Min(0.0, (double)m_chart.TimeStart - 2);
 
             m_gameTable["Begin"] = (Action)Begin;
             m_guiScript.CallIfExists("Init");
@@ -327,7 +323,7 @@ namespace NeuroSonic.GamePlay
             throw new Exception("Cannot suspend gameplay layer");
         }
 
-        private void PlaybackObjectBegin(ChartObject obj)
+        private void PlaybackObjectBegin(Entity obj)
         {
             if (obj is AnalogObject aobj)
             {
@@ -336,7 +332,7 @@ namespace NeuroSonic.GamePlay
                     int dir = -MathL.Sign(aobj.FinalValue - aobj.InitialValue);
                     m_highwayControl.ShakeCamera(dir);
 
-                    if (aobj.InitialValue == (aobj.Stream == 6 ? 0 : 1) && aobj.NextConnected == null)
+                    if (aobj.InitialValue == (aobj.Lane == 6 ? 0 : 1) && aobj.NextConnected == null)
                         m_highwayControl.ApplyRollImpulse(-dir);
                     m_slamSample.Play();
                 }
@@ -344,10 +340,10 @@ namespace NeuroSonic.GamePlay
                 if (aobj.PreviousConnected == null)
                 {
                     if (!AreLasersActive) m_audioController.SetEffect(6, CurrentQuarterNodeDuration, currentLaserEffectDef, BASE_LASER_MIX);
-                    currentActiveLasers[obj.Stream - 6] = true;
+                    currentActiveLasers[(int)obj.Lane - 6] = true;
                 }
 
-                m_activeObjects[obj.Stream] = aobj.Head;
+                m_activeObjects[(int)obj.Lane] = aobj.Head;
             }
             else if (obj is ButtonObject bobj)
             {
@@ -356,21 +352,21 @@ namespace NeuroSonic.GamePlay
 
                 // NOTE(local): can move this out for analog as well, but it doesn't matter RN
                 if (!bobj.IsInstant)
-                    m_activeObjects[obj.Stream] = obj;
+                    m_activeObjects[(int)obj.Lane] = obj;
             }
         }
 
-        private void PlaybackObjectEnd(ChartObject obj)
+        private void PlaybackObjectEnd(Entity obj)
         {
             if (obj is AnalogObject aobj)
             {
                 if (aobj.NextConnected == null)
                 {
-                    currentActiveLasers[obj.Stream - 6] = false;
+                    currentActiveLasers[(int)obj.Lane - 6] = false;
                     if (!AreLasersActive) m_audioController.RemoveEffect(6);
 
-                    if (m_activeObjects[obj.Stream] == aobj.Head)
-                        m_activeObjects[obj.Stream] = null;
+                    if (m_activeObjects[(int)obj.Lane] == aobj.Head)
+                        m_activeObjects[(int)obj.Lane] = null;
                 }
             }
             if (obj is ButtonObject bobj)
@@ -378,15 +374,15 @@ namespace NeuroSonic.GamePlay
                 //m_audioController.RemoveEffect(obj.Stream);
 
                 // guard in case the Begin function already overwrote us
-                if (m_activeObjects[obj.Stream] == obj)
-                    m_activeObjects[obj.Stream] = null;
+                if (m_activeObjects[(int)obj.Lane] == obj)
+                    m_activeObjects[(int)obj.Lane] = null;
             }
         }
 
         private time_t totalInacc = 0.0;
         private int numAccs = 0;
 
-        private void Judge_OnTickProcessed(ChartObject obj, time_t position, JudgeResult result)
+        private void Judge_OnTickProcessed(Entity obj, time_t position, JudgeResult result)
         {
             //Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
 
@@ -395,11 +391,11 @@ namespace NeuroSonic.GamePlay
             else m_comboDisplay.Combo++;
 
             if (!obj.IsInstant)
-                m_streamHasActiveEffects[obj.Stream] = result.Kind != JudgeKind.Miss;
+                m_streamHasActiveEffects[(int)obj.Lane] = result.Kind != JudgeKind.Miss;
             else
             {
                 if (result.Kind != JudgeKind.Miss)
-                    CreateKeyBeam(obj.Stream, result.Kind, result.Difference < 0.0);
+                    CreateKeyBeam((int)obj.Lane, result.Kind, result.Difference < 0.0);
             }
 
             if (!(result.Kind == JudgeKind.Miss || result.Kind == JudgeKind.Bad))
@@ -411,19 +407,19 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private void Judge_OnChipPressed(time_t position, ChartObject obj)
+        private void Judge_OnChipPressed(time_t position, Entity obj)
         {
         }
 
-        private void Judge_OnHoldReleased(time_t position, ChartObject obj)
+        private void Judge_OnHoldReleased(time_t position, Entity obj)
         {
-            m_streamHasActiveEffects[obj.Stream] = false;
+            m_streamHasActiveEffects[(int)obj.Lane] = false;
         }
 
-        private void Judge_OnHoldPressed(time_t position, ChartObject obj)
+        private void Judge_OnHoldPressed(time_t position, Entity obj)
         {
-            m_streamHasActiveEffects[obj.Stream] = true;
-            CreateKeyBeam(obj.Stream, JudgeKind.Passive, false);
+            m_streamHasActiveEffects[(int)obj.Lane] = true;
+            CreateKeyBeam((int)obj.Lane, JudgeKind.Passive, false);
         }
 
         private void PlaybackEventTrigger(ChartEvent evt, PlayDirection direction)
@@ -600,13 +596,13 @@ namespace NeuroSonic.GamePlay
             m_highwayControl.Position = position;
             m_playback.Position = position;
 
-            float GetPathValueLerped(int stream)
+            float GetPathValueLerped(LaneLabel stream)
             {
                 var s = m_playback.Chart[stream];
 
                 var mrPoint = s.MostRecent<PathPointEvent>(position);
                 if (mrPoint == null)
-                    return ((PathPointEvent)s.FirstObject)?.Value ?? 0;
+                    return ((PathPointEvent)s.First)?.Value ?? 0;
 
                 if (mrPoint.HasNext)
                 {
@@ -624,10 +620,10 @@ namespace NeuroSonic.GamePlay
             m_highwayControl.LeftLaserInput = leftLaserPos;
             m_highwayControl.RightLaserInput = rightLaserPos;
 
-            m_highwayControl.Zoom = GetPathValueLerped(StreamIndex.Zoom);
-            m_highwayControl.Pitch = GetPathValueLerped(StreamIndex.Pitch);
-            m_highwayControl.Offset = GetPathValueLerped(StreamIndex.Offset);
-            m_highwayControl.Roll = GetPathValueLerped(StreamIndex.Roll);
+            m_highwayControl.Zoom = GetPathValueLerped(NscLane.CameraZoom);
+            m_highwayControl.Pitch = GetPathValueLerped(NscLane.CameraPitch);
+            m_highwayControl.Offset = GetPathValueLerped(NscLane.CameraOffset);
+            m_highwayControl.Roll = GetPathValueLerped(NscLane.CameraTilt);
 
             m_highwayView.PlaybackPosition = position;
 
@@ -732,7 +728,7 @@ namespace NeuroSonic.GamePlay
 
         private float GetTempRollValue(time_t position, int stream, out float valueMult, bool oneMinus = false)
         {
-            var s = m_playback.Chart[stream];
+            var s = m_playback.Chart[(LaneLabel)stream];
             valueMult = 1.0f;
 
             var mrAnalog = s.MostRecent<AnalogObject>(position);

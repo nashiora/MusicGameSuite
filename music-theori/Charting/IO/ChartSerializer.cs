@@ -47,17 +47,17 @@ namespace theori.Charting.IO
             ID = id;
         }
 
-        public abstract void SerializeSubclass(ChartObject obj, BinaryWriter writer, ChartEffectTable effects);
+        public abstract void SerializeSubclass(Entity obj, BinaryWriter writer, ChartEffectTable effects);
 
-        public abstract ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects);
+        public abstract Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects);
     }
 
     public abstract class ChartObjectSerializer<T> : ChartObjectSerializer
-        where T : ChartObject
+        where T : Entity
     {
         protected ChartObjectSerializer(int id) : base(id) { }
 
-        public sealed override void SerializeSubclass(ChartObject obj, BinaryWriter writer, ChartEffectTable effects) => SerializeSubclass(obj as T, writer, effects);
+        public sealed override void SerializeSubclass(Entity obj, BinaryWriter writer, ChartEffectTable effects) => SerializeSubclass(obj as T, writer, effects);
         public abstract void SerializeSubclass(T obj, BinaryWriter writer, ChartEffectTable effects);
     }
 
@@ -96,10 +96,9 @@ namespace theori.Charting.IO
             string chartFile = Path.Combine(ChartsDir, chartInfo.Set.FilePath, chartInfo.FileName);
 
             var effectTable = new ChartEffectTable();
-            for (int s = 0; s < chart.StreamCount; s++)
+            foreach (var lane in chart.Lanes)
             {
-                var stream = chart[s];
-                foreach (var obj in stream)
+                foreach (var obj in lane)
                 {
                     if (obj is IHasEffectDef e)
                     {
@@ -140,16 +139,14 @@ namespace theori.Charting.IO
                     writer.WritePropertyName("Objects");
                     writer.WriteStartArray();
                     {
-                        for (int si = 0; si < chart.StreamCount; si++)
+                        foreach (var lane in chart.Lanes)
                         {
-                            var stream = chart[si];
-
                             writer.WriteStartArray();
-                            for (int i = 0; i < stream.Count; i++)
+                            for (int i = 0; i < lane.Count; i++)
                             {
-                                var obj = stream[i];
+                                var obj = lane[i];
                                 if (obj == null)
-                                    Logger.Log($"Null object in stream { si } at { i }");
+                                    Logger.Log($"Null object in stream { lane.Label } at { i }");
                                 else WriteValue(obj);
                             }
                             writer.WriteEndArray();
@@ -246,10 +243,10 @@ namespace theori.Charting.IO
                         writer.WriteStartObject();
                         {
                             // NOTE(local): Currently this system assumes all type information can be gathered EXCEPT that of ChartObjects (and EffectDefs)
-                            if (obj is ChartObject cobj)
+                            if (obj is Entity cobj)
                             {
                                 writer.WritePropertyName("ChartObjectType");
-                                var id = ChartObject.GetObjectIdByType(objType);
+                                var id = Entity.GetEntityIdByType(objType);
                                 writer.WriteValue(id);
                             }
                             else if (obj is EffectDef effect)
@@ -264,20 +261,20 @@ namespace theori.Charting.IO
 
                             //var flags = BindingFlags.Instance | BindingFlags.Public;
                             var fields = from type in objType.GetFields()
-                                         where type.GetCustomAttribute<TheoriIgnoreAttribute>() == null &&
-                                              (type.GetCustomAttribute<TheoriPropertyAttribute>() != null || type.IsPublic)
+                                         where type.GetCustomAttribute<EntityIgnoreAttribute>() == null &&
+                                              (type.GetCustomAttribute<EntityPropertyAttribute>() != null || type.IsPublic)
                                          select type;
                             var props = from prop in objType.GetProperties()
                                         where prop.SetMethod != null && prop.GetMethod != null
-                                        where prop.GetCustomAttribute<TheoriIgnoreAttribute>() == null && (prop.GetCustomAttribute<TheoriPropertyAttribute>() != null ||
-                                             (prop.SetMethod.IsPublic && prop.SetMethod.GetCustomAttribute<TheoriIgnoreAttribute>() == null &&
-                                              prop.GetMethod.IsPublic && prop.GetMethod.GetCustomAttribute<TheoriIgnoreAttribute>() == null))
+                                        where prop.GetCustomAttribute<EntityIgnoreAttribute>() == null && (prop.GetCustomAttribute<EntityPropertyAttribute>() != null ||
+                                             (prop.SetMethod.IsPublic && prop.SetMethod.GetCustomAttribute<EntityIgnoreAttribute>() == null &&
+                                              prop.GetMethod.IsPublic && prop.GetMethod.GetCustomAttribute<EntityIgnoreAttribute>() == null))
                                         select prop;
 
                             foreach (var field in fields)
                             {
                                 object value = field.GetValue(obj);
-                                if (field.GetCustomAttribute<TheoriIgnoreDefaultAttribute>() != null && ValueIsDefault(value)) continue;
+                                if (field.GetCustomAttribute<EntityIgnoreDefaultAttribute>() != null && ValueIsDefault(value)) continue;
 
                                 writer.WritePropertyName(field.Name);
                                 WriteValue(value);
@@ -287,7 +284,7 @@ namespace theori.Charting.IO
                             {
                                 object value = prop.GetValue(obj);
                                 // TODO(local): for the get/set pairs too?
-                                if (prop.GetCustomAttribute<TheoriIgnoreDefaultAttribute>() != null && ValueIsDefault(value)) continue;
+                                if (prop.GetCustomAttribute<EntityIgnoreDefaultAttribute>() != null && ValueIsDefault(value)) continue;
 
                                 writer.WritePropertyName(prop.Name);
                                 WriteValue(value);

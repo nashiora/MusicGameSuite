@@ -34,7 +34,7 @@ namespace NeuroSonic.GamePlay
 
         public int StreamIndex { get; }
 
-        private readonly Chart.ObjectStream m_objects;
+        private readonly Chart.ChartLane m_objects;
         private readonly OrderedLinkedList<Point> m_points = new OrderedLinkedList<Point>();
 
         public BakedLaserTilt(Chart chart, int stream)
@@ -50,7 +50,7 @@ namespace NeuroSonic.GamePlay
             // 1 beat transition to anticipation, 1 beat hold anticipation
             // half measure reset
 
-            AnalogObject current = m_objects.FirstObject as AnalogObject;
+            AnalogObject current = m_objects.First as AnalogObject;
             while (current != null)
             {
                 bool isTail = current.NextConnected == null;

@@ -34,10 +34,10 @@ namespace NeuroSonic.GamePlay
             LaserApplicationEvent appl;
             LaserParamsEvent pars;
             
-            left = m_chart[StreamIndex.VolL].FirstObject as AnalogObject;
-            right = m_chart[StreamIndex.VolR].FirstObject as AnalogObject;
-            appl = m_chart[StreamIndex.LaserApplication].FirstObject as LaserApplicationEvent;
-            pars = m_chart[StreamIndex.LaserParams].FirstObject as LaserParamsEvent;
+            left = m_chart[6].First as AnalogObject;
+            right = m_chart[7].First as AnalogObject;
+            appl = m_chart[NscLane.LaserEvent].First as LaserApplicationEvent;
+            pars = m_chart[NscLane.LaserEvent].First as LaserParamsEvent;
 
             while (left != null || right != null)
             {

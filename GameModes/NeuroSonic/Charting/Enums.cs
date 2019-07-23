@@ -1,123 +1,17 @@
-﻿namespace NeuroSonic.Charting
+﻿using theori.Charting;
+
+namespace NeuroSonic.Charting
 {
-    internal enum EnumStreamIndex : int
+    public static class NscLane
     {
-        #region Playables
+        public static readonly LaneLabel HighwayEvent = nameof(HighwayEvent);
+        public static readonly LaneLabel ButtonEvent = nameof(ButtonEvent);
+        public static readonly LaneLabel LaserEvent = nameof(LaserEvent);
 
-        BtA = 0,
-        BtB = 1,
-        BtC = 2,
-        BtD = 3,
-
-        FxL = 4,
-        FxR = 5,
-
-        VolL = 6,
-        VolR = 7,
-
-        #endregion
-
-        #region Analog
-
-        /// <summary>
-        /// Spin, Swing, Wobble
-        /// </summary>
-        HighwayEffect,
-
-        LaserParams,
-        LaserApplication,
-        EffectKind,
-        LaserFilterGain,
-        LaserFilterKind,
-        SlamVolume,
-
-        #endregion
-
-        #region Visual Playback
-
-        Stop,
-        Reverse,
-        Hide,
-
-        #endregion
-
-        #region Camera
-
-        Zoom,
-        Pitch,
-        Offset,
-        Roll,
-
-        #endregion
-
-        #region Stage
-
-        SetBackground,
-        SetImage,
-
-        #endregion
-
-        COUNT,
-    }
-
-    public static class StreamIndex
-    {
-        #region Playables
-
-        public const int BtA = (int)EnumStreamIndex.BtA;
-        public const int BtB = (int)EnumStreamIndex.BtB;
-        public const int BtC = (int)EnumStreamIndex.BtC;
-        public const int BtD = (int)EnumStreamIndex.BtD;
-
-        public const int FxL = (int)EnumStreamIndex.FxL;
-        public const int FxR = (int)EnumStreamIndex.FxR;
-
-        public const int VolL = (int)EnumStreamIndex.VolL;
-        public const int VolR = (int)EnumStreamIndex.VolR;
-
-        #endregion
-
-        #region Analog
-
-        /// <summary>
-        /// Spin; Swing; Wobble
-        /// </summary>
-        public const int HighwayEffect = (int)EnumStreamIndex.HighwayEffect;
-        
-        public const int LaserParams = (int)EnumStreamIndex.LaserParams;
-        public const int LaserApplication = (int)EnumStreamIndex.LaserApplication;
-        public const int EffectKind = (int)EnumStreamIndex.EffectKind;
-        public const int LaserFilterGain = (int)EnumStreamIndex.LaserFilterKind;
-        public const int LaserFilterKind = (int)EnumStreamIndex.LaserFilterGain;
-        public const int SlamVolume = (int)EnumStreamIndex.SlamVolume;
-
-        #endregion
-
-        #region Visual Playback
-
-        public const int Stop = (int)EnumStreamIndex.Stop;
-        public const int Reverse = (int)EnumStreamIndex.Reverse;
-        public const int Hide = (int)EnumStreamIndex.Hide;
-
-        #endregion
-
-        #region Camera
-
-        public const int Zoom = (int)EnumStreamIndex.Zoom;
-        public const int Pitch = (int)EnumStreamIndex.Pitch;
-        public const int Offset = (int)EnumStreamIndex.Offset;
-        public const int Roll = (int)EnumStreamIndex.Roll;
-
-        #endregion
-
-        #region Stage
-
-        public const int SetBackground = (int)EnumStreamIndex.SetBackground;
-        public const int SetImage = (int)EnumStreamIndex.SetImage;
-
-        #endregion
-
-        public const int COUNT = (int)EnumStreamIndex.COUNT;
+        public static readonly LaneLabel CameraZoom = nameof(CameraZoom);
+        public static readonly LaneLabel CameraPitch = nameof(CameraPitch);
+        public static readonly LaneLabel CameraOffset = nameof(CameraOffset);
+        public static readonly LaneLabel CameraTilt = nameof(CameraTilt);
     }
 
     public enum Damping : byte

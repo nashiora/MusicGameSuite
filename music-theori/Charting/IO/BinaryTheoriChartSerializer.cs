@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using theori.Audio.Effects;
 using theori.GameModes;
@@ -43,7 +44,7 @@ namespace theori.Charting.IO
             m_mode = mode;
         }
 
-        private ChartObjectSerializer GetSerializerForType(ChartObject obj)
+        private ChartObjectSerializer GetSerializerForType(Entity obj)
         {
             if (m_mode == null) return null;
             if (!m_serializersByType.TryGetValue(obj.GetType(), out var serializer))
@@ -286,10 +287,10 @@ namespace theori.Charting.IO
                     tick_t position = reader.ReadDoubleBE();
                     tick_t duration = hasDuration ? reader.ReadDoubleBE() : 0;
 
-                    ChartObject obj;
+                    Entity obj;
                     if (serializer != null)
                         obj = serializer.DeserializeSubclass(position, duration, reader, effectTable);
-                    else obj = new ChartObject() { Position = position, Duration = duration, };
+                    else obj = new Entity() { Position = position, Duration = duration, };
 
                     stream.Add(obj);
                 }
@@ -310,14 +311,13 @@ namespace theori.Charting.IO
             writer.WriteUInt32BE(MAGIC);
             writer.WriteUInt8(VERSION);
 
-            writer.WriteUInt16BE((ushort)chart.StreamCount);
-            Logger.Log($"chart.binwrite stream count { chart.StreamCount }");
+            writer.WriteUInt16BE((ushort)chart.Lanes.Count());
+            Logger.Log($"chart.binwrite stream count { chart.Lanes.Count() }");
 
             var effectTable = new ChartEffectTable();
-            for (int s = 0; s < chart.StreamCount; s++)
+            foreach (var lane in chart.Lanes)
             {
-                var stream = chart[s];
-                foreach (var obj in stream)
+                foreach (var obj in lane)
                 {
                     if (obj is IHasEffectDef e)
                     {
@@ -355,16 +355,14 @@ namespace theori.Charting.IO
                 writer.WriteDoubleBE(cp.SpeedMultiplier);
             }
 
-            for (int s = 0; s < chart.StreamCount; s++)
+            foreach (var lane in chart.Lanes)
             {
-                var stream = chart[s];
-
-                int count = stream.Count;
+                int count = lane.Count;
                 writer.WriteUInt32BE((uint)count);
 
                 for (int i = 0; i < count; i++)
                 {
-                    var obj = stream[i];
+                    var obj = lane[i];
 
                     var serializer = GetSerializerForType(obj);
                     byte objId = (byte)(serializer?.ID ?? 0);

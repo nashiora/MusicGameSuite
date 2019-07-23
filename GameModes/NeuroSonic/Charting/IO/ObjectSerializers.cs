@@ -12,7 +12,7 @@ namespace NeuroSonic.Charting.IO
     {
         public ButtonObjectSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             byte flags = reader.ReadUInt8();
             bool hasSample = flags != 0;
@@ -38,7 +38,7 @@ namespace NeuroSonic.Charting.IO
     {
         public AnalogObjectSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             byte flags = reader.ReadUInt8();
 
@@ -90,7 +90,7 @@ namespace NeuroSonic.Charting.IO
     {
         public LaserApplicationEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             return new LaserApplicationEvent() { Position = pos, Application = (LaserApplication)reader.ReadUInt8() };
         }
@@ -105,7 +105,7 @@ namespace NeuroSonic.Charting.IO
     {
         public LaserParamsEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             var evt = new LaserParamsEvent() { Position = pos };
             evt.LaserIndex = (LaserIndex)reader.ReadUInt8();
@@ -126,7 +126,7 @@ namespace NeuroSonic.Charting.IO
     {
         public PathPointEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             return new PathPointEvent() { Position = pos, Value = reader.ReadSingleBE() };
         }
@@ -141,7 +141,7 @@ namespace NeuroSonic.Charting.IO
     {
         public EffectKindEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             int laneIndex = reader.ReadUInt8();
             ushort effectID = reader.ReadUInt16BE();
@@ -169,7 +169,7 @@ namespace NeuroSonic.Charting.IO
     {
         public LaserFilterKindEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             var laserIndex = (LaserIndex)reader.ReadUInt8();
             ushort effectID = reader.ReadUInt16BE();
@@ -197,7 +197,7 @@ namespace NeuroSonic.Charting.IO
     {
         public LaserFilterGainEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             var laserIndex = (LaserIndex)reader.ReadUInt8();
             float gain = reader.ReadSingleBE();
@@ -215,7 +215,7 @@ namespace NeuroSonic.Charting.IO
     {
         public SlamVolumeEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             return new SlamVolumeEvent() { Position = pos, Volume = reader.ReadSingleBE() };
         }
@@ -230,7 +230,7 @@ namespace NeuroSonic.Charting.IO
     {
         public SpinImpulseEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             return new SpinImpulseEvent() { Position = pos, Direction = (AngularDirection)reader.ReadUInt8() };
         }
@@ -245,7 +245,7 @@ namespace NeuroSonic.Charting.IO
     {
         public SwingImpulseEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             var evt = new SwingImpulseEvent() { Position = pos };
             evt.Direction = (AngularDirection)reader.ReadUInt8();
@@ -264,7 +264,7 @@ namespace NeuroSonic.Charting.IO
     {
         public WobbleImpulseEventSerializer(int id) : base(id) { }
 
-        public override ChartObject DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
+        public override Entity DeserializeSubclass(tick_t pos, tick_t dur, BinaryReader reader, ChartEffectTable effects)
         {
             var evt = new WobbleImpulseEvent() { Position = pos };
             evt.Direction = (LinearDirection)reader.ReadUInt8();

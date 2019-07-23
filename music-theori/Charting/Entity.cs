@@ -13,58 +13,60 @@ namespace theori.Charting
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class ChartObjectTypeAttribute : Attribute
+    public class EntityTypeAttribute : Attribute
     {
         public readonly string Name;
 
-        public ChartObjectTypeAttribute(string name)
+        public EntityTypeAttribute(string name)
         {
             Name = name;
         }
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class TheoriPropertyAttribute : Attribute
+    public class EntityPropertyAttribute : Attribute
     {
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class TheoriIgnoreAttribute : Attribute
+    public class EntityIgnoreAttribute : Attribute
     {
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class TheoriIgnoreDefaultAttribute : Attribute
+    public class EntityIgnoreDefaultAttribute : Attribute
     {
     }
 
-    [ChartObjectType("Object")]
-    public class ChartObject : ILinkable<ChartObject>, IComparable<ChartObject>, ICloneable
+    [EntityType("Entity")]
+    public class Entity : ILinkable<Entity>, IComparable<Entity>, ICloneable
     {
         private static long creationIndexCounter = 0;
 
-        private static readonly Dictionary<string, Type> objectTypesById = new Dictionary<string, Type>();
-        private static readonly Dictionary<Type, string> objectIdsByType = new Dictionary<Type, string>();
+        #region Type Registry
 
-        public static Type GetObjectTypeById(string id)
+        private static readonly Dictionary<string, Type> entityTypesById = new Dictionary<string, Type>();
+        private static readonly Dictionary<Type, string> entityIdsByType = new Dictionary<Type, string>();
+
+        public static Type GetEntityTypeById(string id)
         {
-            if (objectTypesById.TryGetValue(id, out var type))
+            if (entityTypesById.TryGetValue(id, out var type))
                 return type;
             return null;
         }
 
-        public static string GetObjectId<T>() where T : ChartObject => GetObjectIdByType(typeof(T));
-        public static string GetObjectIdByType(Type type)
+        public static string GetEntityId<T>() where T : Entity => GetEntityIdByType(typeof(T));
+        public static string GetEntityIdByType(Type type)
         {
-            if (objectIdsByType.TryGetValue(type, out string id))
+            if (entityIdsByType.TryGetValue(type, out string id))
                 return id;
             return null;
         }
 
         internal static void RegisterTheoriTypes()
         {
-            var types = from type in typeof(ChartObject).Assembly.ExportedTypes
-                        where type == typeof(ChartObject) || type.IsSubclassOf(typeof(ChartObject))
+            var types = from type in typeof(Entity).Assembly.ExportedTypes
+                        where type == typeof(Entity) || type.IsSubclassOf(typeof(Entity))
                         select type;
             RegisterTypes("theori", types);
         }
@@ -72,7 +74,7 @@ namespace theori.Charting
         public static void RegisterTypesFromGameMode(GameMode gameMode)
         {
             var types = from type in gameMode.GetType().Assembly.ExportedTypes
-                        where type.IsSubclassOf(typeof(ChartObject))
+                        where type.IsSubclassOf(typeof(Entity))
                         select type;
             RegisterTypes(gameMode.Name, types);
         }
@@ -83,32 +85,36 @@ namespace theori.Charting
             {
                 string typeName;
 
-                var typeAttrib = type.GetCustomAttribute<ChartObjectTypeAttribute>();
+                var typeAttrib = type.GetCustomAttribute<EntityTypeAttribute>();
                 if (typeAttrib != null)
                     typeName = typeAttrib.Name;
                 else typeName = type.Name;
 
                 string id = $"{ modeName }.{ typeName }";
-                objectTypesById[id] = type;
-                objectIdsByType[type] = id;
+                entityTypesById[id] = type;
+                entityIdsByType[type] = id;
             }
         }
 
-        static ChartObject()
+        #endregion
+
+        static Entity()
         {
             RegisterTheoriTypes();
         }
 
+        // NOTE(local): ONLY used for sorting when entities are otherwise equal. Not needed otherwise, likely needs removal for simplification.
         private readonly long m_id = ++creationIndexCounter;
 
         private tick_t m_position, m_duration;
-        private time_t m_calcPosition = (time_t)long.MinValue,
-                       m_calcEndPosition = (time_t)long.MinValue;
 
-        internal int m_stream;
+        // Positions (in seconds) calculated from chart timing information.
+        private time_t m_calcPosition = long.MinValue, m_calcEndPosition = long.MinValue;
+
+        internal LaneLabel m_lane;
 
         /// <summary>
-        /// The position, in beats, of this object.
+        /// The position, in measures, of this object.
         /// </summary>
         public tick_t Position
         {
@@ -116,14 +122,14 @@ namespace theori.Charting
             set
             {
                 if (value < 0)
-                    throw new ArgumentException("Objects cannot have negative positions.", nameof(Position));
+                    throw new ArgumentException("Entities cannot have negative positions.", nameof(Position));
 
                 if (SetPropertyField(nameof(Position), ref m_position, value))
                     InvalidateTimingCalc();
             }
         }
 
-        [TheoriIgnoreDefault]
+        [EntityIgnoreDefault]
         public tick_t Duration
         {
             get => m_duration;
@@ -172,37 +178,37 @@ namespace theori.Charting
 
         public time_t AbsoluteDuration => AbsoluteEndPosition - AbsolutePosition;
 
-        [TheoriIgnore]
-        public int Stream
+        [EntityIgnore]
+        public LaneLabel Lane
         {
-            get => m_stream;
+            get => m_lane;
             set
             {
-                if (m_stream == value) return;
+                if (m_lane == value) return;
 
                 var chart = Chart;
                 if (chart != null)
                 {
-                    chart.ObjectStreams[m_stream].Remove(this);
+                    chart[m_lane].Remove(this);
                     // will re-assign Chart and m_stream
-                    chart.ObjectStreams[value].Add(this);
+                    chart[value].Add(this);
                 }
-                else m_stream = value;
+                else m_lane = value;
 
-                OnPropertyChanged(nameof(Stream));
+                OnPropertyChanged(nameof(Lane));
             }
         }
 
         public bool HasPrevious => Previous != null;
         public bool HasNext => Next != null;
 
-        public ChartObject Previous => ((ILinkable<ChartObject>)this).Previous;
-        ChartObject ILinkable<ChartObject>.Previous { get; set; }
+        public Entity Previous => ((ILinkable<Entity>)this).Previous;
+        Entity ILinkable<Entity>.Previous { get; set; }
 
-        public ChartObject Next => ((ILinkable<ChartObject>)this).Next;
-        ChartObject ILinkable<ChartObject>.Next { get; set; }
+        public Entity Next => ((ILinkable<Entity>)this).Next;
+        Entity ILinkable<Entity>.Next { get; set; }
 
-        public ChartObject PreviousConnected
+        public Entity PreviousConnected
         {
             get
             {
@@ -211,7 +217,7 @@ namespace theori.Charting
             }
         }
 
-        public ChartObject NextConnected
+        public Entity NextConnected
         {
             get
             {
@@ -221,7 +227,7 @@ namespace theori.Charting
         }
 
         public T FirstConnectedOf<T>()
-            where T : ChartObject
+            where T : Entity
         {
             var current = this as T;
             while (current?.PreviousConnected is T prev)
@@ -230,7 +236,7 @@ namespace theori.Charting
         }
 
         public T LastConnectedOf<T>()
-            where T : ChartObject
+            where T : Entity
         {
             var current = this as T;
             while (current?.NextConnected is T next)
@@ -240,24 +246,24 @@ namespace theori.Charting
 
         public Chart Chart { get; internal set; }
 
-        public ChartObject()
+        public Entity()
         {
         }
 
-        public virtual ChartObject Clone()
+        public virtual Entity Clone()
         {
-            var result = new ChartObject()
+            var result = new Entity()
             {
                 m_position = m_position,
                 m_duration = m_duration,
-                m_stream = m_stream,
+                m_lane = m_lane,
             };
             return result;
         }
 
         object ICloneable.Clone() => Clone();
 
-        public virtual int CompareTo(ChartObject other)
+        public virtual int CompareTo(Entity other)
         {
             int r = m_position.CompareTo(other.m_position);
             if (r != 0)
@@ -272,10 +278,10 @@ namespace theori.Charting
                 return 1;
 
             // oh well, we tried
-            return m_id.CompareTo(other.m_id);;
+            return m_id.CompareTo(other.m_id);
         }
         
-        int IComparable<ChartObject>.CompareTo(ChartObject other) => CompareTo(other);
+        int IComparable<Entity>.CompareTo(Entity other) => CompareTo(other);
 
         internal void InvalidateTimingCalc()
         {
@@ -283,7 +289,7 @@ namespace theori.Charting
             m_calcEndPosition = (time_t)long.MinValue;
         }
 
-        public delegate void PropertyChangedEventHandler(ChartObject sender, PropertyChangedEventArgs args);
+        public delegate void PropertyChangedEventHandler(Entity sender, PropertyChangedEventArgs args);
 
         [Flags]
         public enum Invalidation

@@ -26,7 +26,7 @@ namespace NeuroSonic
             : base("NeuroSonic")
         {
             void AddSerializer<TObj>(ChartObjectSerializer<TObj> ser)
-                where TObj : ChartObject
+                where TObj : Entity
             {
                 int actId = ser.ID;
                 var actType = typeof(TObj);
@@ -59,6 +59,8 @@ namespace NeuroSonic
         public override void InvokeStandalone(string[] args) => Plugin.NSC_Main(args);
         public override Layer CreateSharedGameLayer() => new GameLayer(null, null, null, AutoPlay.None);
 
+        public override ChartFactory CreateChartFactory() => new NeuroSonicChartFactory();
+
         public override ChartObjectSerializer GetSerializerByID(int id)
         {
             foreach (var (oid, otype) in m_objectSerializers.Keys)
@@ -68,7 +70,7 @@ namespace NeuroSonic
             return null;
         }
 
-        public override ChartObjectSerializer GetSerializerFor(ChartObject obj)
+        public override ChartObjectSerializer GetSerializerFor(Entity obj)
         {
             foreach (var (oid, otype) in m_objectSerializers.Keys)
             {

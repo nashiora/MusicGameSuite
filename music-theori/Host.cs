@@ -407,7 +407,7 @@ namespace theori
             }
 
             sharedGameModes.Add(gameMode);
-            ChartObject.RegisterTypesFromGameMode(gameMode);
+            Entity.RegisterTypesFromGameMode(gameMode);
         }
 
         private static void ProgramLoop()
@@ -501,7 +501,7 @@ namespace theori
         {
             if (gameMode != null)
             {
-                ChartObject.RegisterTypesFromGameMode(gameMode);
+                Entity.RegisterTypesFromGameMode(gameMode);
                 gameMode.InvokeStandalone(args);
             }
             else PushLayer(new StandaloneBootLoader(args));
