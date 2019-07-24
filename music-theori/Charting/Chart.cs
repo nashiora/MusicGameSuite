@@ -315,12 +315,12 @@ namespace theori.Charting
             private readonly Chart m_chart;
             public readonly LaneLabel Label;
 
-            private readonly int m_stream;
-
             private readonly OrderedLinkedList<Entity> m_entities = new OrderedLinkedList<Entity>();
 
             private readonly Type[] m_allowedTypes;
-            private readonly EntityRelation m_relation;
+            public readonly EntityRelation Relation;
+
+            public IEnumerable<Type> AllowedTypes => m_allowedTypes;
 
             public Entity First => m_entities.Count == 0 ? null : m_entities[0];
             public Entity Last => m_entities.Count == 0 ? null : m_entities[m_entities.Count - 1];
@@ -332,7 +332,7 @@ namespace theori.Charting
             {
                 m_chart = chart;
                 Label = name;
-                m_relation = EntityRelation.None;
+                Relation = EntityRelation.None;
             }
 
             internal ChartLane(Chart chart, LaneLabel name, Type[] types, EntityRelation relation)
@@ -340,14 +340,7 @@ namespace theori.Charting
                 m_chart = chart;
                 Label = name;
                 m_allowedTypes = types;
-                m_relation = relation;
-            }
-
-            internal ChartLane(Chart chart, int stream)
-            {
-                m_chart = chart;
-                m_stream = stream;
-                m_relation = EntityRelation.None;
+                Relation = relation;
             }
 
             public IEnumerator<Entity> GetEnumerator() => m_entities.GetEnumerator();
@@ -363,7 +356,7 @@ namespace theori.Charting
                 if (requestedType != typeof(Entity) && !requestedType.IsSubclassOf(typeof(Entity)))
                     throw new ChartFormatException($"{ requestedType } does not inherit from { nameof(Entity) }: cannot add to { nameof(ChartLane) }");
 
-                if (m_relation == EntityRelation.None)
+                if (Relation == EntityRelation.None)
                     return; // always allow any type when no relation is specified
 
                 bool isAllowed = false;
@@ -371,12 +364,12 @@ namespace theori.Charting
                 {
                     if (isAllowed) break;
 
-                    if ((m_relation & EntityRelation.Equal) != 0)
+                    if ((Relation & EntityRelation.Equal) != 0)
                     {
                         if (allowedType == requestedType)
                             isAllowed = true;
                     }
-                    else if ((m_relation & EntityRelation.Subclass) != 0)
+                    else if ((Relation & EntityRelation.Subclass) != 0)
                     {
                         if (requestedType.IsSubclassOf(allowedType))
                             isAllowed = true;

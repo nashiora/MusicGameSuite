@@ -3,7 +3,8 @@ using System.IO;
 using System.Linq;
 
 using Newtonsoft.Json;
-
+using Newtonsoft.Json.Linq;
+using theori.Audio.Effects;
 using theori.GameModes;
 
 namespace theori.Charting.Serialization
@@ -22,13 +23,137 @@ namespace theori.Charting.Serialization
 
         public Chart LoadFromFile(ChartInfo chartInfo)
         {
-            throw new NotImplementedException();
-
             string chartFile = Path.Combine(ParentDirectory, chartInfo.Set.FilePath, chartInfo.FileName);
 
-            Chart chart = null;
-            using (var reader = new JsonTextReader(new StreamReader(File.OpenRead(chartFile))))
+            // TODO(local): We don't need to be creating chart factories like this aaa but it's a start
+            Chart chart = m_gameMode.CreateChartFactory().CreateNew();
+            chart.Info = chartInfo;
+
+            var jobj = JObject.Load(new JsonTextReader(new StreamReader(File.OpenRead(chartFile))));
+            dynamic jobjdyn = jobj;
+
+            JArray controlPoints = jobjdyn.controlPoints;
+            JArray lanes = jobjdyn.lanes;
+
+            LaneLabel ToLabel(JToken token)
             {
+                switch (token.Type)
+                {
+                    case JTokenType.String: return (string)token;
+                    case JTokenType.Integer: return (int)token;
+                    default: throw new ChartFormatException("Invalid value for lane label.");
+                }
+            }
+
+            object ToValue(dynamic jObjectDyn, Type typeHint)
+            {
+                // TODO(local): Check that any of these are actually okay???
+                if (typeHint == typeof(bool)) return (bool)jObjectDyn;
+                else if (typeHint == typeof(sbyte)) return (sbyte)jObjectDyn;
+                else if (typeHint == typeof(short)) return (short)jObjectDyn;
+                else if (typeHint == typeof(int)) return (int)jObjectDyn;
+                else if (typeHint == typeof(long)) return (long)jObjectDyn;
+                else if (typeHint == typeof(byte)) return (byte)jObjectDyn;
+                else if (typeHint == typeof(ushort)) return (ushort)jObjectDyn;
+                else if (typeHint == typeof(uint)) return (uint)jObjectDyn;
+                else if (typeHint == typeof(ulong)) return (ulong)jObjectDyn;
+                else if (typeHint == typeof(float)) return (float)jObjectDyn;
+                else if (typeHint == typeof(double)) return (double)jObjectDyn;
+                else if (typeHint == typeof(string)) return (string)jObjectDyn;
+                else if (typeHint == typeof(char)) return (char)jObjectDyn;
+                else if (typeHint == typeof(tick_t)) return (tick_t)(double)jObjectDyn;
+                else if (typeHint == typeof(time_t)) return (time_t)(double)jObjectDyn;
+                else if (typeHint.IsEnum) return Enum.Parse(typeHint, (string)jObjectDyn);
+                else if (typeof(IEffectParam).IsAssignableFrom(typeHint))
+                {
+                    bool isRange = jObjectDyn is JObject;
+                    if (typeHint == typeof(EffectParamI))
+                    {
+                        if (isRange)
+                            return new EffectParamI((int)jObjectDyn.MinValue, (int)jObjectDyn.MaxValue);
+                        return new EffectParamI((int)jObjectDyn);
+                    }
+                    else if (typeHint == typeof(EffectParamF))
+                    {
+                        if (isRange)
+                            return new EffectParamF((float)jObjectDyn.MinValue, (float)jObjectDyn.MaxValue);
+                        return new EffectParamF((float)jObjectDyn);
+                    }
+                    else if (typeHint == typeof(EffectParamX))
+                    {
+                        if (isRange)
+                            return new EffectParamX((int)jObjectDyn.MinValue, (int)jObjectDyn.MaxValue);
+                        return new EffectParamX((int)jObjectDyn);
+                    }
+                    else if (typeHint == typeof(EffectParamS))
+                        return new EffectParamS((string)jObjectDyn);
+                    return null;
+                }
+                else
+                {
+                    var obj = Activator.CreateInstance(typeHint);
+                    var jObject = (JObject)jObjectDyn;
+
+                    foreach (var prop in obj.GetTheoriPropertyInfos())
+                    {
+                        string name = prop.GetAttribute<TheoriPropertyAttribute>()?.OverrideName ?? prop.Name;
+                        if (!jObject.ContainsKey(name)) continue;
+
+                        if (prop.Type == typeof(EffectDef) || prop.Type.IsSubclassOf(typeof(EffectDef)))
+                            prop.Value = ToEffectDef(jObject.GetValue(name));
+                        else prop.Value = ToValue(jObject.GetValue(name), prop.Type);
+                    }
+
+                    return obj;
+                }
+
+            }
+
+            Entity ToEntity(dynamic entityObj)
+            {
+                string entityId = (string)entityObj.type;
+                return (Entity)ToValue(entityObj, Entity.GetEntityTypeById(entityId));
+            }
+
+            EffectDef ToEffectDef(dynamic effectObj)
+            {
+                switch ((string)effectObj.type)
+                {
+                    case "theori.BiQuadFilter": return (EffectDef)ToValue(effectObj, typeof(BiQuadFilterEffectDef));
+                    case "theori.BitCrusher": return (EffectDef)ToValue(effectObj, typeof(BitCrusherEffectDef));
+                    case "theori.Flanger": return (EffectDef)ToValue(effectObj, typeof(FlangerEffectDef));
+                    case "theori.Gate": return (EffectDef)ToValue(effectObj, typeof(GateEffectDef));
+                    case "theori.Phaser": return (EffectDef)ToValue(effectObj, typeof(PhaserEffectDef));
+                    case "theori.Retrigger": return (EffectDef)ToValue(effectObj, typeof(RetriggerEffectDef));
+                    case "theori.SideChain": return (EffectDef)ToValue(effectObj, typeof(SideChainEffectDef));
+                    case "theori.TapeStop": return (EffectDef)ToValue(effectObj, typeof(TapeStopEffectDef));
+                    case "theori.Wobble": return (EffectDef)ToValue(effectObj, typeof(WobbleEffectDef));
+                }
+
+                return null;
+            }
+
+            tick_t ToTickT(JToken token) => (double)token;
+
+            foreach (dynamic pointObj in controlPoints)
+            {
+                tick_t pos = ToTickT(pointObj.position);
+                var point = chart.ControlPoints.GetOrCreate(pos, true);
+                point.BeatCount = (int)pointObj.numerator;
+                point.BeatKind = (int)pointObj.denominator;
+                point.SpeedMultiplier = (double)pointObj.multiplier;
+                point.BeatsPerMinute = (double)pointObj.bpm;
+            }
+
+            foreach (dynamic laneObj in lanes)
+            {
+                var lane = chart[ToLabel(laneObj.label)];
+
+                foreach (dynamic entityObj in laneObj.entities)
+                {
+                    var entity = ToEntity(entityObj);
+                    lane.Add(entity);
+                }
             }
 
             return chart;
@@ -44,7 +169,7 @@ namespace theori.Charting.Serialization
             {
                 writer.WriteStartStructure();
                 {
-                    writer.WritePropertyName("control-points");
+                    writer.WritePropertyName("controlPoints");
                     writer.WriteStartArray();
                     {
                         for (int i = 0; i < chart.ControlPoints.Count; i++)

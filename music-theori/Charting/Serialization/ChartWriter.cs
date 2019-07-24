@@ -64,6 +64,8 @@ namespace theori.Charting.Serialization
         {
             switch (value)
             {
+                //case null: WriteNull(); break;
+
                 case LaneLabel label:
                     switch (label.LabelKind)
                     {
@@ -219,35 +221,12 @@ namespace theori.Charting.Serialization
 
         private void WritePropertiesFromReflection(object obj)
         {
-            var objType = obj.GetType();
-
-            var fields = from type in objType.GetFields()
-                         where type.GetCustomAttribute<TheoriIgnoreAttribute>() == null &&
-                              (type.GetCustomAttribute<TheoriPropertyAttribute>() != null || type.IsPublic)
-                         select type;
-            var props = from prop in objType.GetProperties()
-                        where prop.SetMethod != null && prop.GetMethod != null
-                        where prop.GetCustomAttribute<TheoriIgnoreAttribute>() == null && (prop.GetCustomAttribute<TheoriPropertyAttribute>() != null ||
-                             (prop.SetMethod.IsPublic && prop.SetMethod.GetCustomAttribute<TheoriIgnoreAttribute>() == null &&
-                              prop.GetMethod.IsPublic && prop.GetMethod.GetCustomAttribute<TheoriIgnoreAttribute>() == null))
-                        select prop;
-
-            foreach (var field in fields)
+            foreach (var prop in obj.GetTheoriPropertyInfos())
             {
-                object value = field.GetValue(obj);
-                if (field.GetCustomAttribute<TheoriIgnoreDefaultAttribute>() != null && ValueIsDefault(value)) continue;
+                object value = prop.Value;
+                if (prop.HasAttribute<TheoriIgnoreDefaultAttribute>() && ValueIsDefault(value)) continue;
 
-                WritePropertyName(field.GetCustomAttribute<TheoriPropertyAttribute>()?.OverrideName ?? field.Name);
-                WriteValue(value);
-            }
-
-            foreach (var prop in props)
-            {
-                object value = prop.GetValue(obj);
-                // TODO(local): for the get/set pairs too?
-                if (prop.GetCustomAttribute<TheoriIgnoreDefaultAttribute>() != null && ValueIsDefault(value)) continue;
-
-                WritePropertyName(prop.GetCustomAttribute<TheoriPropertyAttribute>()?.OverrideName ?? prop.Name);
+                WritePropertyName(prop.GetAttribute<TheoriPropertyAttribute>()?.OverrideName ?? prop.Name);
                 WriteValue(value);
             }
         }

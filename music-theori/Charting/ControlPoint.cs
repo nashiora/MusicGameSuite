@@ -25,6 +25,7 @@ namespace theori.Charting
         private time_t m_qnDuration = time_t.FromSeconds(60.0 / 120);
         private int m_beatCount = 4, m_beatKind = 4;
 
+        [TheoriProperty("position")]
         public tick_t Position
         {
             get => m_position;
@@ -39,10 +40,11 @@ namespace theori.Charting
                 Chart?.ControlPoints.Resort();
             }
         }
-        
+
         /// <summary>
         /// Time Signature Numerator
         /// </summary>
+        [TheoriProperty("numerator")]
         public int BeatCount
         {
             get => m_beatCount;
@@ -58,6 +60,7 @@ namespace theori.Charting
         /// <summary>
         /// Time Signature Denominator
         /// </summary>
+        [TheoriProperty("denominator")]
         public int BeatKind
         {
             get => m_beatKind;
@@ -70,6 +73,7 @@ namespace theori.Charting
             }
         }
 
+        [TheoriProperty("multiplier")]
         public double SpeedMultiplier { get; set; } = 1.0;
 
         public time_t AbsolutePosition
@@ -98,6 +102,7 @@ namespace theori.Charting
         /// <summary>
         /// The number of quarter-note beats per minute.
         /// </summary>
+        [TheoriProperty("bpm")]
         public double BeatsPerMinute
         {
             get => m_bpm;
@@ -127,6 +132,7 @@ namespace theori.Charting
         public ControlPoint Next => ((ILinkable<ControlPoint>)this).Next;
         ControlPoint ILinkable<ControlPoint>.Next { get; set; }
 
+        [TheoriIgnore]
         public Chart Chart { get; internal set; }
 
         public ControlPoint()

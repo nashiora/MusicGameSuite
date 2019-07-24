@@ -159,7 +159,7 @@ namespace theori.Audio.Effects
             base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is BiQuadFilter filter)
             {
-                switch (Type)
+                switch (FilterType)
                 {
                     case EffectType.PeakingFilter:
                         filter.SetPeaking(Q.Sample(alpha), Freq.Sample(alpha), Gain.Sample(alpha));

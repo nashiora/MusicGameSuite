@@ -44,6 +44,7 @@ namespace NeuroSonic.Charting
         [TheoriProperty("index")]
         public int EffectIndex;
         [TheoriProperty("effect")]
+        [TheoriIgnoreDefault]
         public EffectDef Effect { get; set; }
     }
 
@@ -53,6 +54,7 @@ namespace NeuroSonic.Charting
         [TheoriProperty("index")]
         public LaserIndex LaserIndex;
         [TheoriProperty("effect")]
+        [TheoriIgnoreDefault]
         public EffectDef Effect { get; set; }
     }
 

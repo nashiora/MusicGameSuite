@@ -133,6 +133,7 @@
     <Compile Include="Charting\Serialization\ChartWriter.cs" />
     <Compile Include="Charting\Serialization\ChartSerializer.cs" />
     <Compile Include="Charting\Playback\SlidingChartPlayback.cs" />
+    <Compile Include="Charting\Serialization\IObjectPropertyRef.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ConfigEntry.cs" />
     <Compile Include="Configuration\GameConfig.cs" />
