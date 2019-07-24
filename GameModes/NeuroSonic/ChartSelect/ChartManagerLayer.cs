@@ -7,7 +7,7 @@ using System.Numerics;
 using theori;
 using theori.Audio;
 using theori.Charting;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 using theori.IO;
 using theori.Gui;
 using theori.Graphics;

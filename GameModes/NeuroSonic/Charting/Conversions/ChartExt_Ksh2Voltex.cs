@@ -109,7 +109,7 @@ namespace NeuroSonic.Charting.Conversions
             var buttonStates = new TempButtonState[6];
             var laserStates = new TempLaserState[2];
             bool[] laserIsExtended = new bool[2] { false, false };
-            PathPointEvent lastTiltEvent = null;
+            GraphPointEvent lastTiltEvent = null;
 
             foreach (var tickRef in ksh)
             {
@@ -222,28 +222,28 @@ namespace NeuroSonic.Charting.Conversions
                         
                         case "zoom_bottom":
                         {
-                            var point = chart[NscLane.CameraZoom].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraZoom].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             Logger.Log($"ksh.convert zoom { setting.Value }");
                         } break;
                         
                         case "zoom_top":
                         {
-                            var point = chart[NscLane.CameraPitch].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraPitch].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             Logger.Log($"ksh.convert pitch { setting.Value }");
                         } break;
                         
                         case "zoom_side":
                         {
-                            var point = chart[NscLane.CameraOffset].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraOffset].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             Logger.Log($"ksh.convert offset { setting.Value }");
                         } break;
 
                         case "roll": // NOTE(local): This is an extension, not originally supported in KSH. Used primarily for development purposes, but may also be exported to KSH should someone want to export back to that format.
                         {
-                            var point = chart[NscLane.CameraTilt].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraTilt].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 360.0f;
                             Logger.Log($"ksh.convert custom manual tilt { setting.Value }");
                         } break;
@@ -273,11 +273,11 @@ namespace NeuroSonic.Charting.Conversions
 
                                         if (lastTiltEvent == null)
                                         {
-                                            var startPoint = chart[NscLane.CameraTilt].Add<PathPointEvent>(chartPos);
+                                            var startPoint = chart[NscLane.CameraTilt].Add<GraphPointEvent>(chartPos);
                                             startPoint.Value = 0;
                                         }
 
-                                        var point = chart[NscLane.CameraTilt].Add<PathPointEvent>(chartPos);
+                                        var point = chart[NscLane.CameraTilt].Add<GraphPointEvent>(chartPos);
                                         point.Value = -manualValue * 14 / 360.0f;
 
                                         lastTiltEvent = point;

@@ -63,7 +63,7 @@ namespace theori.Audio.Effects
             }
         }
 
-        [EntityIgnore]
+        [TheoriIgnore]
         public EffectType Type;
 
         public EffectParamF Mix;

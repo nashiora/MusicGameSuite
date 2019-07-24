@@ -16,25 +16,37 @@ namespace theori.Charting
     public class EntityTypeAttribute : Attribute
     {
         public readonly string Name;
+        /// <summary>
+        /// Used if we support custom serialization for entities.
+        /// Needs to be removed otherwise.
+        /// </summary>
+        public readonly Type SerializerType;
 
-        public EntityTypeAttribute(string name)
+        public EntityTypeAttribute(string name, Type serializerType = null)
         {
             Name = name;
+            SerializerType = serializerType;
         }
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class EntityPropertyAttribute : Attribute
+    public class TheoriPropertyAttribute : Attribute
+    {
+        public readonly string OverrideName;
+
+        public TheoriPropertyAttribute(string overrideName = null)
+        {
+            OverrideName = overrideName;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    public class TheoriIgnoreAttribute : Attribute
     {
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class EntityIgnoreAttribute : Attribute
-    {
-    }
-
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class EntityIgnoreDefaultAttribute : Attribute
+    public class TheoriIgnoreDefaultAttribute : Attribute
     {
     }
 
@@ -114,8 +126,9 @@ namespace theori.Charting
         internal LaneLabel m_lane;
 
         /// <summary>
-        /// The position, in measures, of this object.
+        /// The position, in measures, of this entity.
         /// </summary>
+        [TheoriProperty("position")]
         public tick_t Position
         {
             get => m_position;
@@ -129,7 +142,8 @@ namespace theori.Charting
             }
         }
 
-        [EntityIgnoreDefault]
+        [TheoriProperty("duration")]
+        [TheoriIgnoreDefault]
         public tick_t Duration
         {
             get => m_duration;
@@ -149,7 +163,7 @@ namespace theori.Charting
             get
             {
                 if (Chart == null)
-                    throw new InvalidOperationException("Cannot calculate the absolute position of an object without an assigned Chart.");
+                    throw new InvalidOperationException("Cannot calculate the absolute position of an entity without an assigned Chart.");
 
                 if (m_calcPosition == (time_t)long.MinValue)
                 {
@@ -165,7 +179,7 @@ namespace theori.Charting
             get
             {
                 if (Chart == null)
-                    throw new InvalidOperationException("Cannot calculate the absolute duration of an object without an assigned Chart.");
+                    throw new InvalidOperationException("Cannot calculate the absolute duration of an entity without an assigned Chart.");
 
                 if (m_calcEndPosition == (time_t)long.MinValue)
                 {
@@ -178,7 +192,7 @@ namespace theori.Charting
 
         public time_t AbsoluteDuration => AbsoluteEndPosition - AbsolutePosition;
 
-        [EntityIgnore]
+        [TheoriIgnore]
         public LaneLabel Lane
         {
             get => m_lane;

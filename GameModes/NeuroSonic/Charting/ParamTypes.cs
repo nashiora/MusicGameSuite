@@ -1,29 +1,27 @@
-﻿using Newtonsoft.Json;
-using theori;
+﻿using theori;
 using theori.Charting;
 
 namespace NeuroSonic.Charting
 {
-    [JsonObject(nameof(LaserParams))]
     public struct LaserParams
     {
         /// <summary>
         /// What function is applied to this laser's output.
         /// </summary>
+        [TheoriProperty("function")]
         public LaserFunction Function;
         /// <summary>
         /// How to scale the laser's output.
         /// </summary>
+        [TheoriProperty("scale")]
         public LaserScale Scale;
     }
 
-    [JsonObject(nameof(SpinParams))]
     public struct SpinParams
     {
         /// <summary>
         /// The direction of this spin.
         /// </summary>
-        /// 
         public AngularDirection Direction;
 
         /// <summary>
@@ -32,7 +30,6 @@ namespace NeuroSonic.Charting
         public time_t Duration;
     }
 
-    [JsonObject(nameof(SwingParams))]
     public struct SwingParams
     {
         /// <summary>
@@ -51,7 +48,6 @@ namespace NeuroSonic.Charting
         public float Amplitude;
     }
 
-    [JsonObject(nameof(WobbleParams))]
     public struct WobbleParams
     {
         /// <summary>

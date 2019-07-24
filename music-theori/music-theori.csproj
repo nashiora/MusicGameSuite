@@ -128,10 +128,10 @@
     <Compile Include="Charting\ChartSetSerializer.cs" />
     <Compile Include="Charting\ControlPoint.cs" />
     <Compile Include="Charting\Enums.cs" />
-    <Compile Include="Charting\ChartEvent.cs" />
+    <Compile Include="Charting\EventEntity.cs" />
     <Compile Include="Charting\Entity.cs" />
-    <Compile Include="Charting\IO\ChartSerializer.cs" />
-    <Compile Include="Charting\IO\IChartSerializer.cs" />
+    <Compile Include="Charting\Serialization\ChartWriter.cs" />
+    <Compile Include="Charting\Serialization\ChartSerializer.cs" />
     <Compile Include="Charting\Playback\SlidingChartPlayback.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ConfigEntry.cs" />
@@ -221,7 +221,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Charting\Serialization\" />
+    <Folder Include="Charting\Effects\" />
     <Folder Include="Logging\" />
   </ItemGroup>
   <ItemGroup>

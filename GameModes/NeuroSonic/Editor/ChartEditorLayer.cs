@@ -1,10 +1,9 @@
 ﻿using System;
 
 using theori.Charting;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 
 using NeuroSonic.Charting;
-using NeuroSonic.Charting.IO;
 
 namespace NeuroSonic.Editor
 {

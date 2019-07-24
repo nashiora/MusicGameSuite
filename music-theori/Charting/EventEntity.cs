@@ -1,7 +1,7 @@
 ﻿namespace theori.Charting
 {
     [EntityType("Event")]
-    public class ChartEvent : Entity
+    public class EventEntity : Entity
     {
     }
 }

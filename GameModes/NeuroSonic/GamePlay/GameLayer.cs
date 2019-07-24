@@ -13,7 +13,7 @@ using theori.Resources;
 
 using NeuroSonic.Charting;
 using NeuroSonic.GamePlay.Scoring;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 using System.IO;
 using MoonSharp.Interpreter;
 using theori.Scripting;
@@ -246,13 +246,13 @@ namespace NeuroSonic.GamePlay
             {
                 if (dir != PlayDirection.Forward) return;
 
-                if (obj is ChartEvent evt)
+                if (obj is EventEntity evt)
                     PlaybackEventTrigger(evt, dir);
                 else PlaybackObjectBegin(obj);
             };
             m_playback.ObjectTailCrossCritical += (dir, obj) =>
             {
-                if (dir == PlayDirection.Backward && obj is ChartEvent evt)
+                if (dir == PlayDirection.Backward && obj is EventEntity evt)
                     PlaybackEventTrigger(evt, dir);
                 else PlaybackObjectEnd(obj);
             };
@@ -422,7 +422,7 @@ namespace NeuroSonic.GamePlay
             CreateKeyBeam((int)obj.Lane, JudgeKind.Passive, false);
         }
 
-        private void PlaybackEventTrigger(ChartEvent evt, PlayDirection direction)
+        private void PlaybackEventTrigger(EventEntity evt, PlayDirection direction)
         {
             if (direction == PlayDirection.Forward)
             {
@@ -600,14 +600,14 @@ namespace NeuroSonic.GamePlay
             {
                 var s = m_playback.Chart[stream];
 
-                var mrPoint = s.MostRecent<PathPointEvent>(position);
+                var mrPoint = s.MostRecent<GraphPointEvent>(position);
                 if (mrPoint == null)
-                    return ((PathPointEvent)s.First)?.Value ?? 0;
+                    return ((GraphPointEvent)s.First)?.Value ?? 0;
 
                 if (mrPoint.HasNext)
                 {
                     float alpha = (float)((position - mrPoint.AbsolutePosition).Seconds / (mrPoint.Next.AbsolutePosition - mrPoint.AbsolutePosition).Seconds);
-                    return MathL.Lerp(mrPoint.Value, ((PathPointEvent)mrPoint.Next).Value, alpha);
+                    return MathL.Lerp(mrPoint.Value, ((GraphPointEvent)mrPoint.Next).Value, alpha);
                 }
                 else return mrPoint.Value;
             }

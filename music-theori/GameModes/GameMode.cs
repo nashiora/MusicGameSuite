@@ -1,5 +1,5 @@
 ﻿using theori.Charting;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 
 namespace theori.GameModes
 {

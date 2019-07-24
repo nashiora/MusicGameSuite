@@ -19,10 +19,10 @@ namespace NeuroSonic.Charting
             chart.CreateTypedLane<ButtonTypedEvent>(NscLane.ButtonEvent, EntityRelation.Subclass);
             chart.CreateTypedLane<LaserTypedEvent>(NscLane.LaserEvent, EntityRelation.Subclass);
 
-            chart.CreateTypedLane<PathPointEvent>(NscLane.CameraZoom);
-            chart.CreateTypedLane<PathPointEvent>(NscLane.CameraPitch);
-            chart.CreateTypedLane<PathPointEvent>(NscLane.CameraOffset);
-            chart.CreateTypedLane<PathPointEvent>(NscLane.CameraTilt);
+            chart.CreateTypedLane<GraphPointEvent>(NscLane.CameraZoom);
+            chart.CreateTypedLane<GraphPointEvent>(NscLane.CameraPitch);
+            chart.CreateTypedLane<GraphPointEvent>(NscLane.CameraOffset);
+            chart.CreateTypedLane<GraphPointEvent>(NscLane.CameraTilt);
 
             return chart;
         }

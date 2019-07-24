@@ -76,7 +76,6 @@
     <Compile Include="Charting\Conversions\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\Events.cs" />
-    <Compile Include="Charting\IO\ObjectSerializers.cs" />
     <Compile Include="Charting\KShootMania\Chart.cs" />
     <Compile Include="Charting\KShootMania\ChartMetadata.cs" />
     <Compile Include="Charting\NeuroSonicChartFactory.cs" />
@@ -143,6 +142,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Charting\Serialization\" />
     <Folder Include="ChartSelect\Portrait\" />
     <Folder Include="GamePlay\Shared\" />
     <Folder Include="GamePlay\Standalone\" />

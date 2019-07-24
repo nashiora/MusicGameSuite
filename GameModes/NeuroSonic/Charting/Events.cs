@@ -3,54 +3,72 @@ using theori.Charting;
 
 namespace NeuroSonic.Charting
 {
-    public abstract class HighwayTypedEvent : ChartEvent { }
-    public abstract class ButtonTypedEvent : ChartEvent { }
-    public abstract class LaserTypedEvent : ChartEvent { }
-    public abstract class CameraTypedEvent : ChartEvent { }
+    public abstract class HighwayTypedEvent : EventEntity { }
+    public abstract class ButtonTypedEvent : EventEntity { }
+    public abstract class LaserTypedEvent : EventEntity { }
 
     [EntityType("LaserApplication")]
     public class LaserApplicationEvent : LaserTypedEvent
     {
+        [TheoriProperty("mode")]
         public LaserApplication Application = LaserApplication.Additive;
     }
 
     [EntityType("LaserParams")]
     public class LaserParamsEvent : LaserTypedEvent
     {
+        [TheoriProperty("index")]
         public LaserIndex LaserIndex;
+        [TheoriProperty("params")]
         public LaserParams Params;
     }
 
-    [EntityType("PathPoint")]
-    public class PathPointEvent : CameraTypedEvent
+    [EntityType("GraphPoint")]
+    public class GraphPointEvent : EventEntity
     {
+        [TheoriProperty("value")]
         public float Value;
+
+        [TheoriProperty("a")]
+        [TheoriIgnoreDefault]
+        public float ParamA;
+
+        [TheoriProperty("b")]
+        [TheoriIgnoreDefault]
+        public float ParamB;
     }
 
     [EntityType("EffectKind")]
     public class EffectKindEvent : ButtonTypedEvent, IHasEffectDef
     {
+        [TheoriProperty("index")]
         public int EffectIndex;
+        [TheoriProperty("effect")]
         public EffectDef Effect { get; set; }
     }
 
     [EntityType("LaserFilterKind")]
     public class LaserFilterKindEvent : LaserTypedEvent, IHasEffectDef
     {
+        [TheoriProperty("index")]
         public LaserIndex LaserIndex;
+        [TheoriProperty("effect")]
         public EffectDef Effect { get; set; }
     }
 
     [EntityType("LaserFilterGain")]
     public class LaserFilterGainEvent : LaserTypedEvent
     {
+        [TheoriProperty("index")]
         public LaserIndex LaserIndex;
+        [TheoriProperty("gain")]
         public float Gain;
     }
 
     [EntityType("SlamVolume")]
     public class SlamVolumeEvent : LaserTypedEvent
     {
+        [TheoriProperty("volume")]
         public float Volume;
     }
 
@@ -63,6 +81,7 @@ namespace NeuroSonic.Charting
             Duration = AbsoluteDuration,
         };
 
+        [TheoriProperty("direction")]
         public AngularDirection Direction;
     }
 
@@ -75,8 +94,10 @@ namespace NeuroSonic.Charting
             Duration = AbsoluteDuration,
             Amplitude = Amplitude,
         };
-        
+
+        [TheoriProperty("direction")]
         public AngularDirection Direction;
+        [TheoriProperty("amplitude")]
         public float Amplitude;
     }
 
@@ -91,10 +112,14 @@ namespace NeuroSonic.Charting
             Frequency = Frequency,
             Decay = Decay,
         };
-        
+
+        [TheoriProperty("direction")]
         public LinearDirection Direction;
+        [TheoriProperty("amplitude")]
         public float Amplitude;
+        [TheoriProperty("frequency")]
         public int Frequency;
+        [TheoriProperty("decay")]
         public Decay Decay;
     }
 }

@@ -13,7 +13,8 @@ namespace NeuroSonic.Charting
 
         public bool HasSample => Sample != null;
 
-        [EntityIgnoreDefault]
+        [TheoriIgnoreDefault]
+        [TheoriProperty("sample")]
         public string Sample { get; set; }
     }
 }
