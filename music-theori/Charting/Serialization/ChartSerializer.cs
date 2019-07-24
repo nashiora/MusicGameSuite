@@ -95,13 +95,6 @@ namespace theori.Charting.Serialization
             }
         }
 
-        private bool ValueIsDefault(object obj)
-        {
-            if (obj is ValueType value)
-                return value.Equals(Activator.CreateInstance(value.GetType()));
-            return obj == null;
-        }
-
         private string FormatJson(string json)
         {
             const string INDENT_STRING = "    ";
