@@ -1,5 +1,5 @@
-﻿using theori.Audio.Effects;
-using theori.Charting;
+﻿using theori.Charting;
+using theori.Charting.Effects;
 
 namespace NeuroSonic.Charting
 {

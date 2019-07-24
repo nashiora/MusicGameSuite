@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 
 using theori.Audio.Effects;
+using theori.Charting.Effects;
 
 namespace NeuroSonic.Charting.KShootMania
 {
@@ -212,51 +213,51 @@ namespace NeuroSonic.Charting.KShootMania
                     {
                         int reduction = 4;
                         if (pars.Length > 0) reduction = int.Parse(pars[0]);
-                        def = new BitCrusherEffectDef(1.0f, reduction);
+                        def = new BitCrusherDef(1.0f, reduction);
                     } break;
 
                     case "Retrigger":
                     {
                         int step = 8;
                         if (pars.Length > 0) step = int.Parse(pars[0]);
-                        def = new RetriggerEffectDef(1.0f, 0.7f, unit / step);
+                        def = new RetriggerDef(1.0f, 0.7f, unit / step);
                     } break;
 
                     case "Gate":
                     {
                         int step = 8;
                         if (pars.Length > 0) step = int.Parse(pars[0]);
-                        def = new GateEffectDef(1.0f, 0.7f, unit / step);
+                        def = new GateDef(1.0f, 0.7f, unit / step);
                     } break;
                     
                     case "SideChain":
                     {
                         int step = 4;
-                        def = new SideChainEffectDef(1.0f, 1.0f, unit / step);
+                        def = new SideChainDef(1.0f, 1.0f, unit / step);
                     } break;
                     
                     case "Wobble":
                     {
                         int step = 12;
                         if (pars.Length > 0) step = int.Parse(pars[0]);
-                        def = new WobbleEffectDef(1.0f, unit / step);
+                        def = new WobbleDef(1.0f, unit / step);
                     } break;
 
                     case "TapeStop":
                     {
                         int speed = 50;
                         if (pars.Length > 0) speed = int.Parse(pars[0]);
-                        def = new TapeStopEffectDef(1.0f, 16.0f / MathL.Max(speed, 1));
+                        def = new TapeStopDef(1.0f, 16.0f / MathL.Max(speed, 1));
                     } break;
 
                     case "Flanger":
                     {
-                        def = new FlangerEffectDef(1.0f);
+                        def = new FlangerDef(1.0f);
                     } break;
 
                     case "Phaser":
                     {
-                        def = new PhaserEffectDef(0.5f);
+                        def = new PhaserDef(0.5f);
                     } break;
                 }
 
@@ -272,14 +273,14 @@ namespace NeuroSonic.Charting.KShootMania
                 EffectDef def = null;
                 switch (effectName)
                 {
-                    case "hpf1": def = BiQuadFilterEffectDef.CreateDefaultHighPass(); break;
-                    case "lpf1": def = BiQuadFilterEffectDef.CreateDefaultLowPass(); break;
-                    case "peak": def = BiQuadFilterEffectDef.CreateDefaultPeak(); break;
+                    case "hpf1": def = BiQuadFilterDef.CreateDefaultHighPass(); break;
+                    case "lpf1": def = BiQuadFilterDef.CreateDefaultLowPass(); break;
+                    case "peak": def = BiQuadFilterDef.CreateDefaultPeak(); break;
                     case "fx;bitc":
                     case "bitc":
                     {
                         var reduction = new EffectParamI(0, 45, Ease.InExpo);
-                        def = new BitCrusherEffectDef(1.0f, reduction);
+                        def = new BitCrusherDef(1.0f, reduction);
                     } break;
                 }
 
@@ -432,7 +433,7 @@ namespace NeuroSonic.Charting.KShootMania
                         case "Retrigger":
                         {
                             // TODO(local): updateTrigger, the system doesn't support it yet
-                            def = new RetriggerEffectDef(
+                            def = new RetriggerDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
                                 GetEffectParam<EffectParamF>("rate", 0.7f),
                                 GetEffectParam<EffectParamF>("waveLength", 0.25f)
@@ -441,7 +442,7 @@ namespace NeuroSonic.Charting.KShootMania
 
                         case "Gate":
                         {
-                            def = new GateEffectDef(
+                            def = new GateDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
                                 GetEffectParam<EffectParamF>("rate", 0.7f),
                                 GetEffectParam<EffectParamF>("waveLength", 0.25f)
@@ -451,13 +452,13 @@ namespace NeuroSonic.Charting.KShootMania
 
                         case "Flanger":
                         {
-                            def = new FlangerEffectDef(GetEffectParam<EffectParamF>("mix", 1.0f));
+                            def = new FlangerDef(GetEffectParam<EffectParamF>("mix", 1.0f));
                         }
                         break;
 
                         case "BitCrusher":
                         {
-                            def = new BitCrusherEffectDef(
+                            def = new BitCrusherDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
                                 GetEffectParam<EffectParamI>("reduction", 4)
                                 );
@@ -466,13 +467,13 @@ namespace NeuroSonic.Charting.KShootMania
 
                         case "Phaser":
                         {
-                            def = new PhaserEffectDef(GetEffectParam<EffectParamF>("mix", 0.5f));
+                            def = new PhaserDef(GetEffectParam<EffectParamF>("mix", 0.5f));
                         }
                         break;
 
                         case "Wobble":
                         {
-                            def = new WobbleEffectDef(
+                            def = new WobbleDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
                                 GetEffectParam<EffectParamF>("waveLength", 1.0f / 12)
                                 );
@@ -481,7 +482,7 @@ namespace NeuroSonic.Charting.KShootMania
 
                         case "TapeStop":
                         {
-                            def = new TapeStopEffectDef(
+                            def = new TapeStopDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
                                 GetEffectParam<EffectParamF>("speed", 50.0f)
                                 );
@@ -490,7 +491,7 @@ namespace NeuroSonic.Charting.KShootMania
 
                         case "SideChain":
                         {
-                            def = new SideChainEffectDef(
+                            def = new SideChainDef(
                                 GetEffectParam<EffectParamF>("mix", 1.0f),
                                 1.0f,
                                 GetEffectParam<EffectParamF>("waveLength", 50.0f)

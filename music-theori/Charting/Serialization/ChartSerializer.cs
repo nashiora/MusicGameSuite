@@ -4,7 +4,9 @@ using System.Linq;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+
 using theori.Audio.Effects;
+using theori.Charting.Effects;
 using theori.GameModes;
 
 namespace theori.Charting.Serialization
@@ -123,15 +125,15 @@ namespace theori.Charting.Serialization
             {
                 switch ((string)effectObj.type)
                 {
-                    case "theori.BiQuadFilter": return (EffectDef)ToValue(effectObj, typeof(BiQuadFilterEffectDef));
-                    case "theori.BitCrusher": return (EffectDef)ToValue(effectObj, typeof(BitCrusherEffectDef));
-                    case "theori.Flanger": return (EffectDef)ToValue(effectObj, typeof(FlangerEffectDef));
-                    case "theori.Gate": return (EffectDef)ToValue(effectObj, typeof(GateEffectDef));
-                    case "theori.Phaser": return (EffectDef)ToValue(effectObj, typeof(PhaserEffectDef));
-                    case "theori.Retrigger": return (EffectDef)ToValue(effectObj, typeof(RetriggerEffectDef));
-                    case "theori.SideChain": return (EffectDef)ToValue(effectObj, typeof(SideChainEffectDef));
-                    case "theori.TapeStop": return (EffectDef)ToValue(effectObj, typeof(TapeStopEffectDef));
-                    case "theori.Wobble": return (EffectDef)ToValue(effectObj, typeof(WobbleEffectDef));
+                    case "theori.BiQuadFilter": return (EffectDef)ToValue(effectObj, typeof(BiQuadFilterDef));
+                    case "theori.BitCrusher": return (EffectDef)ToValue(effectObj, typeof(BitCrusherDef));
+                    case "theori.Flanger": return (EffectDef)ToValue(effectObj, typeof(FlangerDef));
+                    case "theori.Gate": return (EffectDef)ToValue(effectObj, typeof(GateDef));
+                    case "theori.Phaser": return (EffectDef)ToValue(effectObj, typeof(PhaserDef));
+                    case "theori.Retrigger": return (EffectDef)ToValue(effectObj, typeof(RetriggerDef));
+                    case "theori.SideChain": return (EffectDef)ToValue(effectObj, typeof(SideChainDef));
+                    case "theori.TapeStop": return (EffectDef)ToValue(effectObj, typeof(TapeStopDef));
+                    case "theori.Wobble": return (EffectDef)ToValue(effectObj, typeof(WobbleDef));
                 }
 
                 return null;

@@ -102,7 +102,7 @@
     <Compile Include="Audio\Dsp.cs" />
     <Compile Include="Audio\Effects\BiQuadFilter.cs" />
     <Compile Include="Audio\Effects\BitCrusher.cs" />
-    <Compile Include="Audio\Effects\EffectDef.cs" />
+    <Compile Include="Charting\Effects\EffectDef.cs" />
     <Compile Include="Audio\Effects\EffectParam.cs" />
     <Compile Include="Audio\Effects\Flanger.cs" />
     <Compile Include="Audio\Effects\Gate.cs" />
@@ -126,6 +126,15 @@
     <Compile Include="Charting\ChartSetInfo.cs" />
     <Compile Include="Charting\ChartSetSerializer.cs" />
     <Compile Include="Charting\ControlPoint.cs" />
+    <Compile Include="Charting\Effects\BiQuadFilterDef.cs" />
+    <Compile Include="Charting\Effects\BitCrusherDef.cs" />
+    <Compile Include="Charting\Effects\FlangerDef.cs" />
+    <Compile Include="Charting\Effects\GateDef.cs" />
+    <Compile Include="Charting\Effects\PhaserDef.cs" />
+    <Compile Include="Charting\Effects\RetriggerDef.cs" />
+    <Compile Include="Charting\Effects\SideChainDef.cs" />
+    <Compile Include="Charting\Effects\TapeStopDef.cs" />
+    <Compile Include="Charting\Effects\WobbleDef.cs" />
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\EventEntity.cs" />
     <Compile Include="Charting\Entity.cs" />
@@ -221,7 +230,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Charting\Effects\" />
     <Folder Include="Logging\" />
   </ItemGroup>
   <ItemGroup>

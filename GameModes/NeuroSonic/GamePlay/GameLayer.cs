@@ -3,8 +3,8 @@ using System.Numerics;
 
 using theori;
 using theori.Audio;
-using theori.Audio.Effects;
 using theori.Charting;
+using theori.Charting.Effects;
 using theori.Charting.Playback;
 using theori.Graphics;
 using theori.Gui;
@@ -717,7 +717,7 @@ namespace NeuroSonic.GamePlay
             UpdateLaserEffects();
         }
 
-        private EffectDef currentLaserEffectDef = BiQuadFilterEffectDef.CreateDefaultPeak();
+        private EffectDef currentLaserEffectDef = BiQuadFilterDef.CreateDefaultPeak();
         private readonly bool[] currentActiveLasers = new bool[2];
         private readonly float[] currentActiveLaserAlphas = new float[2];
 
@@ -773,7 +773,7 @@ namespace NeuroSonic.GamePlay
             float mix = laserGain;
             if (currentLaserEffectDef != null)
             {
-                var bqf = currentLaserEffectDef as BiQuadFilterEffectDef;
+                var bqf = currentLaserEffectDef as BiQuadFilterDef;
                 if (bqf != null && bqf.FilterType == FilterType.Peak)
                 {
                     mix *= BASE_LASER_MIX;
@@ -786,13 +786,13 @@ namespace NeuroSonic.GamePlay
                 {
                     switch (currentLaserEffectDef)
                     {
-                        case GateEffectDef _:
-                        case RetriggerEffectDef _:
-                        case TapeStopEffectDef _:
+                        case GateDef _:
+                        case RetriggerDef _:
+                        case TapeStopDef _:
                             mix = 1.0f;
                             break;
 
-                        case BiQuadFilterEffectDef _: break;
+                        case BiQuadFilterDef _: break;
                     }
                 }
             }

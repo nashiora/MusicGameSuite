@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+using CSCore;
+using CSCore.Codecs;
+
+using OpenGL;
+
+using System.Numerics;
+
 using theori.Audio;
 using theori.Audio.NVorbis;
 using theori.BootLoaders;
+using theori.Charting;
 using theori.Configuration;
 using theori.GameModes;
 using theori.Graphics;
@@ -13,15 +21,7 @@ using theori.IO;
 using theori.Platform;
 using theori.Resources;
 using theori.Scripting;
-
-using CSCore;
-using CSCore.Codecs;
-
-using OpenGL;
-using System.Numerics;
-using MoonSharp.Interpreter;
-using MoonSharp.Interpreter.Interop;
-using theori.Charting;
+using theori.Charting.Effects;
 
 namespace theori
 {
@@ -408,6 +408,7 @@ namespace theori
 
             sharedGameModes.Add(gameMode);
             Entity.RegisterTypesFromGameMode(gameMode);
+            EffectDef.RegisterTypesFromGameMode(gameMode);
         }
 
         private static void ProgramLoop()
@@ -502,6 +503,7 @@ namespace theori
             if (gameMode != null)
             {
                 Entity.RegisterTypesFromGameMode(gameMode);
+                EffectDef.RegisterTypesFromGameMode(gameMode);
                 gameMode.InvokeStandalone(args);
             }
             else PushLayer(new StandaloneBootLoader(args));

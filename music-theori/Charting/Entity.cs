@@ -9,7 +9,7 @@ namespace theori.Charting
 {
     public interface IHasEffectDef
     {
-        Audio.Effects.EffectDef Effect { get; }
+        Effects.EffectDef Effect { get; }
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
