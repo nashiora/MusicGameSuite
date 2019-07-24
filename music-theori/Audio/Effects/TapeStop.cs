@@ -71,10 +71,10 @@ namespace theori.Audio.Effects
     {
         public EffectParamF Duration;
 
-        public TapeStopEffectDef() : base(EffectType.TapeStop) { }
+        public TapeStopEffectDef() : base(1) { }
         
         public TapeStopEffectDef(EffectParamF mix, EffectParamF duration)
-            : base(EffectType.TapeStop, mix)
+            : base(mix)
         {
             Duration = duration;
         }
@@ -93,9 +93,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is TapeStopEffectDef stop)) return false;
-            return Type == stop.Type && Mix == stop.Mix && Duration == stop.Duration;
+            return Mix == stop.Mix && Duration == stop.Duration;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, Duration);
+        public override int GetHashCode() => HashCode.For(Mix, Duration);
     }
 }

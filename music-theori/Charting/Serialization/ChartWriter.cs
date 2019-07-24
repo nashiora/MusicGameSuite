@@ -111,10 +111,13 @@ namespace theori.Charting.Serialization
                     {
                         WriteStartStructure();
 
-                        WritePropertyName("MinValue");
+                        WritePropertyName("type");
+                        WriteValue("x");
+
+                        WritePropertyName("min");
                         WriteValue(xp.MinValueReal);
 
-                        WritePropertyName("MaxValue");
+                        WritePropertyName("max");
                         WriteValue(xp.MaxValueReal);
 
                         WriteEndStructure();
@@ -129,10 +132,13 @@ namespace theori.Charting.Serialization
                     {
                         WriteStartStructure();
 
-                        WritePropertyName("MinValue");
+                        WritePropertyName("ease");
+                        WriteValue(ip.Ease);
+
+                        WritePropertyName("min");
                         WriteValue(ip.MinValue);
 
-                        WritePropertyName("MaxValue");
+                        WritePropertyName("max");
                         WriteValue(ip.MaxValue);
 
                         WriteEndStructure();
@@ -147,10 +153,13 @@ namespace theori.Charting.Serialization
                     {
                         WriteStartStructure();
 
-                        WritePropertyName("MinValue");
+                        WritePropertyName("ease");
+                        WriteValue(fp.Ease);
+
+                        WritePropertyName("min");
                         WriteValue(fp.MinValue);
 
-                        WritePropertyName("MaxValue");
+                        WritePropertyName("max");
                         WriteValue(fp.MaxValue);
 
                         WriteEndStructure();

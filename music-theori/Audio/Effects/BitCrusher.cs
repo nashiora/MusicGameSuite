@@ -40,17 +40,17 @@ namespace theori.Audio.Effects
     
     public sealed class BitCrusherEffectDef : EffectDef
     {
-        public EffectParamI Reduction;
+        public EffectParamI Reduction = 4;
 
-        public BitCrusherEffectDef() : base(EffectType.BitCrush) { }
+        public BitCrusherEffectDef() : base(1) { }
         
         public BitCrusherEffectDef(EffectParamF mix, EffectParamI reduction)
-            : base(EffectType.BitCrush, mix)
+            : base(mix)
         {
             Reduction = reduction;
         }
         
-        public override Dsp CreateEffectDsp(int sampleRate = 0) => new BitCrusher(sampleRate);
+        public override Dsp CreateEffectDsp(int sampleRate) => new BitCrusher(sampleRate);
 
         public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
         {
@@ -64,9 +64,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is BitCrusherEffectDef bc)) return false;
-            return Type == bc.Type && Mix == bc.Mix && Reduction == bc.Reduction;
+            return Mix == bc.Mix && Reduction == bc.Reduction;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, Reduction);
+        public override int GetHashCode() => HashCode.For(Mix, Reduction);
     }
 }

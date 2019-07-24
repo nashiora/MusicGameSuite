@@ -272,11 +272,15 @@ namespace NeuroSonic.Charting.KShootMania
                 EffectDef def = null;
                 switch (effectName)
                 {
-                    case "hpf1": def = EffectDef.GetDefault(EffectType.HighPassFilter); break;
-                    case "lpf1": def = EffectDef.GetDefault(EffectType.LowPassFilter); break;
-                    case "peak": def = EffectDef.GetDefault(EffectType.PeakingFilter); break;
+                    case "hpf1": def = BiQuadFilterEffectDef.CreateDefaultHighPass(); break;
+                    case "lpf1": def = BiQuadFilterEffectDef.CreateDefaultLowPass(); break;
+                    case "peak": def = BiQuadFilterEffectDef.CreateDefaultPeak(); break;
                     case "fx;bitc":
-                    case "bitc": def = EffectDef.GetDefault(EffectType.BitCrush); break;
+                    case "bitc":
+                    {
+                        var reduction = new EffectParamI(0, 45, Ease.InExpo);
+                        def = new BitCrusherEffectDef(1.0f, reduction);
+                    } break;
                 }
 
                 chart.FilterDefines[effectName] = def;
@@ -332,10 +336,9 @@ namespace NeuroSonic.Charting.KShootMania
                                 if (v.Contains("on") || v.Contains("off"))
                                 {
                                     if (isRange)
-                                        pv = new EffectParamF(v0.Contains("on") ? 1 : 0,
-                                            v1.Contains("on") ? 1 : 0,
-                                            (l, r, t) => MathL.RoundToInt(MathL.Lerp(l, r, t)));
-                                    else pv = new EffectParamF(v.Contains("on") ? 1 : 0);
+                                        pv = new EffectParamI(v0.Contains("on") ? 1 : 0,
+                                            v1.Contains("on") ? 1 : 0, Ease.Linear);
+                                    else pv = new EffectParamI(v.Contains("on") ? 1 : 0);
                                 }
                                 else if (v.Contains('/'))
                                 {
@@ -351,55 +354,55 @@ namespace NeuroSonic.Charting.KShootMania
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf('%'))) / 100.0f,
-                                            int.Parse(v1.Substring(0, v1.IndexOf('%'))) / 100.0f);
+                                            int.Parse(v1.Substring(0, v1.IndexOf('%'))) / 100.0f, Ease.Linear);
                                     else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf('%'))) / 100.0f);
                                 }
                                 else if (v.Contains("samples"))
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("samples"))) / 44100.0f,
-                                            int.Parse(v1.Substring(0, v1.IndexOf("samples"))) / 44100.0f);
+                                            int.Parse(v1.Substring(0, v1.IndexOf("samples"))) / 44100.0f, Ease.Linear);
                                     else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("samples"))) / 44100.0f);
                                 }
                                 else if (v.Contains("ms"))
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("ms"))) / 1000.0f,
-                                            int.Parse(v1.Substring(0, v1.IndexOf("ms"))) / 1000.0f);
+                                            int.Parse(v1.Substring(0, v1.IndexOf("ms"))) / 1000.0f, Ease.Linear);
                                     else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("ms"))) / 1000.0f);
                                 }
                                 else if (v.Contains("s"))
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("s"))) / 1000.0f,
-                                            int.Parse(v1.Substring(0, v1.IndexOf("s"))) / 1000.0f);
+                                            int.Parse(v1.Substring(0, v1.IndexOf("s"))) / 1000.0f, Ease.Linear);
                                     else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("s"))) / 1000.0f);
                                 }
                                 else if (v.Contains("kHz"))
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(float.Parse(v0.Substring(0, v0.IndexOf("kHz"))) * 1000.0f,
-                                            float.Parse(v1.Substring(0, v1.IndexOf("kHz"))) * 1000.0f);
+                                            float.Parse(v1.Substring(0, v1.IndexOf("kHz"))) * 1000.0f, Ease.Linear);
                                     else pv = new EffectParamF(float.Parse(v.Substring(0, v.IndexOf("kHz"))) * 1000.0f);
                                 }
                                 else if (v.Contains("Hz"))
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(float.Parse(v0.Substring(0, v0.IndexOf("Hz"))),
-                                            float.Parse(v1.Substring(0, v1.IndexOf("Hz"))));
+                                            float.Parse(v1.Substring(0, v1.IndexOf("Hz"))), Ease.Linear);
                                     else pv = new EffectParamF(float.Parse(v.Substring(0, v.IndexOf("Hz"))));
                                 }
                                 else if (v.Contains("dB"))
                                 {
                                     if (isRange)
                                         pv = new EffectParamF(float.Parse(v0.Substring(0, v0.IndexOf("dB"))),
-                                            float.Parse(v1.Substring(0, v1.IndexOf("dB"))));
+                                            float.Parse(v1.Substring(0, v1.IndexOf("dB"))), Ease.Linear);
                                     else pv = new EffectParamF(float.Parse(v.Substring(0, v.IndexOf("dB"))));
                                 }
                                 else if (float.TryParse(isRange ? v0 : v, out float floatValue))
                                 {
                                     if (isRange)
-                                        pv = new EffectParamF(floatValue, float.Parse(v1));
+                                        pv = new EffectParamF(floatValue, float.Parse(v1), Ease.Linear);
                                     else pv = new EffectParamF(floatValue);
                                 }
                                 else pv = new EffectParamS(v);

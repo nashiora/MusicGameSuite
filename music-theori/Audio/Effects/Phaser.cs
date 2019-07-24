@@ -122,10 +122,9 @@ namespace theori.Audio.Effects
 
     public sealed class PhaserEffectDef : EffectDef
     {
-        public PhaserEffectDef() : base(EffectType.Phaser) { }
-
+        public PhaserEffectDef() : base(1) { }
         public PhaserEffectDef(EffectParamF mix)
-            : base(EffectType.Phaser, mix)
+            : base(mix)
         {
         }
 
@@ -142,9 +141,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is PhaserEffectDef ph)) return false;
-            return Type == ph.Type && Mix == ph.Mix;
+            return Mix == ph.Mix;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix);
+        public override int GetHashCode() => HashCode.For(Mix);
     }
 }

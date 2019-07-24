@@ -70,10 +70,9 @@ namespace theori.Audio.Effects
         public EffectParamI Offset = 10;
         public EffectParamI Depth = 40;
 
-        public FlangerEffectDef() : base(EffectType.Flanger) { }
-
+        public FlangerEffectDef() : base(1) { }
         public FlangerEffectDef(EffectParamF mix)
-            : base(EffectType.Flanger, mix)
+            : base(mix)
         {
         }
 
@@ -100,9 +99,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is FlangerEffectDef fl)) return false;
-            return Type == fl.Type && Mix == fl.Mix && Delay == fl.Delay && Offset == fl.Offset && Depth == fl.Depth;
+            return Mix == fl.Mix && Delay == fl.Delay && Offset == fl.Offset && Depth == fl.Depth;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, Delay, Offset, Depth);
+        public override int GetHashCode() => HashCode.For(Mix, Delay, Offset, Depth);
     }
 }

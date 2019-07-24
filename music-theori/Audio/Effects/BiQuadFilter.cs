@@ -121,32 +121,48 @@ namespace theori.Audio.Effects
         }
     }
 
+    public enum FilterType
+    {
+        Peak, LowPass, HighPass
+    }
+
     public sealed class BiQuadFilterEffectDef : EffectDef
     {
-        private EffectType m_filterType;
-
-        // NOTE(local): this overrides the base type bc deserialization and this interface sucks
-        // this will be a field after we remove the effect type enum
-        public EffectType FilterType
+        public static BiQuadFilterEffectDef CreateDefaultPeak()
         {
-            get => m_filterType;
-            set => Type = m_filterType = value;
+            var q = new EffectParamF(1, 0.8f, Ease.Linear);
+            var freq = new EffectParamF(80, 8_000, Ease.InExpo);
+            float gain = 20.0f;
+            return new BiQuadFilterEffectDef(FilterType.Peak, 1.0f, q, gain, freq);
         }
+
+        public static BiQuadFilterEffectDef CreateDefaultLowPass()
+        {
+            var q = new EffectParamF(7, 10, Ease.Linear);
+            var freq = new EffectParamF(10_000, 700, Ease.OutCubic);
+            return new BiQuadFilterEffectDef(FilterType.LowPass, 1.0f, q, 1, freq);
+        }
+
+        public static BiQuadFilterEffectDef CreateDefaultHighPass()
+        {
+            var q = new EffectParamF(10, 5, Ease.Linear);
+            var freq = new EffectParamF(80, 2_000, Ease.InExpo);
+            return new BiQuadFilterEffectDef(FilterType.HighPass, 1.0f, q, 1, freq);
+        }
+
+        public FilterType FilterType;
 
         public EffectParamF Q;
 
         public EffectParamF Gain;
         public EffectParamF Freq;
 
-        // NOTE(local): this is overwritten when we deserialize, will fix the interface here later
-        public BiQuadFilterEffectDef() : base(EffectType.PeakingFilter) { }
-        
-        public BiQuadFilterEffectDef(EffectType type, EffectParamF mix,
+        public BiQuadFilterEffectDef() : base(1) { }
+        public BiQuadFilterEffectDef(FilterType type, EffectParamF mix,
             EffectParamF q, EffectParamF gain, EffectParamF freq)
-            : base(type, mix)
+            : base(mix)
         {
             FilterType = type;
-
             Q = q;
             Gain = gain;
             Freq = freq;
@@ -161,15 +177,15 @@ namespace theori.Audio.Effects
             {
                 switch (FilterType)
                 {
-                    case EffectType.PeakingFilter:
+                    case FilterType.Peak:
                         filter.SetPeaking(Q.Sample(alpha), Freq.Sample(alpha), Gain.Sample(alpha));
                         break;
                         
-                    case EffectType.LowPassFilter:
+                    case FilterType.LowPass:
                         filter.SetLowPass(Q.Sample(alpha) * Mix.Sample(alpha) + 0.1f, Freq.Sample(alpha));
                         break;
                         
-                    case EffectType.HighPassFilter:
+                    case FilterType.HighPass:
                         filter.SetHighPass(Q.Sample(alpha) * Mix.Sample(alpha) + 0.1f, Freq.Sample(alpha));
                         break;
                 }
@@ -179,9 +195,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is BiQuadFilterEffectDef bqf)) return false;
-            return Type == bqf.Type && Mix == bqf.Mix && Q == bqf.Q && Gain == bqf.Gain && Freq == bqf.Freq;
+            return FilterType == bqf.FilterType && Mix == bqf.Mix && Q == bqf.Q && Gain == bqf.Gain && Freq == bqf.Freq;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, Q, Gain, Freq);
+        public override int GetHashCode() => HashCode.For(FilterType, Mix, Q, Gain, Freq);
     }
 }

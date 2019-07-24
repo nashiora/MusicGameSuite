@@ -104,7 +104,6 @@
     <Compile Include="Audio\Effects\BitCrusher.cs" />
     <Compile Include="Audio\Effects\EffectDef.cs" />
     <Compile Include="Audio\Effects\EffectParam.cs" />
-    <Compile Include="Audio\Effects\EffectType.cs" />
     <Compile Include="Audio\Effects\Flanger.cs" />
     <Compile Include="Audio\Effects\Gate.cs" />
     <Compile Include="Audio\Effects\IMixable.cs" />

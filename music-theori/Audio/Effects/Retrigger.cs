@@ -82,10 +82,10 @@ namespace theori.Audio.Effects
         public EffectParamF GateDuration;
         public EffectParamF Gating;
 
-        public RetriggerEffectDef() : base(EffectType.Retrigger) { }
+        public RetriggerEffectDef() : base(1) { }
         
         public RetriggerEffectDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
-            : base(EffectType.Retrigger, mix)
+            : base(mix)
         {
             GateDuration = gateDuration;
             Gating = gating;
@@ -107,9 +107,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is RetriggerEffectDef rt)) return false;
-            return Type == rt.Type && Mix == rt.Mix && GateDuration == rt.GateDuration && Gating == rt.Gating;
+            return Mix == rt.Mix && GateDuration == rt.GateDuration && Gating == rt.Gating;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, GateDuration, Gating);
+        public override int GetHashCode() => HashCode.For(Mix, GateDuration, Gating);
     }
 }

@@ -74,10 +74,9 @@ namespace theori.Audio.Effects
         public EffectParamF GateDuration;
         public EffectParamF Gating;
 
-        public GateEffectDef() : base(EffectType.Gate) { }
-
+        public GateEffectDef() : base(1) { }
         public GateEffectDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
-            : base(EffectType.Gate, mix)
+            : base(mix)
         {
             GateDuration = gateDuration;
             Gating = gating;
@@ -98,9 +97,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is GateEffectDef rt)) return false;
-            return Type == rt.Type && Mix == rt.Mix && GateDuration == rt.GateDuration && Gating == rt.Gating;
+            return Mix == rt.Mix && GateDuration == rt.GateDuration && Gating == rt.Gating;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, GateDuration, Gating);
+        public override int GetHashCode() => HashCode.For(Mix, GateDuration, Gating);
     }
 }

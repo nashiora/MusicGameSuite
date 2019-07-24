@@ -70,19 +70,23 @@ namespace theori.Charting.Serialization
                     if (typeHint == typeof(EffectParamI))
                     {
                         if (isRange)
-                            return new EffectParamI((int)jObjectDyn.MinValue, (int)jObjectDyn.MaxValue);
+                            return new EffectParamI((int)jObjectDyn.min, (int)jObjectDyn.max, (Ease)Enum.Parse(typeof(Ease), (string)jObjectDyn.ease));
                         return new EffectParamI((int)jObjectDyn);
                     }
                     else if (typeHint == typeof(EffectParamF))
                     {
                         if (isRange)
-                            return new EffectParamF((float)jObjectDyn.MinValue, (float)jObjectDyn.MaxValue);
+                        {
+                            if (((JObject)jObjectDyn).ContainsKey("type") && (string)jObjectDyn.type == "x")
+                                return new EffectParamX((int)jObjectDyn.min, (int)jObjectDyn.max);
+                            return new EffectParamF((float)jObjectDyn.min, (float)jObjectDyn.max, (Ease)Enum.Parse(typeof(Ease), (string)jObjectDyn.ease));
+                        }
                         return new EffectParamF((float)jObjectDyn);
                     }
                     else if (typeHint == typeof(EffectParamX))
                     {
                         if (isRange)
-                            return new EffectParamX((int)jObjectDyn.MinValue, (int)jObjectDyn.MaxValue);
+                            return new EffectParamX((int)jObjectDyn.min, (int)jObjectDyn.max);
                         return new EffectParamX((int)jObjectDyn);
                     }
                     else if (typeHint == typeof(EffectParamS))

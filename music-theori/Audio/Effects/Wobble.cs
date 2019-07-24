@@ -57,12 +57,12 @@ namespace theori.Audio.Effects
 
     public class WobbleEffectDef : EffectDef
     {
-        public EffectParamF Period;
+        public EffectParamF Period = 0.25f;
 
-        public WobbleEffectDef() : base(EffectType.Wobble) { }
+        public WobbleEffectDef() : base(1) { }
 
         public WobbleEffectDef(EffectParamF mix, EffectParamF period)
-            : base(EffectType.Wobble, mix)
+            : base(mix)
         {
             Period = period;
         }
@@ -81,9 +81,9 @@ namespace theori.Audio.Effects
         public override bool Equals(EffectDef other)
         {
             if (!(other is WobbleEffectDef wob)) return false;
-            return Type == wob.Type && Mix == wob.Mix && Period == wob.Period;
+            return Mix == wob.Mix && Period == wob.Period;
         }
 
-        public override int GetHashCode() => HashCode.For(Type, Mix, Period);
+        public override int GetHashCode() => HashCode.For(Mix, Period);
     }
 }

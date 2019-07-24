@@ -717,7 +717,7 @@ namespace NeuroSonic.GamePlay
             UpdateLaserEffects();
         }
 
-        private EffectDef currentLaserEffectDef = EffectDef.GetDefault(EffectType.PeakingFilter);
+        private EffectDef currentLaserEffectDef = BiQuadFilterEffectDef.CreateDefaultPeak();
         private readonly bool[] currentActiveLasers = new bool[2];
         private readonly float[] currentActiveLaserAlphas = new float[2];
 
@@ -726,9 +726,9 @@ namespace NeuroSonic.GamePlay
         private const float BASE_LASER_MIX = 0.8f;
         private float laserGain = 0.5f;
 
-        private float GetTempRollValue(time_t position, int stream, out float valueMult, bool oneMinus = false)
+        private float GetTempRollValue(time_t position, LaneLabel label, out float valueMult, bool oneMinus = false)
         {
-            var s = m_playback.Chart[(LaneLabel)stream];
+            var s = m_playback.Chart[label];
             valueMult = 1.0f;
 
             var mrAnalog = s.MostRecent<AnalogObject>(position);
@@ -773,7 +773,8 @@ namespace NeuroSonic.GamePlay
             float mix = laserGain;
             if (currentLaserEffectDef != null)
             {
-                if (currentLaserEffectDef.Type == EffectType.PeakingFilter)
+                var bqf = currentLaserEffectDef as BiQuadFilterEffectDef;
+                if (bqf != null && bqf.FilterType == FilterType.Peak)
                 {
                     mix *= BASE_LASER_MIX;
                     if (alpha < 0.1f)
@@ -783,17 +784,15 @@ namespace NeuroSonic.GamePlay
                 }
                 else
                 {
-                    switch (currentLaserEffectDef.Type)
+                    switch (currentLaserEffectDef)
                     {
-                        case EffectType.Gate:
-                        case EffectType.Retrigger:
-                        case EffectType.TapeStop:
+                        case GateEffectDef _:
+                        case RetriggerEffectDef _:
+                        case TapeStopEffectDef _:
                             mix = 1.0f;
                             break;
 
-                        case EffectType.HighPassFilter:
-                        case EffectType.LowPassFilter:
-                            break;
+                        case BiQuadFilterEffectDef _: break;
                     }
                 }
             }

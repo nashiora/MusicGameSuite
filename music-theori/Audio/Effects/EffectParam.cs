@@ -10,23 +10,23 @@ namespace theori.Audio.Effects
     {
         public static implicit operator EffectParamI(int value) => new EffectParamI(value);
 
-        private static readonly EffectInterpolator<int> Lerp =
-            (a, b, t) => (int)(a + (b - a) * t);
+        private readonly CubicBezier m_curve;
+
+        public readonly Ease Ease;
 
         public EffectParamI(int value)
             : base(value)
         {
         }
 
-        public EffectParamI(int a, int b, EffectInterpolator<int> interp = null)
-            : base(a, b, interp ?? Lerp)
+        public EffectParamI(int a, int b, Ease ease)
+            : base(a, b)
         {
+            m_curve = new CubicBezier(ease);
+            Ease = ease;
         }
 
-        public EffectParamI(int a, int b, CubicBezier curve)
-            : base(a, b, (x, y, t) => (int)(curve.Sample(t) * (y - x)) + x)
-        {
-        }
+        protected override int Interp(int min, int max, float alpha) => (int)(m_curve.Sample(alpha) * (max - min)) + min;
     }
 
     public class EffectParamX : EffectParamF
@@ -46,8 +46,6 @@ namespace theori.Audio.Effects
             return 0;
         }
 
-        private static float Lerp(float a, float b, float t) => 1.0f / pieces[MathL.RoundToInt(a + (b - a) * t)];
-
         public readonly int MinValueReal, MaxValueReal;
 
         public EffectParamX(int value)
@@ -57,34 +55,36 @@ namespace theori.Audio.Effects
         }
 
         public EffectParamX(int valueMin, int valueMax)
-            : base(ValueToIndex(valueMin), ValueToIndex(valueMax), Lerp)
+            : base(ValueToIndex(valueMin), ValueToIndex(valueMax), Ease.Linear)
         {
             MinValueReal = valueMin;
             MaxValueReal = valueMax;
         }
+
+        protected override float Interp(float a, float b, float t) => 1.0f / pieces[MathL.RoundToInt(a + (b - a) * t)];
     }
 
     public class EffectParamF : EffectParam<float>
     {
         public static implicit operator EffectParamF(float value) => new EffectParamF(value);
 
-        private static readonly EffectInterpolator<float> Lerp =
-            (a, b, t) => a + (b - a) * t;
+        private readonly CubicBezier m_curve;
+
+        public readonly Ease Ease;
 
         public EffectParamF(float value)
             : base(value)
         {
         }
 
-        public EffectParamF(float a, float b, EffectInterpolator<float> interp = null)
-            : base(a, b, interp ?? Lerp)
+        public EffectParamF(float a, float b, Ease ease)
+            : base(a, b)
         {
+            m_curve = new CubicBezier(ease);
+            Ease = ease;
         }
 
-        public EffectParamF(float a, float b, CubicBezier curve)
-            : base(a, b, (x, y, t) => curve.Sample(t) * (y - x) + x)
-        {
-        }
+        protected override float Interp(float min, float max, float alpha) => m_curve.Sample(alpha) * (max - min) + min;
     }
 
     public class EffectParamS : EffectParam<string>
@@ -95,6 +95,8 @@ namespace theori.Audio.Effects
             : base(value)
         {
         }
+
+        protected override string Interp(string min, string max, float alpha) => MinValue;
     }
 
     public interface IEffectParam : IEquatable<IEffectParam>
@@ -109,7 +111,6 @@ namespace theori.Audio.Effects
         public static bool operator !=(EffectParam<T> a, EffectParam<T> b) => !(a == b);
 
         private readonly T[] m_values;
-        private readonly EffectInterpolator<T> m_interpFunction;
 
         public bool IsRange { get; private set; }
 
@@ -122,17 +123,18 @@ namespace theori.Audio.Effects
             IsRange = false;
         }
 
-        protected EffectParam(T a, T b, EffectInterpolator<T> interp)
+        protected EffectParam(T a, T b)
         {
             m_values = new T[] { a, b };
-            m_interpFunction = interp;
             IsRange = true;
         }
+
+        protected abstract T Interp(T min, T max, float alpha);
 
         public T Sample(float alpha = 0)
         {
             alpha = MathL.Clamp(alpha, 0, 1);
-            return IsRange ? m_interpFunction(m_values[0], m_values[1], alpha) : m_values[0];
+            return IsRange ? Interp(m_values[0], m_values[1], alpha) : m_values[0];
         }
 
         public bool Equals(EffectParam<T> other)
