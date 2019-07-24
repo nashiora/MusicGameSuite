@@ -48,7 +48,7 @@ namespace NeuroSonic.GamePlay.Scoring
             m_maxTickValue *= m_maxTickWorth;
         }
 
-        private void ButtonJudge_OnTickProcessed(ChartObject obj, time_t when, JudgeResult result)
+        private void ButtonJudge_OnTickProcessed(Entity obj, time_t when, JudgeResult result)
         {
             m_expectedTickValue += m_maxTickWorth;
             switch (result.Kind)

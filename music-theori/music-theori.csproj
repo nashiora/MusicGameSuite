@@ -64,6 +64,9 @@
     <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8, processorArchitecture=MSIL">
       <HintPath>..\packages\MoonSharp.2.0.0.0\lib\net40-client\MoonSharp.Interpreter.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NVorbis, Version=0.8.6.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NVorbis.0.8.6\lib\net35\NVorbis.dll</HintPath>
     </Reference>
@@ -99,9 +102,8 @@
     <Compile Include="Audio\Dsp.cs" />
     <Compile Include="Audio\Effects\BiQuadFilter.cs" />
     <Compile Include="Audio\Effects\BitCrusher.cs" />
-    <Compile Include="Audio\Effects\EffectDef.cs" />
+    <Compile Include="Charting\Effects\EffectDef.cs" />
     <Compile Include="Audio\Effects\EffectParam.cs" />
-    <Compile Include="Audio\Effects\EffectType.cs" />
     <Compile Include="Audio\Effects\Flanger.cs" />
     <Compile Include="Audio\Effects\Gate.cs" />
     <Compile Include="Audio\Effects\IMixable.cs" />
@@ -117,20 +119,29 @@
     <Compile Include="BootLoaders\SharedBootLoader.cs" />
     <Compile Include="Cached.cs" />
     <Compile Include="Charting\Chart.cs" />
+    <Compile Include="Charting\ChartFactory.cs" />
     <Compile Include="Charting\ChartFormatException.cs" />
     <Compile Include="Charting\ChartInfo.cs" />
     <Compile Include="Charting\ChartSet.cs" />
     <Compile Include="Charting\ChartSetInfo.cs" />
     <Compile Include="Charting\ChartSetSerializer.cs" />
     <Compile Include="Charting\ControlPoint.cs" />
+    <Compile Include="Charting\Effects\BiQuadFilterDef.cs" />
+    <Compile Include="Charting\Effects\BitCrusherDef.cs" />
+    <Compile Include="Charting\Effects\FlangerDef.cs" />
+    <Compile Include="Charting\Effects\GateDef.cs" />
+    <Compile Include="Charting\Effects\PhaserDef.cs" />
+    <Compile Include="Charting\Effects\RetriggerDef.cs" />
+    <Compile Include="Charting\Effects\SideChainDef.cs" />
+    <Compile Include="Charting\Effects\TapeStopDef.cs" />
+    <Compile Include="Charting\Effects\WobbleDef.cs" />
     <Compile Include="Charting\Enums.cs" />
-    <Compile Include="Charting\ChartEvent.cs" />
-    <Compile Include="Charting\ChartObject.cs" />
-    <Compile Include="Charting\IO\BinaryTheoriChartSerializer.cs" />
-    <Compile Include="Charting\IO\ChartSerializer.cs" />
-    <Compile Include="Charting\IO\IChartSerializer.cs" />
+    <Compile Include="Charting\EventEntity.cs" />
+    <Compile Include="Charting\Entity.cs" />
+    <Compile Include="Charting\Serialization\ChartWriter.cs" />
+    <Compile Include="Charting\Serialization\ChartSerializer.cs" />
     <Compile Include="Charting\Playback\SlidingChartPlayback.cs" />
-    <Compile Include="Charting\SerializeFieldAttribute.cs" />
+    <Compile Include="Charting\Serialization\IObjectPropertyRef.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Configuration\ConfigEntry.cs" />
     <Compile Include="Configuration\GameConfig.cs" />

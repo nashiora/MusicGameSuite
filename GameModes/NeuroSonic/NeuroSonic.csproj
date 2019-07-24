@@ -51,6 +51,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MoonSharp.Interpreter, Version=2.0.0.0, Culture=neutral, PublicKeyToken=921e73ce94aa17f8" />
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
@@ -73,9 +76,9 @@
     <Compile Include="Charting\Conversions\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\Events.cs" />
-    <Compile Include="Charting\IO\ObjectSerializers.cs" />
     <Compile Include="Charting\KShootMania\Chart.cs" />
     <Compile Include="Charting\KShootMania\ChartMetadata.cs" />
+    <Compile Include="Charting\NeuroSonicChartFactory.cs" />
     <Compile Include="Charting\ParamTypes.cs" />
     <Compile Include="Charting\VoltexChartSerializer.cs" />
     <Compile Include="ChartSelect\ChartManagerLayer.cs" />
@@ -139,6 +142,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Charting\Serialization\" />
     <Folder Include="ChartSelect\Portrait\" />
     <Folder Include="GamePlay\Shared\" />
     <Folder Include="GamePlay\Standalone\" />

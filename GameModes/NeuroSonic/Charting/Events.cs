@@ -1,48 +1,81 @@
-﻿using theori.Audio.Effects;
-using theori.Charting;
+﻿using theori.Charting;
+using theori.Charting.Effects;
 
 namespace NeuroSonic.Charting
 {
-    public class LaserApplicationEvent : ChartEvent
+    public abstract class HighwayTypedEvent : EventEntity { }
+    public abstract class ButtonTypedEvent : EventEntity { }
+    public abstract class LaserTypedEvent : EventEntity { }
+
+    [EntityType("LaserApplication")]
+    public class LaserApplicationEvent : LaserTypedEvent
     {
+        [TheoriProperty("mode")]
         public LaserApplication Application = LaserApplication.Additive;
     }
 
-    public class LaserParamsEvent : ChartEvent
+    [EntityType("LaserParams")]
+    public class LaserParamsEvent : LaserTypedEvent
     {
+        [TheoriProperty("index")]
         public LaserIndex LaserIndex;
+        [TheoriProperty("params")]
         public LaserParams Params;
     }
 
-    public class PathPointEvent : ChartEvent
+    [EntityType("GraphPoint")]
+    public class GraphPointEvent : EventEntity
     {
+        [TheoriProperty("value")]
         public float Value;
+
+        [TheoriProperty("a")]
+        [TheoriIgnoreDefault]
+        public float ParamA;
+
+        [TheoriProperty("b")]
+        [TheoriIgnoreDefault]
+        public float ParamB;
     }
 
-    public class EffectKindEvent : ChartEvent, IHasEffectDef
+    [EntityType("EffectKind")]
+    public class EffectKindEvent : ButtonTypedEvent, IHasEffectDef
     {
+        [TheoriProperty("index")]
         public int EffectIndex;
+        [TheoriProperty("effect")]
+        [TheoriIgnoreDefault]
         public EffectDef Effect { get; set; }
     }
 
-    public class LaserFilterKindEvent : ChartEvent, IHasEffectDef
+    [EntityType("LaserFilterKind")]
+    public class LaserFilterKindEvent : LaserTypedEvent, IHasEffectDef
     {
+        [TheoriProperty("index")]
         public LaserIndex LaserIndex;
+        [TheoriProperty("effect")]
+        [TheoriIgnoreDefault]
         public EffectDef Effect { get; set; }
     }
 
-    public class LaserFilterGainEvent : ChartEvent
+    [EntityType("LaserFilterGain")]
+    public class LaserFilterGainEvent : LaserTypedEvent
     {
+        [TheoriProperty("index")]
         public LaserIndex LaserIndex;
+        [TheoriProperty("gain")]
         public float Gain;
     }
 
-    public class SlamVolumeEvent : ChartEvent
+    [EntityType("SlamVolume")]
+    public class SlamVolumeEvent : LaserTypedEvent
     {
+        [TheoriProperty("volume")]
         public float Volume;
     }
 
-    public class SpinImpulseEvent : ChartEvent
+    [EntityType("SpinImpulse")]
+    public class SpinImpulseEvent : HighwayTypedEvent
     {
         public SpinParams Params => new SpinParams()
         {
@@ -50,10 +83,12 @@ namespace NeuroSonic.Charting
             Duration = AbsoluteDuration,
         };
 
+        [TheoriProperty("direction")]
         public AngularDirection Direction;
     }
-    
-    public class SwingImpulseEvent : ChartEvent
+
+    [EntityType("SwingImpulse")]
+    public class SwingImpulseEvent : HighwayTypedEvent
     {
         public SwingParams Params => new SwingParams()
         {
@@ -61,12 +96,15 @@ namespace NeuroSonic.Charting
             Duration = AbsoluteDuration,
             Amplitude = Amplitude,
         };
-        
+
+        [TheoriProperty("direction")]
         public AngularDirection Direction;
+        [TheoriProperty("amplitude")]
         public float Amplitude;
     }
-    
-    public class WobbleImpulseEvent : ChartEvent
+
+    [EntityType("WobbleImpulse")]
+    public class WobbleImpulseEvent : HighwayTypedEvent
     {
         public WobbleParams Params => new WobbleParams()
         {
@@ -76,10 +114,14 @@ namespace NeuroSonic.Charting
             Frequency = Frequency,
             Decay = Decay,
         };
-        
+
+        [TheoriProperty("direction")]
         public LinearDirection Direction;
+        [TheoriProperty("amplitude")]
         public float Amplitude;
+        [TheoriProperty("frequency")]
         public int Frequency;
+        [TheoriProperty("decay")]
         public Decay Decay;
     }
 }

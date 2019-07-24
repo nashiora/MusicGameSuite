@@ -10,14 +10,14 @@ namespace NeuroSonic.GamePlay.Scoring
     {
         public struct Tick
         {
-            public ChartObject AssociatedObject;
+            public Entity AssociatedObject;
 
             public time_t Position;
             public bool IsHold;
 
             public bool IsAutoTick;
 
-            public Tick(ChartObject obj, time_t pos, bool isHold, bool isAutoTick = false)
+            public Tick(Entity obj, time_t pos, bool isHold, bool isAutoTick = false)
             {
                 AssociatedObject = obj;
                 Position = pos;
@@ -45,16 +45,16 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private bool m_userHeld = false;
         private time_t m_userWhen = 0.0;
-        private ChartObject m_lastPressedObject;
+        private Entity m_lastPressedObject;
 
         private readonly List<Tick> m_ticks = new List<Tick>();
 
-        public event Action<time_t, ChartObject> OnChipPressed;
+        public event Action<time_t, Entity> OnChipPressed;
 
-        public event Action<time_t, ChartObject> OnHoldPressed;
-        public event Action<time_t, ChartObject> OnHoldReleased;
+        public event Action<time_t, Entity> OnHoldPressed;
+        public event Action<time_t, Entity> OnHoldReleased;
 
-        public event Action<ChartObject, time_t, JudgeResult> OnTickProcessed;
+        public event Action<Entity, time_t, JudgeResult> OnTickProcessed;
 
         private readonly tick_t m_holdTickStep;
         private readonly tick_t m_holdTickMargin;
@@ -179,7 +179,7 @@ namespace NeuroSonic.GamePlay.Scoring
         public override int CalculateNumScorableTicks()
         {
             int tickCount = 0;
-            foreach (var obj in Chart[StreamIndex])
+            foreach (var obj in Chart[Label])
             {
                 if (obj.IsInstant)
                     tickCount++;
@@ -188,7 +188,7 @@ namespace NeuroSonic.GamePlay.Scoring
             return tickCount;
         }
 
-        protected override void ObjectEnteredJudgement(ChartObject obj)
+        protected override void ObjectEnteredJudgement(Entity obj)
         {
             if (AutoPlay && !obj.IsInstant)
                 m_ticks.Add(new Tick(obj, obj.AbsolutePosition, true, true));
@@ -220,7 +220,7 @@ namespace NeuroSonic.GamePlay.Scoring
                 m_ticks.Add(new Tick(obj, obj.AbsoluteEndPosition, true, true));
         }
 
-        protected override void ObjectExitedJudgement(ChartObject obj)
+        protected override void ObjectExitedJudgement(Entity obj)
         {
             if (m_lastPressedObject == obj)
                 m_lastPressedObject = null;

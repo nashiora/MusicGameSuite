@@ -6,15 +6,15 @@ namespace NeuroSonic.GamePlay.Scoring
     public abstract class StreamJudge
     {
         public Chart Chart { get; }
-        public int StreamIndex { get; }
-        public Chart.ObjectStream Objects => Chart[StreamIndex];
+        public LaneLabel Label { get; }
+        public Chart.ChartLane Objects => Chart.GetLane(Label);
 
         protected abstract time_t JudgementRadius { get; }
 
         protected time_t CurrentPosition { get; private set; }
 
-        private ChartObject m_mostRecentInactive;
-        private ChartObject m_firstActive, m_lastActive;
+        private Entity m_mostRecentInactive;
+        private Entity m_firstActive, m_lastActive;
 
         private bool m_completed = false;
 
@@ -30,10 +30,10 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public bool AutoPlay = false;
 
-        protected StreamJudge(Chart chart, int streamIndex)
+        protected StreamJudge(Chart chart, LaneLabel label)
         {
             Chart = chart;
-            StreamIndex = streamIndex;
+            Label = label;
 
             if (Objects.Count == 0)
                 m_completed = true;
@@ -54,9 +54,9 @@ namespace NeuroSonic.GamePlay.Scoring
 
                 if (m_firstActive == null)
                 {
-                    ChartObject first;
+                    Entity first;
                     if (m_mostRecentInactive == null)
-                        first = Objects.FirstObject;
+                        first = Objects.First;
                     else first = m_mostRecentInactive.Next;
 
                     // activate an object!
@@ -100,7 +100,7 @@ namespace NeuroSonic.GamePlay.Scoring
 
         protected abstract void AdvancePosition(time_t position);
         public abstract int CalculateNumScorableTicks();
-        protected abstract void ObjectEnteredJudgement(ChartObject obj);
-        protected abstract void ObjectExitedJudgement(ChartObject obj);
+        protected abstract void ObjectEnteredJudgement(Entity obj);
+        protected abstract void ObjectExitedJudgement(Entity obj);
     }
 }

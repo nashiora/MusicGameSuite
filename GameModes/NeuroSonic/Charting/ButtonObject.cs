@@ -2,7 +2,8 @@
 
 namespace NeuroSonic.Charting
 {
-    public sealed class ButtonObject : ChartObject
+    [EntityType("Button")]
+    public sealed class ButtonObject : Entity
     {
         public ButtonObject Head => FirstConnectedOf<ButtonObject>();
         public ButtonObject Tail => LastConnectedOf<ButtonObject>();
@@ -12,6 +13,8 @@ namespace NeuroSonic.Charting
 
         public bool HasSample => Sample != null;
 
+        [TheoriIgnoreDefault]
+        [TheoriProperty("sample")]
         public string Sample { get; set; }
     }
 }

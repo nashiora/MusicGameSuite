@@ -1,10 +1,9 @@
 ﻿using System;
 
 using theori.Charting;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 
 using NeuroSonic.Charting;
-using NeuroSonic.Charting.IO;
 
 namespace NeuroSonic.Editor
 {
@@ -21,9 +20,6 @@ namespace NeuroSonic.Editor
 
         public override bool AsyncLoad()
         {
-            var chartSerializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-            //chartSerializer.DeserializeChart(m_chartInfo);
-
             return true;
         }
 

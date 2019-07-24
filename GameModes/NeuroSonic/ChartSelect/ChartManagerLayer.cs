@@ -7,7 +7,7 @@ using System.Numerics;
 using theori;
 using theori.Audio;
 using theori.Charting;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 using theori.IO;
 using theori.Gui;
 using theori.Graphics;
@@ -211,12 +211,12 @@ namespace NeuroSonic.ChartSelect
 
             selected = primaryChart.Info;
 
-            var setSerializer = new ChartSetSerializer();
-            var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-
-            setSerializer.SaveToFile(m_chartsDir, chartSetInfo);
+            var s = new ChartSerializer(m_chartsDir, NeuroSonicGameMode.Instance);
             foreach (var (_, chart) in chartFiles)
-                serializer.SaveToFile(m_chartsDir, chart);
+                s.SaveToFile(chart);
+
+            var setSerializer = new ChartSetSerializer();
+            setSerializer.SaveToFile(m_chartsDir, chartSetInfo);
 
             return chartSetInfo;
         }

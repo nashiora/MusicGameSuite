@@ -8,10 +8,12 @@ namespace NeuroSonic.Charting
         /// <summary>
         /// What function is applied to this laser's output.
         /// </summary>
+        [TheoriProperty("function")]
         public LaserFunction Function;
         /// <summary>
         /// How to scale the laser's output.
         /// </summary>
+        [TheoriProperty("scale")]
         public LaserScale Scale;
     }
 
@@ -20,7 +22,6 @@ namespace NeuroSonic.Charting
         /// <summary>
         /// The direction of this spin.
         /// </summary>
-        /// 
         public AngularDirection Direction;
 
         /// <summary>

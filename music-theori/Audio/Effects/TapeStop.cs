@@ -66,34 +66,4 @@ namespace theori.Audio.Effects
             Array.Resize(ref sampleBuffer, numSamples);
         }
     }
-
-    public sealed class TapeStopEffectDef : EffectDef
-    {
-        public EffectParamF Duration { get; }
-        
-        public TapeStopEffectDef(EffectParamF mix, EffectParamF duration)
-            : base(EffectType.TapeStop, mix)
-        {
-            Duration = duration;
-        }
-
-        public override Dsp CreateEffectDsp(int sampleRate) => new TapeStop(sampleRate);
-
-        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
-        {
-            base.ApplyToDsp(effect, qnDur, alpha);
-            if (effect is TapeStop ts)
-            {
-                ts.Duration = Duration.Sample(alpha);
-            }
-        }
-
-        public override bool Equals(EffectDef other)
-        {
-            if (!(other is TapeStopEffectDef stop)) return false;
-            return Type == stop.Type && Mix == stop.Mix && Duration == stop.Duration;
-        }
-
-        public override int GetHashCode() => HashCode.For(Type, Mix, Duration);
-    }
 }

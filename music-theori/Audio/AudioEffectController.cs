@@ -2,8 +2,7 @@
 
 using System;
 
-using theori.Audio;
-using theori.Audio.Effects;
+using theori.Charting.Effects;
 
 namespace theori.Audio
 {
