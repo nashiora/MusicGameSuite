@@ -5,10 +5,15 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("Retrigger")]
     public sealed class RetriggerDef : EffectDef
     {
-        public EffectParamF GateDuration;
-        public EffectParamF Gating;
+        [TheoriProperty("gateDuration")]
+        public EffectParamF GateDuration = new EffectParamX(16);
+        [TheoriProperty("gating")]
+        public EffectParamF Gating = 0.7f;
+        [TheoriProperty("updatePeriod")]
+        public EffectParamF UpdatePeriod = new EffectParamX(2);
 
         public RetriggerDef() : base(1) { }
         

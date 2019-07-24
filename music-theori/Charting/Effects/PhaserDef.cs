@@ -5,6 +5,7 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("Phaser")]
     public sealed class PhaserDef : EffectDef
     {
         public PhaserDef() : base(1) { }

@@ -5,10 +5,13 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("Gate")]
     public sealed class GateDef : EffectDef
     {
-        public EffectParamF GateDuration;
-        public EffectParamF Gating;
+        [TheoriProperty("gateDuration")]
+        public EffectParamF GateDuration = new EffectParamX(16);
+        [TheoriProperty("gating")]
+        public EffectParamF Gating = 0.6f;
 
         public GateDef() : base(1) { }
         public GateDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)

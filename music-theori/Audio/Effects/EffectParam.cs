@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace theori.Audio.Effects
 {
-    public delegate T EffectInterpolator<T>(T a, T b, float alpha);
-
     public class EffectParamI : EffectParam<int>
     {
         public static implicit operator EffectParamI(int value) => new EffectParamI(value);

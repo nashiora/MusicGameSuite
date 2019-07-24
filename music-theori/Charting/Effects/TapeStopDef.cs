@@ -5,8 +5,10 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("TapeStop")]
     public sealed class TapeStopDef : EffectDef
     {
+        [TheoriProperty("duration")]
         public EffectParamF Duration;
 
         public TapeStopDef() : base(1) { }

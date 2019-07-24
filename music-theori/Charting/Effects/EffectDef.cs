@@ -28,7 +28,6 @@ namespace theori.Charting.Effects
 
     public abstract class EffectDef : IEquatable<EffectDef>
     {
-
         #region Type Registry
 
         private static readonly Dictionary<string, Type> effectTypesById = new Dictionary<string, Type>();
@@ -89,6 +88,7 @@ namespace theori.Charting.Effects
             RegisterTheoriTypes();
         }
 
+        [TheoriProperty("mix")]
         public EffectParamF Mix;
 
         protected EffectDef() { }

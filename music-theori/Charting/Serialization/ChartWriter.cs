@@ -176,10 +176,7 @@ namespace theori.Charting.Serialization
             WriteStartStructure();
 
             WritePropertyName("type");
-            string name = effectDef.GetType().Name;
-            if (name.EndsWith(nameof(EffectDef)))
-                name = name.Substring(0, name.IndexOf(nameof(EffectDef)));
-            WriteValue($"theori.{ name }");
+            WriteValue(EffectDef.GetEffectIdByType(effectDef.GetType()));
 
             WritePropertiesFromReflection(effectDef);
 

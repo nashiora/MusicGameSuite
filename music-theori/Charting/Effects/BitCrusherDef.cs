@@ -5,8 +5,10 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("BitCrusher")]
     public sealed class BitCrusherDef : EffectDef
     {
+        [TheoriProperty("reduction")]
         public EffectParamI Reduction = 4;
 
         public BitCrusherDef() : base(1) { }

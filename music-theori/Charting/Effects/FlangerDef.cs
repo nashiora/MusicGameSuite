@@ -5,10 +5,14 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("Flanger")]
     public class FlangerDef : EffectDef
     {
+        [TheoriProperty("delay")]
         public EffectParamF Delay = 2.0f;
+        [TheoriProperty("offset")]
         public EffectParamI Offset = 10;
+        [TheoriProperty("depth")]
         public EffectParamI Depth = 40;
 
         public FlangerDef() : base(1) { }

@@ -5,8 +5,10 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("Wobble")]
     public class WobbleDef : EffectDef
     {
+        [TheoriProperty("period")]
         public EffectParamF Period = 0.25f;
 
         public WobbleDef() : base(1) { }

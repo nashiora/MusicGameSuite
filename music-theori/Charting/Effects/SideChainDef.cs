@@ -5,9 +5,12 @@ using theori.Audio.Effects;
 
 namespace theori.Charting.Effects
 {
+    [EffectType("SideChain")]
     public sealed class SideChainDef : EffectDef
     {
+        [TheoriProperty("amount")]
         public EffectParamF Amount;
+        [TheoriProperty("duration")]
         public EffectParamF Duration;
 
         public SideChainDef() : base(1) { }

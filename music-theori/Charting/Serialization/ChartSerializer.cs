@@ -123,20 +123,8 @@ namespace theori.Charting.Serialization
 
             EffectDef ToEffectDef(dynamic effectObj)
             {
-                switch ((string)effectObj.type)
-                {
-                    case "theori.BiQuadFilter": return (EffectDef)ToValue(effectObj, typeof(BiQuadFilterDef));
-                    case "theori.BitCrusher": return (EffectDef)ToValue(effectObj, typeof(BitCrusherDef));
-                    case "theori.Flanger": return (EffectDef)ToValue(effectObj, typeof(FlangerDef));
-                    case "theori.Gate": return (EffectDef)ToValue(effectObj, typeof(GateDef));
-                    case "theori.Phaser": return (EffectDef)ToValue(effectObj, typeof(PhaserDef));
-                    case "theori.Retrigger": return (EffectDef)ToValue(effectObj, typeof(RetriggerDef));
-                    case "theori.SideChain": return (EffectDef)ToValue(effectObj, typeof(SideChainDef));
-                    case "theori.TapeStop": return (EffectDef)ToValue(effectObj, typeof(TapeStopDef));
-                    case "theori.Wobble": return (EffectDef)ToValue(effectObj, typeof(WobbleDef));
-                }
-
-                return null;
+                string effectId = (string)effectObj.type;
+                return (EffectDef)ToValue(effectObj, EffectDef.GetEntityTypeById(effectId));
             }
 
             tick_t ToTickT(JToken token) => (double)token;

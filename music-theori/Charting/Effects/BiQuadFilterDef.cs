@@ -35,11 +35,14 @@ namespace theori.Charting.Effects
             return new BiQuadFilterDef(FilterType.HighPass, 1.0f, q, 1, freq);
         }
 
+        [TheoriProperty("filterType")]
         public FilterType FilterType;
 
+        [TheoriProperty("q")]
         public EffectParamF Q;
-
+        [TheoriProperty("gain")]
         public EffectParamF Gain;
+        [TheoriProperty("frequency")]
         public EffectParamF Freq;
 
         public BiQuadFilterDef() : base(1) { }
