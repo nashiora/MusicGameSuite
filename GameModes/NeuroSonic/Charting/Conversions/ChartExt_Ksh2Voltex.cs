@@ -7,6 +7,7 @@ using theori.Charting;
 using NeuroSonic.Charting.KShootMania;
 
 using Chart = theori.Charting.Chart;
+using theori.Charting.Effects;
 
 namespace NeuroSonic.Charting.Conversions
 {
@@ -155,7 +156,19 @@ namespace NeuroSonic.Charting.Conversions
                             {
                                 var effectEvent = chart[NscLane.ButtonEvent].Add<EffectKindEvent>(chartPos);
                                 effectEvent.EffectIndex = key == "fx-l" ? 4 : 5;
-                                effectEvent.Effect = (string)setting.Value.Value == "" ? null : ksh.FxDefines[setting.Value.ToString()];
+
+                                string effectName = (string)setting.Value.Value;
+                                if (ksh.FxDefines.TryGetValue(effectName, out var effect))
+                                    effectEvent.Effect = effect;
+                                else
+                                {
+                                    if (effectName.Contains(";"))
+                                    {
+                                        effectName.Split(';', out effectName, out string effectArgs);
+                                        Logger.Log($"ksh.convert { setting.Key } effect args { effectArgs }");
+                                    }
+                                    effectEvent.Effect = effectName == "" ? null : ksh.FxDefines[effectName];
+                                }
                                 Logger.Log($"ksh.convert set { key } { effectEvent.Effect?.GetType().Name ?? "nothing" }");
                             }
                             else Logger.Log($"ksh.convert effects disabled for { key }");
