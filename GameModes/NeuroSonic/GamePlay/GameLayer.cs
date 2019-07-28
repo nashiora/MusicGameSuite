@@ -529,6 +529,11 @@ namespace NeuroSonic.GamePlay
 
             switch (key.KeyCode)
             {
+                case KeyCode.PAGEUP:
+                {
+                    m_audioController.Position += m_chart.ControlPoints.MostRecent(m_audioController.Position).MeasureDuration;
+                } break;
+
                 case KeyCode.ESCAPE:
                 {
                     Host.PopToParent(this);
@@ -773,23 +778,24 @@ namespace NeuroSonic.GamePlay
             float mix = laserGain;
             if (currentLaserEffectDef != null)
             {
-                var bqf = currentLaserEffectDef as BiQuadFilterDef;
-                if (bqf != null && bqf.FilterType == FilterType.Peak)
+                if (currentLaserEffectDef is BiQuadFilterDef bqf && bqf.FilterType == FilterType.Peak)
                 {
                     mix *= BASE_LASER_MIX;
-                    if (alpha < 0.1f)
-                        mix *= alpha / 0.1f;
+                    if (alpha < 0.2f)
+                        mix *= alpha / 0.2f;
                     else if (alpha > 0.8f)
                         mix *= 1 - (alpha - 0.8f) / 0.2f;
                 }
                 else
                 {
+                    // TODO(local): a lot of these (all?) don't need to have special mixes. idk why these got here but they're needed for some reason? fix
                     switch (currentLaserEffectDef)
                     {
                         case GateDef _:
                         case RetriggerDef _:
+                        case BitCrusherDef _:
                         case TapeStopDef _:
-                            mix = 1.0f;
+                            mix = currentLaserEffectDef.Mix.Sample(alpha);
                             break;
 
                         case BiQuadFilterDef _: break;

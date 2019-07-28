@@ -164,7 +164,7 @@ namespace theori.Charting
                 time_t start = double.MaxValue;
                 foreach (var lane in Lanes)
                 {
-                    var last = lane.Last;
+                    var last = lane.First;
                     if (last != null)
                         start = start > last.AbsolutePosition ? last.AbsolutePosition : start;
                 }

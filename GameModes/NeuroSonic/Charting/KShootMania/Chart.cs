@@ -172,6 +172,122 @@ namespace NeuroSonic.Charting.KShootMania
         public KshTick Tick;
     }
 
+    public enum KshEffectKind
+    {
+        None = 0,
+
+        Retrigger,
+        Gate,
+        Flanger,
+        PitchShift,
+        BitCrusher,
+        Phaser,
+        Wobble,
+        TapeStop,
+        Echo,
+        SideChain,
+        Peak,
+        LowPass,
+        HighPass
+    }
+
+    public class KshEffectRef
+    {
+        public readonly string Name;
+        public readonly string Param;
+
+        public KshEffectRef(string name, string param)
+        {
+            Name = name;
+            Param = param;
+        }
+
+        public EffectDef CreateEffectDef(Dictionary<string, KshEffectDef> context)
+        {
+            var effectDef = context[Name];
+
+            var effectKind = effectDef.EffectKind;
+            var pars = effectDef.EffectParams;
+
+            T GetEffectParam<T>(string parsKey, T parsDef) where T : IEffectParam
+            {
+                if (pars.TryGetValue(parsKey, out var parsValue) && parsValue is T valueT)
+                    return valueT;
+                return parsDef;
+            }
+
+            switch (effectKind)
+            {
+                case KshEffectKind.Retrigger:
+                {
+                    var step = Param != null ? 1.0f / int.Parse(Param) : GetEffectParam<EffectParamF>("waveLength", 0.25f);
+                    return new RetriggerDef(
+                        GetEffectParam<EffectParamF>("mix", 1.0f),
+                        GetEffectParam<EffectParamF>("rate", 0.7f),
+                        GetEffectParam<EffectParamF>("waveLength", step),
+                        GetEffectParam<EffectParamF>("updatePeriod", 0.5f)
+                        );
+                }
+
+                case KshEffectKind.Gate:
+                {
+                    var step = Param != null ? 1.0f / int.Parse(Param) : GetEffectParam<EffectParamF>("waveLength", 0.125f);
+                    return new GateDef(
+                        GetEffectParam<EffectParamF>("mix", 1.0f),
+                        GetEffectParam<EffectParamF>("rate", 0.7f),
+                        GetEffectParam<EffectParamF>("waveLength", step)
+                        );
+                }
+
+                case KshEffectKind.Flanger: return new FlangerDef(GetEffectParam<EffectParamF>("mix", 1.0f));
+
+                case KshEffectKind.BitCrusher:
+                {
+                    var reduction = Param != null ? int.Parse(Param) : GetEffectParam<EffectParamI>("reduction", 4);
+                    return new BitCrusherDef(GetEffectParam<EffectParamF>("mix", 1.0f), reduction);
+                }
+
+                case KshEffectKind.Phaser: return new PhaserDef(GetEffectParam<EffectParamF>("mix", 0.5f));
+
+                case KshEffectKind.Wobble:
+                {
+                    var step = Param != null ? 1.0f / int.Parse(Param) : GetEffectParam<EffectParamF>("waveLength", 1.0f / 12);
+                    return new WobbleDef(GetEffectParam<EffectParamF>("mix", 1.0f), GetEffectParam<EffectParamF>("waveLength", step));
+                }
+
+                case KshEffectKind.TapeStop:
+                {
+                    var speed = Param != null ? 16.0f / MathL.Max(int.Parse(Param), 1) : GetEffectParam<EffectParamF>("speed", 50.0f);
+                    return new TapeStopDef(GetEffectParam<EffectParamF>("mix", 1.0f), speed);
+                }
+
+                case KshEffectKind.SideChain:
+                {
+                    var step = Param != null ? 1.0f / int.Parse(Param) : GetEffectParam<EffectParamF>("waveLength", 0.25f);
+                    return new SideChainDef(GetEffectParam<EffectParamF>("mix", 1.0f), 1.0f, step);
+                }
+
+                case KshEffectKind.Peak: return BiQuadFilterDef.CreateDefaultPeak();
+                case KshEffectKind.LowPass: return BiQuadFilterDef.CreateDefaultLowPass();
+                case KshEffectKind.HighPass: return BiQuadFilterDef.CreateDefaultHighPass();
+
+                default: return null;
+            }
+        }
+    }
+
+    public class KshEffectDef
+    {
+        public readonly KshEffectKind EffectKind;
+        public readonly Dictionary<string, IEffectParam> EffectParams;
+
+        public KshEffectDef(KshEffectKind effectKind, Dictionary<string, IEffectParam> pars)
+        {
+            EffectKind = effectKind;
+            EffectParams = pars ?? new Dictionary<string, IEffectParam>();
+        }
+    }
+
     /// <summary>
     /// Contains all relevant data for a single chart.
     /// </summary>
@@ -192,111 +308,29 @@ namespace NeuroSonic.Charting.KShootMania
                 FileName = fileName,
                 Metadata = KshChartMetadata.Create(reader)
             };
-            
-            void TryAddBuiltInFx(string effect, float bpm)
+
+            chart.FxDefines["Retrigger"] = new KshEffectDef(KshEffectKind.Retrigger, null);
+            chart.FxDefines["Gate"] = new KshEffectDef(KshEffectKind.Gate, null);
+            chart.FxDefines["Flanger"] = new KshEffectDef(KshEffectKind.Flanger, null);
+            chart.FxDefines["PitchShift"] = new KshEffectDef(KshEffectKind.PitchShift, null);
+            chart.FxDefines["BitCrusher"] = new KshEffectDef(KshEffectKind.BitCrusher, null);
+            chart.FxDefines["Wobble"] = new KshEffectDef(KshEffectKind.Wobble, null);
+            chart.FxDefines["Phaser"] = new KshEffectDef(KshEffectKind.Phaser, null);
+            chart.FxDefines["TapeStop"] = new KshEffectDef(KshEffectKind.TapeStop, null);
+            chart.FxDefines["Echo"] = new KshEffectDef(KshEffectKind.Echo, null);
+            chart.FxDefines["SideChain"] = new KshEffectDef(KshEffectKind.SideChain, null);
+
+            chart.FilterDefines["peak"] = new KshEffectDef(KshEffectKind.Peak, null);
+            chart.FilterDefines["lpf1"] = new KshEffectDef(KshEffectKind.LowPass, null);
+            chart.FilterDefines["hpf1"] = new KshEffectDef(KshEffectKind.HighPass, null);
+            chart.FilterDefines["bitc"] = new KshEffectDef(KshEffectKind.BitCrusher, new Dictionary<string, IEffectParam>()
             {
-                string effectName = effect;
-                if (effect.TrySplit(';', out string _name, out string paramList))
-                    effectName = _name;
-                else paramList = "";
-
-                if (string.IsNullOrEmpty(effectName))
-                    return;
-
-                string[] pars = paramList.Split(';');
-                float unit = 1.0f; //4 * (60.0f / bpm);
-
-                EffectDef def = null;
-                switch (effectName)
-                {
-                    case "BitCrusher":
-                    {
-                        int reduction = 4;
-                        if (pars.Length > 0) reduction = int.Parse(pars[0]);
-                        def = new BitCrusherDef(1.0f, reduction);
-                    } break;
-
-                    case "Retrigger":
-                    {
-                        int step = 8;
-                        if (pars.Length > 0) step = int.Parse(pars[0]);
-                        def = new RetriggerDef(1.0f, 0.7f, unit / step);
-                    } break;
-
-                    case "Gate":
-                    {
-                        int step = 8;
-                        if (pars.Length > 0) step = int.Parse(pars[0]);
-                        def = new GateDef(1.0f, 0.7f, unit / step);
-                    } break;
-                    
-                    case "SideChain":
-                    {
-                        int step = 4;
-                        def = new SideChainDef(1.0f, 1.0f, unit / step);
-                    } break;
-                    
-                    case "Wobble":
-                    {
-                        int step = 12;
-                        if (pars.Length > 0) step = int.Parse(pars[0]);
-                        def = new WobbleDef(1.0f, unit / step);
-                    } break;
-
-                    case "TapeStop":
-                    {
-                        int speed = 50;
-                        if (pars.Length > 0) speed = int.Parse(pars[0]);
-                        def = new TapeStopDef(1.0f, 16.0f / MathL.Max(speed, 1));
-                    } break;
-
-                    case "Flanger":
-                    {
-                        def = new FlangerDef(1.0f);
-                    } break;
-
-                    case "Phaser":
-                    {
-                        def = new PhaserDef(0.5f);
-                    } break;
-                }
-
-                chart.FxDefines[effect] = def;
-                if (def == null)
-                {
-                    Logger.Log($"KSH2VOLTEX: Failed to create effect info from { effect }");
-                }
-            }
-            
-            void TryAddBuiltInFilter(string effectName)
-            {
-                EffectDef def = null;
-                switch (effectName)
-                {
-                    case "hpf1": def = BiQuadFilterDef.CreateDefaultHighPass(); break;
-                    case "lpf1": def = BiQuadFilterDef.CreateDefaultLowPass(); break;
-                    case "peak": def = BiQuadFilterDef.CreateDefaultPeak(); break;
-                    case "fx;bitc":
-                    case "bitc":
-                    {
-                        var reduction = new EffectParamI(0, 45, Ease.InExpo);
-                        def = new BitCrusherDef(1.0f, reduction);
-                    } break;
-                }
-
-                chart.FilterDefines[effectName] = def;
-                if (def == null)
-                {
-                    Logger.Log($"KSH2VOLTEX: Failed to create effect info from { effectName }");
-                }
-            }
-
-            TryAddBuiltInFilter(chart.Metadata.FilterType);
+                ["reduction"] = new EffectParamI(0, 45, Ease.InExpo),
+            });
+            chart.FilterDefines["fx;bitc"] = chart.FilterDefines["bitc"];
 
             var block = new KshBlock();
             var tick = new KshTick();
-
-            float mrBpm = 120.0f;
 
             string line;
             while ((line = reader.ReadLine()) != null)
@@ -307,10 +341,10 @@ namespace NeuroSonic.Charting.KShootMania
 
                 if (line[0] == '#')
                 {
-                    Dictionary<string, IEffectParam> GetParameterList(string args, out string typeName)
+                    Dictionary<string, IEffectParam> GetParameterList(string args, out KshEffectKind effectKind)
                     {
                         var result = new Dictionary<string, IEffectParam>();
-                        typeName = null;
+                        effectKind = KshEffectKind.None;
 
                         foreach (string a in args.Split(';'))
                         {
@@ -323,7 +357,19 @@ namespace NeuroSonic.Charting.KShootMania
                             if (k == "type")
                             {
                                 Logger.Log($"ksh fx type: { v }");
-                                typeName = v;
+                                switch (v.ToLower())
+                                {
+                                    case "retrigger": effectKind = KshEffectKind.Retrigger; break;
+                                    case "gate": effectKind = KshEffectKind.Gate; break;
+                                    case "flanger": effectKind = KshEffectKind.Flanger; break;
+                                    case "pitchshift": effectKind = KshEffectKind.PitchShift; break;
+                                    case "bitcrusher": effectKind = KshEffectKind.BitCrusher; break;
+                                    case "wobble": effectKind = KshEffectKind.Wobble; break;
+                                    case "phaser": effectKind = KshEffectKind.Phaser; break;
+                                    case "tapestop": effectKind = KshEffectKind.TapeStop; break;
+                                    case "echo": effectKind = KshEffectKind.Echo; break;
+                                    case "sidechain": effectKind = KshEffectKind.SideChain; break;
+                                }
                             }
                             else
                             {
@@ -361,9 +407,9 @@ namespace NeuroSonic.Charting.KShootMania
                                 else if (v.Contains("samples"))
                                 {
                                     if (isRange)
-                                        pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("samples"))) / 44100.0f,
-                                            int.Parse(v1.Substring(0, v1.IndexOf("samples"))) / 44100.0f, Ease.Linear);
-                                    else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("samples"))) / 44100.0f);
+                                        pv = new EffectParamF(int.Parse(v0.Substring(0, v0.IndexOf("samples"))),
+                                            int.Parse(v1.Substring(0, v1.IndexOf("samples"))), Ease.Linear);
+                                    else pv = new EffectParamF(int.Parse(v.Substring(0, v.IndexOf("samples"))));
                                 }
                                 else if (v.Contains("ms"))
                                 {
@@ -418,87 +464,10 @@ namespace NeuroSonic.Charting.KShootMania
                     if (!line.TrySplit(' ', out string defKind, out string defKey, out string argList))
                         continue;
 
-                    EffectDef def = null;
                     Logger.Log($">> ksh { defKind } \"{ defKey }\"");
 
-                    var pars = GetParameterList(argList, out string effectType);
-                    T GetEffectParam<T>(string parsKey, T parsDef) where T : IEffectParam
-                    {
-                        if (pars.TryGetValue(parsKey, out var parsValue) && parsValue is T valueT)
-                            return valueT;
-                        return parsDef;
-                    }
-                    switch (effectType)
-                    {
-                        case "Retrigger":
-                        {
-                            // TODO(local): updateTrigger, the system doesn't support it yet
-                            def = new RetriggerDef(
-                                GetEffectParam<EffectParamF>("mix", 1.0f),
-                                GetEffectParam<EffectParamF>("rate", 0.7f),
-                                GetEffectParam<EffectParamF>("waveLength", 0.25f)
-                                );
-                        } break;
-
-                        case "Gate":
-                        {
-                            def = new GateDef(
-                                GetEffectParam<EffectParamF>("mix", 1.0f),
-                                GetEffectParam<EffectParamF>("rate", 0.7f),
-                                GetEffectParam<EffectParamF>("waveLength", 0.25f)
-                                );
-                        }
-                        break;
-
-                        case "Flanger":
-                        {
-                            def = new FlangerDef(GetEffectParam<EffectParamF>("mix", 1.0f));
-                        }
-                        break;
-
-                        case "BitCrusher":
-                        {
-                            def = new BitCrusherDef(
-                                GetEffectParam<EffectParamF>("mix", 1.0f),
-                                GetEffectParam<EffectParamI>("reduction", 4)
-                                );
-                        }
-                        break;
-
-                        case "Phaser":
-                        {
-                            def = new PhaserDef(GetEffectParam<EffectParamF>("mix", 0.5f));
-                        }
-                        break;
-
-                        case "Wobble":
-                        {
-                            def = new WobbleDef(
-                                GetEffectParam<EffectParamF>("mix", 1.0f),
-                                GetEffectParam<EffectParamF>("waveLength", 1.0f / 12)
-                                );
-                        }
-                        break;
-
-                        case "TapeStop":
-                        {
-                            def = new TapeStopDef(
-                                GetEffectParam<EffectParamF>("mix", 1.0f),
-                                GetEffectParam<EffectParamF>("speed", 50.0f)
-                                );
-                        }
-                        break;
-
-                        case "SideChain":
-                        {
-                            def = new SideChainDef(
-                                GetEffectParam<EffectParamF>("mix", 1.0f),
-                                1.0f,
-                                GetEffectParam<EffectParamF>("waveLength", 50.0f)
-                                );
-                        }
-                        break;
-                    }
+                    var pars = GetParameterList(argList, out KshEffectKind effectType);
+                    KshEffectDef def = new KshEffectDef(effectType, pars);
                     
                     if (defKind == "#define_fx")
                         chart.FxDefines[defKey] = def;
@@ -516,16 +485,27 @@ namespace NeuroSonic.Charting.KShootMania
                 }
                 if (line.TrySplit('=', out string key, out string value))
                 {
-                    if (key == "t") mrBpm = float.Parse(value);
                     // defined fx should probably be named different than the defaults,
                     //  so it's like slightly safe to assume that failing to create
                     //  a built-in definition from this for either means its a defined effect?
-                    if (key == "fx-l" || key == "fx-r")
-                        TryAddBuiltInFx(value, mrBpm);
-                    else if (key == "filtertype")
-                        TryAddBuiltInFilter(value);
+                    if (key == "fx-l" || key == "fx-r" || key == "filtertype")
+                    {
+                        if (string.IsNullOrWhiteSpace(value))
+                            tick.Settings.Add(new KshTickSetting(key, Variant.Null));
+                        else
+                        {
+                            string effectName = value, effectParam = null;
+                            if (value.TrySplit(';', out string name, out string param))
+                            {
+                                effectName = name;
+                                effectParam = param;
+                            }
 
-                    tick.Settings.Add(new KshTickSetting(key, value));
+                            var effectRef = new Variant(new KshEffectRef(effectName, effectParam));
+                            tick.Settings.Add(new KshTickSetting(key, effectRef));
+                        }
+                    }
+                    else tick.Settings.Add(new KshTickSetting(key, value));
                 }
                 else
                 {
@@ -643,8 +623,8 @@ namespace NeuroSonic.Charting.KShootMania
         private List<KshBlock> m_blocks = new List<KshBlock>();
         public KshTick this[int block, int tick] => m_blocks[block][tick];
 
-        public readonly Dictionary<string, EffectDef> FxDefines = new Dictionary<string, EffectDef>();
-        public readonly Dictionary<string, EffectDef> FilterDefines = new Dictionary<string, EffectDef>();
+        public readonly Dictionary<string, KshEffectDef> FxDefines = new Dictionary<string, KshEffectDef>();
+        public readonly Dictionary<string, KshEffectDef> FilterDefines = new Dictionary<string, KshEffectDef>();
         
         public int BlockCount => m_blocks.Count;
 

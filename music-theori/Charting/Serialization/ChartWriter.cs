@@ -121,7 +121,7 @@ namespace theori.Charting.Serialization
 
                         WriteEndStructure();
                     }
-                    else WriteValue(xp.MinValueReal);
+                    else WriteValue(xp.MinValue);
                 }
                 break;
 
