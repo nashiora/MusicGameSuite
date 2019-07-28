@@ -10,7 +10,7 @@ namespace theori.Audio.Effects
         private float sampleLeft;
         private float sampleRight;
 
-        public double Reduction = 4 / 44100.0f;
+        public double Reduction = 4;
 
         public BitCrusher(int sampleRate)
             : base(sampleRate)
@@ -24,12 +24,12 @@ namespace theori.Audio.Effects
 
             for(int i = 0; i < numSamples; i++)
             {
-                samplePosition += 1.0 / SampleRate;
-                if(samplePosition > Reduction * sampleScale)
+                samplePosition += 1.0 * sampleScale;
+                if(samplePosition > Reduction)
                 {
                     sampleLeft = buffer[offset + i * 2];
                     sampleRight = buffer[offset + i * 2 + 1];
-                    samplePosition -= Reduction * sampleScale;
+                    samplePosition -= Reduction;
                 }
 
                 buffer[offset + i * 2] = MathL.Lerp(buffer[offset + i * 2], sampleLeft, Mix);

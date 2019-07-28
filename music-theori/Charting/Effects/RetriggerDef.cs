@@ -17,11 +17,12 @@ namespace theori.Charting.Effects
 
         public RetriggerDef() : base(1) { }
         
-        public RetriggerDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration)
+        public RetriggerDef(EffectParamF mix, EffectParamF gating, EffectParamF gateDuration, EffectParamF updatePeriod)
             : base(mix)
         {
             GateDuration = gateDuration;
             Gating = gating;
+            UpdatePeriod = updatePeriod;
         }
         
         public override Dsp CreateEffectDsp(int sampleRate) => new Retrigger(sampleRate);

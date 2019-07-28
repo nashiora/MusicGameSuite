@@ -26,7 +26,7 @@ namespace theori.Charting.Effects
             base.ApplyToDsp(effect, qnDur, alpha);
             if (effect is BitCrusher bitCrusher)
             {
-                bitCrusher.Reduction = Reduction.Sample(alpha) / 44100.0f;
+                bitCrusher.Reduction = Reduction.Sample(alpha);
             }
         }
 
