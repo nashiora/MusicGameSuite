@@ -11,7 +11,7 @@ namespace NeuroSonic.Charting
         {
             var chart = new Chart(NeuroSonicGameMode.Instance);
             for (int i = 0; i < 6; i++)
-                chart.CreateTypedLane<ButtonObject>(i, EntityRelation.Equal);
+                chart.CreateTypedLane<ButtonEntity>(i, EntityRelation.Equal);
             for (int i = 0; i < 2; i++)
                 chart.CreateTypedLane<AnalogObject>(i + 6, EntityRelation.Equal);
 

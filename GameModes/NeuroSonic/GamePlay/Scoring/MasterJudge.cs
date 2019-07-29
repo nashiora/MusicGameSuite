@@ -41,6 +41,7 @@ namespace NeuroSonic.GamePlay.Scoring
             {
                 var judge = new ButtonJudge(chart, i);
                 judge.OnTickProcessed += ButtonJudge_OnTickProcessed;
+
                 m_maxTickValue += judge.CalculateNumScorableTicks();
                 m_judges[i] = judge;
             }

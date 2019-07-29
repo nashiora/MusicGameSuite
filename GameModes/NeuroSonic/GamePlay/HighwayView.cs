@@ -252,7 +252,7 @@ namespace NeuroSonic.GamePlay
         {
             if (!m_renderables.ContainsKey(obj.Lane)) return;
 
-            if (obj is ButtonObject bobj)
+            if (obj is ButtonEntity bobj)
             {
                 ObjectRenderable3D br3d;
                 if (obj.IsInstant)
@@ -477,8 +477,10 @@ namespace NeuroSonic.GamePlay
                             }
                             else
                             {
-                                glowObj.Glow = m_streamsActive[objr.Object.Lane] ? 0.0f : -0.5f;
-                                glowObj.GlowState = m_streamsActive[objr.Object.Lane] ? 1 : 0;
+                                //glowObj.Glow = m_streamsActive[objr.Object.Lane] ? 0.0f : -0.5f;
+                                //glowObj.GlowState = m_streamsActive[objr.Object.Lane] ? 1 : 0;
+                                glowObj.Glow = 0.0f;
+                                glowObj.GlowState = 1;
                             }
                         }
 

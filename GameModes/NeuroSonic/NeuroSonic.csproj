@@ -72,7 +72,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Charting\AnalogObject.cs" />
-    <Compile Include="Charting\ButtonObject.cs" />
+    <Compile Include="Charting\ButtonEntity.cs" />
     <Compile Include="Charting\Conversions\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="Charting\Enums.cs" />
     <Compile Include="Charting\Events.cs" />

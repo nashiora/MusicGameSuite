@@ -345,7 +345,7 @@ namespace NeuroSonic.GamePlay
 
                 m_activeObjects[(int)obj.Lane] = aobj.Head;
             }
-            else if (obj is ButtonObject bobj)
+            else if (obj is ButtonEntity bobj)
             {
                 //if (bobj.HasEffect) m_audioController.SetEffect(obj.Stream, CurrentQuarterNodeDuration, bobj.Effect);
                 //else m_audioController.RemoveEffect(obj.Stream);
@@ -369,7 +369,7 @@ namespace NeuroSonic.GamePlay
                         m_activeObjects[(int)obj.Lane] = null;
                 }
             }
-            if (obj is ButtonObject bobj)
+            if (obj is ButtonEntity bobj)
             {
                 //m_audioController.RemoveEffect(obj.Stream);
 
@@ -390,9 +390,10 @@ namespace NeuroSonic.GamePlay
                 m_comboDisplay.Combo = 0;
             else m_comboDisplay.Combo++;
 
-            if (!obj.IsInstant)
-                m_streamHasActiveEffects[(int)obj.Lane] = result.Kind != JudgeKind.Miss;
-            else
+            //if (!obj.IsInstant)
+            //    m_streamHasActiveEffects[(int)obj.Lane] = result.Kind != JudgeKind.Miss;
+            //else
+            if (obj.IsInstant)
             {
                 if (result.Kind != JudgeKind.Miss)
                     CreateKeyBeam((int)obj.Lane, result.Kind, result.Difference < 0.0);
@@ -413,12 +414,10 @@ namespace NeuroSonic.GamePlay
 
         private void Judge_OnHoldReleased(time_t position, Entity obj)
         {
-            m_streamHasActiveEffects[(int)obj.Lane] = false;
         }
 
         private void Judge_OnHoldPressed(time_t position, Entity obj)
         {
-            m_streamHasActiveEffects[(int)obj.Lane] = true;
             CreateKeyBeam((int)obj.Lane, JudgeKind.Passive, false);
         }
 
@@ -631,6 +630,14 @@ namespace NeuroSonic.GamePlay
             m_highwayControl.Roll = GetPathValueLerped(NscLane.CameraTilt);
 
             m_highwayView.PlaybackPosition = position;
+
+            for (int i = 0; i < 8; i++)
+            {
+                var judge = m_judge[i];
+                if (judge == null) continue;
+
+                m_streamHasActiveEffects[i] = judge.IsBeingPlayed;
+            }
 
             for (int i = 0; i < 8; i++)
             {

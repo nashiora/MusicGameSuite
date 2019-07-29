@@ -3,10 +3,10 @@
 namespace NeuroSonic.Charting
 {
     [EntityType("Button")]
-    public sealed class ButtonObject : Entity
+    public sealed class ButtonEntity : Entity
     {
-        public ButtonObject Head => FirstConnectedOf<ButtonObject>();
-        public ButtonObject Tail => LastConnectedOf<ButtonObject>();
+        public ButtonEntity Head => FirstConnectedOf<ButtonEntity>();
+        public ButtonEntity Tail => LastConnectedOf<ButtonEntity>();
 
         public bool IsChip => IsInstant;
         public bool IsHold => !IsInstant;

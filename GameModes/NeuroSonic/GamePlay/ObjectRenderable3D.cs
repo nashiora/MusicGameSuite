@@ -68,14 +68,14 @@ namespace NeuroSonic.GamePlay
 
     internal class ButtonChipRenderState3D : ObjectRenderable3D
     {
-        public new ButtonObject Object => (ButtonObject)base.Object;
+        public new ButtonEntity Object => (ButtonEntity)base.Object;
 
         private int m_width = 1;
 
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public ButtonChipRenderState3D(ButtonObject obj, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
+        public ButtonChipRenderState3D(ButtonEntity obj, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
             : base(obj)
         {
             Debug.Assert(obj.IsChip, "Hold object passed to render state which expects a chip");
@@ -116,7 +116,7 @@ namespace NeuroSonic.GamePlay
         private const float ENTRY_LENGTH = 0.1f;
         private const float EXIT_LENGTH = ENTRY_LENGTH * 0.5f;
 
-        public new ButtonObject Object => (ButtonObject)base.Object;
+        public new ButtonEntity Object => (ButtonEntity)base.Object;
 
         private Transform m_entryTransform = Transform.Scale(1, 1, ENTRY_LENGTH);
         private Transform m_exitTransform = Transform.Scale(1, 1, EXIT_LENGTH);
@@ -126,7 +126,7 @@ namespace NeuroSonic.GamePlay
 
         private readonly Drawable3D[] m_drawables;
 
-        public ButtonHoldRenderState3D(ButtonObject obj, float len, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
+        public ButtonHoldRenderState3D(ButtonEntity obj, float len, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
             : base(obj)
         {
             Debug.Assert(obj.IsHold, "Chip object passed to render state which expects a hold");

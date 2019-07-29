@@ -321,7 +321,7 @@ namespace NeuroSonic.Charting.Conversions
                         var state = buttonStates[b];
 
                         var startPos = state.StartPosition;
-                        var button = chart[(LaneLabel)b].Add<ButtonObject>(startPos, endPos - startPos);
+                        var button = chart[(LaneLabel)b].Add<ButtonEntity>(startPos, endPos - startPos);
                     }
 
                     switch (data.State)
@@ -337,7 +337,7 @@ namespace NeuroSonic.Charting.Conversions
                         case KshButtonState.ChipSample:
                         {
                             //System.Diagnostics.Trace.WriteLine(b);
-                            chart[(LaneLabel)b].Add<ButtonObject>(chartPos);
+                            chart[(LaneLabel)b].Add<ButtonEntity>(chartPos);
                         } break;
                         
                         case KshButtonState.Hold:

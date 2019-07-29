@@ -28,6 +28,8 @@ namespace NeuroSonic.GamePlay.Scoring
         /// </summary>
         public time_t JudgementOffset = 0.0;
 
+        public bool IsBeingPlayed { get; protected set; } = true;
+
         public bool AutoPlay = false;
 
         protected StreamJudge(Chart chart, LaneLabel label)
