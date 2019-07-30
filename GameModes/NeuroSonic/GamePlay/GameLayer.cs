@@ -68,6 +68,9 @@ namespace NeuroSonic.GamePlay
         private readonly Entity[] m_activeObjects = new Entity[8];
         private readonly bool[] m_streamHasActiveEffects = new bool[8].Fill(true);
 
+        private readonly bool[] m_cursorsActive = new bool[2];
+        private readonly float[] m_cursorAlphas = new float[2];
+
         private readonly EffectDef[] m_currentEffects = new EffectDef[8];
 
         private time_t CurrentQuarterNodeDuration => m_chart.ControlPoints.MostRecent(m_audioController.Position).QuarterNoteDuration;
@@ -275,16 +278,23 @@ namespace NeuroSonic.GamePlay
             m_judge = new MasterJudge(m_chart);
             for (int i = 0; i < 6; i++)
             {
-                int stream = i;
-
                 var judge = (ButtonJudge)m_judge[i];
-                //judge.JudgementOffset = 0.032;
                 judge.JudgementOffset = Plugin.Config.GetInt(NscConfigKey.InputOffset) / 1000.0f;
                 judge.AutoPlay = AutoButtons;
                 judge.OnChipPressed += Judge_OnChipPressed;
                 judge.OnTickProcessed += Judge_OnTickProcessed;
                 judge.OnHoldPressed += Judge_OnHoldPressed;
                 judge.OnHoldReleased += Judge_OnHoldReleased;
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                int iStack = i;
+
+                var judge = (LaserJudge)m_judge[i + 6];
+                judge.JudgementOffset = Plugin.Config.GetInt(NscConfigKey.InputOffset) / 1000.0f;
+                judge.AutoPlay = AutoLasers;
+                judge.OnShowCursor += () => m_cursorsActive[iStack] = true;
+                judge.OnHideCursor += () => m_cursorsActive[iStack] = false;
             }
 
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
@@ -325,7 +335,7 @@ namespace NeuroSonic.GamePlay
 
         private void PlaybackObjectBegin(Entity obj)
         {
-            if (obj is AnalogObject aobj)
+            if (obj is AnalogEntity aobj)
             {
                 if (obj.IsInstant)
                 {
@@ -358,7 +368,7 @@ namespace NeuroSonic.GamePlay
 
         private void PlaybackObjectEnd(Entity obj)
         {
-            if (obj is AnalogObject aobj)
+            if (obj is AnalogEntity aobj)
             {
                 if (aobj.NextConnected == null)
                 {
@@ -618,11 +628,11 @@ namespace NeuroSonic.GamePlay
 
             m_highwayControl.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
 
-            float leftLaserPos = GetTempRollValue(position, 6, out float leftLaserRange);
-            float rightLaserPos = GetTempRollValue(position, 7, out float rightLaserRange, true);
+            float leftLaserValue = GetTempRollValue(position, 6, out float _);
+            float rightLaserValue = GetTempRollValue(position, 7, out float _, true);
 
-            m_highwayControl.LeftLaserInput = leftLaserPos;
-            m_highwayControl.RightLaserInput = rightLaserPos;
+            m_highwayControl.LeftLaserInput = leftLaserValue;
+            m_highwayControl.RightLaserInput = rightLaserValue;
 
             m_highwayControl.Zoom = GetPathValueLerped(NscLane.CameraZoom);
             m_highwayControl.Pitch = GetPathValueLerped(NscLane.CameraPitch);
@@ -634,8 +644,6 @@ namespace NeuroSonic.GamePlay
             for (int i = 0; i < 8; i++)
             {
                 var judge = m_judge[i];
-                if (judge == null) continue;
-
                 m_streamHasActiveEffects[i] = judge.IsBeingPlayed;
             }
 
@@ -693,15 +701,35 @@ namespace NeuroSonic.GamePlay
                 Vector2 critRootPositionEast = camera.Project(critLineTransform, new Vector3(1, 0, 0));
                 Vector2 critRootPositionForward = camera.Project(critLineTransform, new Vector3(0, 0, -1));
 
-                float GetCursorPosition(float xWorld)
+                for (int i = 0; i < 2; i++)
+                {
+                    if (m_cursorsActive[i])
+                        m_cursorAlphas[i] = MathL.Min(1, m_cursorAlphas[i] + delta * 3);
+                    else m_cursorAlphas[i] = MathL.Max(0, m_cursorAlphas[i] - delta * 5);
+                }
+
+                void GetCursorPosition(int lane, out float pos, out float range)
+                {
+                    var judge = (LaserJudge)m_judge[lane + 6];
+                    pos = judge.CursorPosition;
+                    range = judge.LaserRange;
+                }
+
+                float GetCursorPositionWorld(float xWorld)
                 {
                     var critRootCenter = camera.Project(defaultZoomTransform, Vector3.Zero);
                     var critRootCursor = camera.Project(defaultZoomTransform, new Vector3(xWorld, 0, 0));
                     return critRootCursor.X - critRootCenter.X;
                 }
 
-                m_critRoot.LeftCursorPosition = GetCursorPosition((leftLaserPos - 0.5f) * 5.0f / 6 * leftLaserRange);
-                m_critRoot.RightCursorPosition = GetCursorPosition(-(rightLaserPos - 0.5f) * 5.0f / 6 * rightLaserRange);
+                GetCursorPosition(0, out float leftLaserPos, out float leftLaserRange);
+                GetCursorPosition(1, out float rightLaserPos, out float rightLaserRange);
+
+                m_critRoot.LeftCursorPosition = GetCursorPositionWorld((leftLaserPos - 0.5f) * 5.0f / 6 * leftLaserRange);
+                m_critRoot.LeftCursorAlpha = m_cursorAlphas[0];
+
+                m_critRoot.RightCursorPosition = GetCursorPositionWorld((rightLaserPos - 0.5f) * 5.0f / 6 * rightLaserRange);
+                m_critRoot.RightCursorAlpha = m_cursorAlphas[1];
 
                 Vector2 critRotationVector = critRootPositionEast - critRootPositionWest;
                 float critRootRotation = MathL.Atan(critRotationVector.Y, critRotationVector.X);
@@ -743,7 +771,7 @@ namespace NeuroSonic.GamePlay
             var s = m_playback.Chart[label];
             valueMult = 1.0f;
 
-            var mrAnalog = s.MostRecent<AnalogObject>(position);
+            var mrAnalog = s.MostRecent<AnalogEntity>(position);
             if (mrAnalog == null || position > mrAnalog.AbsoluteEndPosition)
                 return 0;
 

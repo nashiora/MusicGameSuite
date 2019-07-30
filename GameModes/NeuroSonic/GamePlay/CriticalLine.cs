@@ -30,6 +30,9 @@ namespace NeuroSonic.GamePlay
         public float LeftCursorPosition { get => m_leftPos; set { m_leftPos = value; m_isDirty = true; } }
         public float RightCursorPosition { get => m_rightPos; set { m_rightPos = value; m_isDirty = true; } }
 
+        public float LeftCursorAlpha { get; set; }
+        public float RightCursorAlpha { get; set; }
+
         public CriticalLine(ClientResourceManager skin)
         {
             var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
@@ -101,8 +104,17 @@ namespace NeuroSonic.GamePlay
 
             m_container.Scale = new Vector2(desiredCritWidth / m_image.Size.X);
 
+            Vector4 ColorWithAlpha(Vector4 color, float alpha)
+            {
+                color.W = alpha;
+                return color;
+            }
+
             m_cursorLeft.Position = new Vector2(LeftCursorPosition, 0);
+            m_cursorLeft.Color = ColorWithAlpha(m_cursorLeft.Color, LeftCursorAlpha);
+
             m_cursorRight.Position = new Vector2(RightCursorPosition, 0);
+            m_cursorRight.Color = ColorWithAlpha(m_cursorRight.Color, RightCursorAlpha);
         }
     }
 }

@@ -13,7 +13,7 @@ namespace NeuroSonic.Charting
             for (int i = 0; i < 6; i++)
                 chart.CreateTypedLane<ButtonEntity>(i, EntityRelation.Equal);
             for (int i = 0; i < 2; i++)
-                chart.CreateTypedLane<AnalogObject>(i + 6, EntityRelation.Equal);
+                chart.CreateTypedLane<AnalogEntity>(i + 6, EntityRelation.Equal);
 
             chart.CreateTypedLane<HighwayTypedEvent>(NscLane.HighwayEvent, EntityRelation.Subclass);
             chart.CreateTypedLane<ButtonTypedEvent>(NscLane.ButtonEvent, EntityRelation.Subclass);

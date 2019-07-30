@@ -71,7 +71,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Charting\AnalogObject.cs" />
+    <Compile Include="Charting\AnalogEntity.cs" />
     <Compile Include="Charting\ButtonEntity.cs" />
     <Compile Include="Charting\Conversions\ChartExt_Ksh2Voltex.cs" />
     <Compile Include="Charting\Enums.cs" />

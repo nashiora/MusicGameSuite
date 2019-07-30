@@ -30,18 +30,18 @@ namespace NeuroSonic.GamePlay
 
         private void Generate()
         {
-            AnalogObject left, right;
+            AnalogEntity left, right;
             LaserApplicationEvent appl;
             LaserParamsEvent pars;
             
-            left = m_chart[6].First as AnalogObject;
-            right = m_chart[7].First as AnalogObject;
+            left = m_chart[6].First as AnalogEntity;
+            right = m_chart[7].First as AnalogEntity;
             appl = m_chart[NscLane.LaserEvent].First as LaserApplicationEvent;
             pars = m_chart[NscLane.LaserEvent].First as LaserParamsEvent;
 
             while (left != null || right != null)
             {
-                void HandleLoneSegment(ref AnalogObject lone, float dir)
+                void HandleLoneSegment(ref AnalogEntity lone, float dir)
                 {
                     m_segments.Add(new Segment()
                     {
@@ -50,10 +50,10 @@ namespace NeuroSonic.GamePlay
                         StartValue = lone.InitialValue * dir,
                         EndValue = lone.FinalValue * dir,
                     });
-                    lone = lone.Next as AnalogObject;
+                    lone = lone.Next as AnalogEntity;
                 }
 
-                void HandleOverlap(ref AnalogObject pri, ref AnalogObject sec, float dir)
+                void HandleOverlap(ref AnalogEntity pri, ref AnalogEntity sec, float dir)
                 {
                     m_segments.Add(new Segment()
                     {
@@ -62,7 +62,7 @@ namespace NeuroSonic.GamePlay
                         StartValue = pri.InitialValue * dir,
                         EndValue = -dir * sec.InitialValue + MathL.Lerp(pri.InitialValue, pri.FinalValue, (float)((double)(sec.AbsolutePosition - pri.AbsolutePosition) / (double)pri.AbsoluteDuration)),
                     });
-                    sec = sec.Next as AnalogObject;
+                    sec = sec.Next as AnalogEntity;
                 }
                 
                 if (left == null || right == null)

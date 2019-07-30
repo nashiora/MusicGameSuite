@@ -265,7 +265,7 @@ namespace NeuroSonic.GamePlay
 
                 m_renderables[obj.Lane][obj] = br3d;
             }
-            else if (obj is AnalogObject aobj)
+            else if (obj is AnalogEntity aobj)
             {
                 var color = obj.Lane == 6 ? m_lVolColor : m_rVolColor;
 
@@ -495,7 +495,7 @@ namespace NeuroSonic.GamePlay
 
                     foreach (var objr in m_renderables[i + 6].Values)
                     {
-                        var analog = objr.Object as AnalogObject;
+                        var analog = objr.Object as AnalogEntity;
                         var glowObj = objr as GlowingRenderState3D;
 
                         if (m_glowInfos[analog.Lane].Object == analog.Head)
@@ -527,7 +527,7 @@ namespace NeuroSonic.GamePlay
                             time_t entryPosition = objr.Object.AbsolutePosition;
                             float zEntry = LENGTH_BASE * (float)((entryPosition - PlaybackPosition) / ViewDuration);
 
-                            Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
+                            Transform tEntry = Transform.Translation(((objr.Object as AnalogEntity).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
                             //queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
                             (i == 0 ? m_lVolEntryDrawable : m_rVolEntryDrawable).DrawToQueue(queue, tEntry);
                         }
@@ -543,7 +543,7 @@ namespace NeuroSonic.GamePlay
 
                             float zExit = LENGTH_BASE * (float)((exitPosition - PlaybackPosition) / ViewDuration);
 
-                            Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, 0, -zExit) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
+                            Transform tExit = Transform.Translation(((objr.Object as AnalogEntity).FinalValue - 0.5f) * laneSpace, 0, -zExit) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
                             //queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
                             (i == 0 ? m_lVolExitDrawable : m_rVolExitDrawable).DrawToQueue(queue, tExit);
                         }

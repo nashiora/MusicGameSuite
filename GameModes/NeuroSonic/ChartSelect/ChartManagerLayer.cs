@@ -49,6 +49,7 @@ namespace NeuroSonic.ChartSelect
 
         private void OpenKSH()
         {
+            AutoPlay autoPlay = Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL) ? AutoPlay.ButtonsAndLasers : AutoPlay.None;
             var dialog = new OpenFileDialogDesc("Open Chart",
                                 new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
 
@@ -73,17 +74,14 @@ namespace NeuroSonic.ChartSelect
 
                 var chart = ksh.ToVoltex();
 
-                AutoPlay autoPlay = AutoPlay.None;
-                if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
-                    autoPlay = AutoPlay.ButtonsAndLasers;
-
-                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, chart, audio);
+                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
                 m_nextLayer = loader;
             }
         }
 
         private void OpenTheori()
         {
+            AutoPlay autoPlay = Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL) ? AutoPlay.ButtonsAndLasers : AutoPlay.None;
             var dialog = new OpenFileDialogDesc("Open Theori Chart",
                                 new[] { new FileFilter("music:theori Files", "theori") });
 
@@ -127,7 +125,7 @@ namespace NeuroSonic.ChartSelect
                 Debug.Assert(chartInfos.Length == 1, "Chart set deserialization returned multiple sets with the same file name!");
                 var selected = chartInfos.Single();
 
-                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected);
+                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected, autoPlay);
                 m_nextLayer = loader;
 
 #if false
@@ -238,6 +236,7 @@ namespace NeuroSonic.ChartSelect
 
         private void ConvertKSHAndOpen()
         {
+            AutoPlay autoPlay = Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL) ? AutoPlay.ButtonsAndLasers : AutoPlay.None;
             var dialog = new OpenFileDialogDesc("Open KSH Chart",
                                 new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
 
@@ -247,7 +246,7 @@ namespace NeuroSonic.ChartSelect
                 string primaryKshFile = dialogResult.FilePath;
                 var chartSetInfo = ConvertKSHAndSave(primaryKshFile, out ChartInfo selected);
 
-                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected);
+                var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected, autoPlay);
                 m_nextLayer = loader;
 
 #if false

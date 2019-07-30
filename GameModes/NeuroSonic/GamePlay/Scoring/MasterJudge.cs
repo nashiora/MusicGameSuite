@@ -46,6 +46,15 @@ namespace NeuroSonic.GamePlay.Scoring
                 m_judges[i] = judge;
             }
 
+            for (int i = 0; i < 2; i++)
+            {
+                var judge = new LaserJudge(chart, i + 6);
+                judge.OnTickProcessed += ButtonJudge_OnTickProcessed;
+
+                m_maxTickValue += judge.CalculateNumScorableTicks();
+                m_judges[i + 6] = judge;
+            }
+
             m_maxTickValue *= m_maxTickWorth;
         }
 

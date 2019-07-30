@@ -40,15 +40,17 @@ namespace NeuroSonic.Charting
     // TODO(local): Convert analog objects to a sequence of graph points
 
     [EntityType("Analog")]
-    public sealed class AnalogObject : Entity
+    public sealed class AnalogEntity : Entity
     {
         private float m_initialValue, m_finalValue;
         private CurveShape m_shape = CurveShape.Linear;
         private float m_a, m_b;
         private bool m_extended;
 
-        public AnalogObject Head => FirstConnectedOf<AnalogObject>();
-        public AnalogObject Tail => LastConnectedOf<AnalogObject>();
+        public AnalogEntity Head => FirstConnectedOf<AnalogEntity>();
+        public AnalogEntity Tail => LastConnectedOf<AnalogEntity>();
+
+        public int DirectionSign => MathL.Sign(FinalValue - InitialValue);
 
         public bool IsSlam => IsInstant;
 

@@ -368,7 +368,7 @@ namespace NeuroSonic.Charting.Conversions
                             {
                                 var cDuration = laserStates[l].PreviousSlamDuration;
 
-                                var connector = chart[(LaneLabel)(l + 6)].Add<AnalogObject>(startPos, cDuration);
+                                var connector = chart[(LaneLabel)(l + 6)].Add<AnalogEntity>(startPos, cDuration);
                                 connector.InitialValue = startAlpha;
                                 connector.FinalValue = startAlpha;
                                 connector.RangeExtended = laserIsExtended[l];
@@ -377,7 +377,7 @@ namespace NeuroSonic.Charting.Conversions
                             }
                         }
 
-                        var analog = chart[(LaneLabel)(l + 6)].Add<AnalogObject>(startPos, duration);
+                        var analog = chart[(LaneLabel)(l + 6)].Add<AnalogEntity>(startPos, duration);
                         analog.InitialValue = startAlpha;
                         analog.FinalValue = endAlpha;
                         analog.RangeExtended = laserIsExtended[l];

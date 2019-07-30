@@ -198,12 +198,12 @@ namespace NeuroSonic.GamePlay
     {
         private const float LASER_WIDTH = 2.0f;
 
-        public new AnalogObject Object => (AnalogObject)base.Object;
+        public new AnalogEntity Object => (AnalogEntity)base.Object;
         
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public SlamRenderState3D(AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
+        public SlamRenderState3D(AnalogEntity obj, float len, Vector3 color, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(obj.IsInstant, "Analog for slam render state wasn't a slam");
@@ -349,12 +349,12 @@ namespace NeuroSonic.GamePlay
         private const float LASER_WIDTH = 2.0f;
         private const float AUTO_RESOLUTION_AMT = 1.0f / 32;
 
-        public new AnalogObject Object => (AnalogObject)base.Object;
+        public new AnalogEntity Object => (AnalogEntity)base.Object;
         
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public LaserRenderState3D(AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
+        public LaserRenderState3D(AnalogEntity obj, float len, Vector3 color, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(!obj.IsInstant, "analog for segment render state was a slam");

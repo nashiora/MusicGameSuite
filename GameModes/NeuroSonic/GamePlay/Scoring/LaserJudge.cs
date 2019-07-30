@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using theori;
 using theori.Charting;
@@ -10,25 +11,6 @@ namespace NeuroSonic.GamePlay.Scoring
 {
     public class LaserJudge : StreamJudge
     {
-        public struct Tick
-        {
-            public Entity AssociatedObject;
-
-            public time_t Position;
-            public bool IsSegment;
-
-            public bool IsAutoTick;
-
-            public Tick(Entity obj, time_t pos, bool isSegment, bool isAutoTick = false)
-            {
-                AssociatedObject = obj;
-                Position = pos;
-                IsSegment = isSegment;
-
-                IsAutoTick = isAutoTick;
-            }
-        }
-
         enum InputState
         {
             /// <summary>
@@ -125,62 +107,293 @@ namespace NeuroSonic.GamePlay.Scoring
             AnticipateSlam,
         }
 
-        public const int TOTAL_LASER_MILLIS = 72 * 2;
+        enum JudgeState
+        {
+            Idle,
 
-        private const double LASER_RADIUS = (TOTAL_LASER_MILLIS / 2) / 1000.0;
+            ActiveOn,
+            ActiveOff,
 
-        private const double MAX_RADIUS = LASER_RADIUS;
+            CursorReset,
 
-        private const float ALLOWED_INACCURACY = 0.05f;
+            LaserBegin,
+            LaserEnd,
 
-        public float CursorPosition { get; private set; } = 0.0f;
-        public bool Active => MathL.Abs(CursorPosition - m_targetCursorPosition) <= ALLOWED_INACCURACY;
+            SwitchDirection,
+        }
 
-        private bool m_userInputed = false;
-        private time_t m_userWhen = 0.0;
-        private time_t m_assistWhen;
+        enum TickKind
+        {
+            Slam,
+            Segment
+        }
 
-        private bool m_lockedOn = true;
+        class StateTick
+        {
+            public readonly AnalogEntity RootEntity;
+            public readonly AnalogEntity SegmentEntity;
 
-        private readonly List<Tick> m_ticks = new List<Tick>();
+            public readonly time_t Position;
+            public readonly JudgeState State;
 
-        private LinearDirection m_targetDirection = LinearDirection.None;
-        private float m_targetCursorPosition = 0.0f;
-        private AnalogObject m_currentObject;
+            public StateTick(AnalogEntity root, AnalogEntity segment, time_t pos, JudgeState state)
+            {
+                RootEntity = root;
+                SegmentEntity = segment;
+                Position = pos;
+                State = state;
+            }
+        }
 
-        public event Action<time_t, Entity> OnSlamHit;
+        class ScoreTick
+        {
+            public readonly AnalogEntity Entity;
+
+            public readonly time_t Position;
+            public readonly TickKind Kind;
+
+            public ScoreTick(AnalogEntity entity, time_t pos, TickKind kind)
+            {
+                Entity = entity;
+                Position = pos;
+                Kind = kind;
+            }
+        }
+
+        private readonly time_t m_slamActivateRadius = 100 / 1000.0;
+        private readonly time_t m_cursorResetDistance = 1000 / 1000.0;
+        /// <summary>
+        /// The amount of distance the cursor can be from the laser to still be considered active.
+        /// </summary>
+        private readonly float m_cursorActiveRange = 0.1f;
+
+        private readonly List<StateTick> m_stateTicks = new List<StateTick>();
+        private readonly List<ScoreTick> m_scoreTicks = new List<ScoreTick>();
+
+        private JudgeState m_state = JudgeState.Idle;
+        private StateTick m_currentStateTick;
+
+        private int m_stateIndex = 0, m_scoreIndex = 0;
+
+        private float m_desiredCursorPosition = 0;
+        private int m_direction = 0;
+
+        private bool HasStateTicks => m_stateIndex < m_stateTicks.Count;
+        private StateTick NextStateTick => m_stateTicks[m_stateIndex];
+
+        private bool HasScoreTicks => m_scoreIndex < m_scoreTicks.Count;
+        private ScoreTick NextScoreTick => m_scoreTicks[m_scoreIndex];
+
+        public float CursorPosition { get; private set; } = 0;
+        public float LaserRange { get; private set; } = 1;
+
+        public event Action<time_t> OnSlamHit;
 
         public event Action<time_t, Entity> OnLaserActivated;
         public event Action<time_t, Entity> OnLaserDeactivated;
 
         public event Action<Entity, time_t, JudgeResult> OnTickProcessed;
 
-        public LaserJudge(Chart chart, int streamIndex)
-            : base(chart, streamIndex)
+        public event Action OnShowCursor;
+        public event Action OnHideCursor;
+
+        public LaserJudge(Chart chart, LaneLabel label)
+            : base(chart, label)
         {
+            tick_t tickStep = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
+
+            // score ticks first
+            foreach (var entity in chart[label])
+            {
+                var root = (AnalogEntity)entity;
+                if (root.PreviousConnected != null) continue;
+
+                // now we're working with the root
+                var start = root;
+                while (start != null)
+                {
+                    var next = start;
+                    while (next.NextConnected is AnalogEntity a && !a.IsInstant)
+                        next = a;
+
+                    Debug.Assert(next.Position >= start.Position);
+                    if (next.Position > start.Position)
+                        Debug.Assert(!next.IsInstant);
+
+                    tick_t startPos = start.Position;
+                    bool endsWithSlam = next.NextConnected is AnalogEntity && next.IsInstant;
+
+                    int numTicks = MathL.Max(1, MathL.FloorToInt((double)(next.EndPosition - startPos) / (double)tickStep));
+                    if (endsWithSlam && next.EndPosition - (startPos + tickStep * numTicks) < tickStep)
+                        numTicks--;
+
+                    for (int i = 0; i < numTicks; i++)
+                    {
+                        tick_t pos = startPos + i * tickStep;
+
+                        var kind = (i == 0 && start.IsInstant) ? TickKind.Slam : TickKind.Segment;
+                        m_scoreTicks.Add(new ScoreTick(root, chart.CalcTimeFromTick(pos), kind));
+                    }
+
+                    start = next.NextConnected as AnalogEntity;
+                }
+            }
+
+            // state ticks seconds
+            foreach (var entity in chart[label])
+            {
+                var root = (AnalogEntity)entity;
+                if (root.PreviousConnected != null) continue;
+
+                time_t cursorResetTime = root.AbsolutePosition - m_cursorResetDistance;
+                if (root.Previous is AnalogEntity p)
+                    cursorResetTime = MathL.Max((double)p.AbsoluteEndPosition, (double)cursorResetTime);
+
+                m_stateTicks.Add(new StateTick(root, root, cursorResetTime, JudgeState.CursorReset));
+                m_stateTicks.Add(new StateTick(root, root, root.AbsolutePosition, JudgeState.LaserBegin));
+
+                var segment = root.NextConnected as AnalogEntity;
+                if (segment == null)
+                    m_stateTicks.Add(new StateTick(root, root, root.AbsoluteEndPosition, JudgeState.LaserEnd));
+                else
+                {
+                    while (segment != null)
+                    {
+                        if (segment.DirectionSign != ((AnalogEntity)segment.Previous).DirectionSign)
+                            m_stateTicks.Add(new StateTick(root, segment, segment.AbsolutePosition, JudgeState.SwitchDirection));
+
+                        if (segment.NextConnected == null)
+                            m_stateTicks.Add(new StateTick(root, segment, segment.AbsoluteEndPosition, JudgeState.LaserEnd));
+                        segment = segment.NextConnected as AnalogEntity;
+                    }
+                }
+            }
         }
 
-        protected override time_t JudgementRadius => MAX_RADIUS;
-
-        public void UserInput(float amount, time_t timeStamp)
-        {
-        }
+        public override int CalculateNumScorableTicks() => m_scoreTicks.Count;
 
         protected override void AdvancePosition(time_t position)
         {
+            if (!HasStateTicks && !HasScoreTicks) return;
+
+            switch (m_state)
+            {
+                case JudgeState.Idle:
+                {
+                    var nextStateTick = NextStateTick;
+                    while (position - (nextStateTick.Position + JudgementOffset) >= 0)
+                    {
+                        if (nextStateTick.State == JudgeState.CursorReset)
+                        {
+                            AdvanceStateTick();
+
+                            OnShowCursor?.Invoke();
+
+                            CursorPosition = m_desiredCursorPosition = nextStateTick.RootEntity.InitialValue;
+                            LaserRange = nextStateTick.RootEntity.RangeExtended ? 2 : 1;
+                        }
+                        else if (nextStateTick.State == JudgeState.LaserBegin)
+                        {
+                            AdvanceStateTick();
+
+                            m_direction = nextStateTick.RootEntity.DirectionSign;
+                            m_state = nextStateTick.RootEntity.IsInstant ?
+                                (IsBeingPlayed ? JudgeState.ActiveOn : JudgeState.ActiveOff) :
+                                JudgeState.ActiveOn;
+                            m_currentStateTick = nextStateTick;
+
+                            // The first score tick happens at the same time as the laser start event,
+                            //  hop straight over to the other case explicitly and let it process the score tick.
+                            goto case JudgeState.ActiveOn;
+                        }
+                        else break;
+
+                        if (HasStateTicks)
+                            nextStateTick = NextStateTick;
+                        else break;
+                    }
+                } break;
+
+                case JudgeState.ActiveOn:
+                case JudgeState.ActiveOff:
+                {
+                    var segmentCheck = m_currentStateTick.SegmentEntity;
+                    while (segmentCheck != null && segmentCheck.AbsoluteEndPosition < position && segmentCheck.NextConnected is AnalogEntity next)
+                        segmentCheck = next;
+
+                    m_desiredCursorPosition = segmentCheck.SampleValue(position);
+                    if (AutoPlay) CursorPosition = m_desiredCursorPosition;
+
+                    IsBeingPlayed = MathL.Abs(m_desiredCursorPosition - CursorPosition) <= m_cursorActiveRange;
+
+                    if (HasScoreTicks)
+                    {
+                        var nextScoreTick = NextScoreTick;
+                        if (position - (nextScoreTick.Position + JudgementOffset) >= 0)
+                        {
+                            var resultKind = IsBeingPlayed ? JudgeKind.Passive : JudgeKind.Miss;
+                            OnTickProcessed?.Invoke(nextScoreTick.Entity, nextScoreTick.Position, new JudgeResult(0, resultKind));
+
+                            if (IsBeingPlayed && nextScoreTick.Kind == TickKind.Slam)
+                                OnSlamHit?.Invoke(position);
+
+                            AdvanceScoreTick();
+                        }
+                    }
+
+                    var nextStateTick = NextStateTick;
+                    while (position - (nextStateTick.Position + JudgementOffset) >= 0)
+                    {
+                        if (nextStateTick.State == JudgeState.LaserEnd)
+                        {
+                            AdvanceStateTick();
+
+                            OnHideCursor?.Invoke();
+
+                            if (AutoPlay)
+                                CursorPosition = m_desiredCursorPosition = nextStateTick.SegmentEntity.FinalValue;
+
+                            m_state = JudgeState.Idle;
+                            m_currentStateTick = null;
+                        }
+                        else if (nextStateTick.State == JudgeState.SwitchDirection)
+                        {
+                            AdvanceStateTick();
+
+                            m_direction = nextStateTick.SegmentEntity.DirectionSign;
+                            m_currentStateTick = nextStateTick;
+                        }
+                        else break;
+
+                        if (HasStateTicks)
+                            nextStateTick = NextStateTick;
+                        else break;
+                    }
+                } break;
+            }
+
+            if (HasStateTicks && position - (NextStateTick.Position + JudgementOffset) >= 0)
+            {
+                Logger.Log($"{ NextStateTick.State } :: { NextStateTick.SegmentEntity.Position } or { NextStateTick.Position }");
+            }
         }
 
-        public override int CalculateNumScorableTicks()
-        {
-            return 0;
-        }
+        private void AdvanceStateTick() => m_stateIndex++;
+        private void AdvanceScoreTick() => m_scoreIndex++;
 
-        protected override void ObjectEnteredJudgement(Entity obj)
+        public void UserInput(float amount, time_t position)
         {
-        }
+            if (!HasStateTicks && !HasScoreTicks) return;
 
-        protected override void ObjectExitedJudgement(Entity obj)
-        {
+            if (m_state == JudgeState.Idle) return;
+            int inputDir = MathL.Sign(amount);
+
+            if (m_direction == 0)
+            {
+            }
+            else
+            {
+            }
         }
     }
 }

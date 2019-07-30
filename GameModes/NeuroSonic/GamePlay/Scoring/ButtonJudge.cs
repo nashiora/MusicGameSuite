@@ -66,8 +66,6 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private readonly time_t m_holdActivateRadius = 100 / 1000.0;
 
-        private readonly int m_numScorableTicks;
-
         private readonly List<StateTick> m_stateTicks = new List<StateTick>();
         private readonly List<ScoreTick> m_scoreTicks = new List<ScoreTick>();
 
@@ -82,8 +80,6 @@ namespace NeuroSonic.GamePlay.Scoring
         private bool HasScoreTicks => m_scoreIndex < m_scoreTicks.Count;
         private ScoreTick NextScoreTick => m_scoreTicks[m_scoreIndex];
 
-        protected override time_t JudgementRadius => 0;
-
         public event Action<time_t, Entity> OnChipPressed;
 
         public event Action<time_t, Entity> OnHoldPressed;
@@ -94,8 +90,8 @@ namespace NeuroSonic.GamePlay.Scoring
         public ButtonJudge(Chart chart, LaneLabel label)
             : base(chart, label)
         {
-            tick_t holdTickStep = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
-            tick_t holdTickMargin = 2 * holdTickStep;
+            tick_t tickStep = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
+            tick_t tickMargin = 2 * tickStep;
 
             foreach (var entity in chart[label])
             {
@@ -111,7 +107,7 @@ namespace NeuroSonic.GamePlay.Scoring
                     m_stateTicks.Add(new StateTick(button, button.AbsolutePosition, JudgeState.HoldAwaitPress));
                     // end state is placed at the last score tick
 
-                    int numTicks = MathL.FloorToInt((double)(button.Duration - holdTickMargin) / (double)holdTickStep);
+                    int numTicks = MathL.FloorToInt((double)(button.Duration - tickMargin) / (double)tickStep);
                     if (numTicks <= 0)
                     {
                         m_scoreTicks.Add(new ScoreTick(button, button.AbsolutePosition + button.AbsoluteDuration / 2, TickKind.Hold));
@@ -119,7 +115,7 @@ namespace NeuroSonic.GamePlay.Scoring
                     }
                     else for (int i = 0; i < numTicks; i++)
                     {
-                        tick_t pos = button.Position + holdTickMargin + holdTickStep * i;
+                        tick_t pos = button.Position + tickMargin + tickStep * i;
                         m_scoreTicks.Add(new ScoreTick(button, chart.CalcTimeFromTick(pos), TickKind.Hold));
 
                         if (i == numTicks - 1)
@@ -127,11 +123,9 @@ namespace NeuroSonic.GamePlay.Scoring
                     }
                 }
             }
-
-            m_numScorableTicks = m_scoreTicks.Count;
         }
 
-        public override int CalculateNumScorableTicks() => m_numScorableTicks;
+        public override int CalculateNumScorableTicks() => m_scoreTicks.Count;
 
         protected override void AdvancePosition(time_t position)
         {
@@ -203,16 +197,6 @@ namespace NeuroSonic.GamePlay.Scoring
                     }
                 } break;
             }
-        }
-
-        protected override void ObjectEnteredJudgement(Entity obj)
-        {
-            // we're not implementing this, we pre-calculated everything
-        }
-
-        protected override void ObjectExitedJudgement(Entity obj)
-        {
-            // we're not implementing this, we pre-calculated everything
         }
 
         private void AdvanceStateTick() => m_stateIndex++;
