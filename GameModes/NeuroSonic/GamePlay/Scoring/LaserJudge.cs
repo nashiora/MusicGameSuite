@@ -438,7 +438,6 @@ namespace NeuroSonic.GamePlay.Scoring
                         m_direction = nextStateTick.SegmentEntity.DirectionSign;
                         m_currentStateTick = nextStateTick;
 
-
                         Logger.Log($"Direction Switch ({ (m_direction == 1 ? "->" : (m_direction == -1 ? "<-" : "|")) }) Hit: { nextStateTick.SegmentEntity.Position } ({ nextStateTick.SegmentEntity.AbsolutePosition })");
 
                         // We have to check if we're already locked OR a slam
