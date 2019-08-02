@@ -244,7 +244,7 @@ namespace NeuroSonic.IO
 
         public KeyboardController()
         {
-            m_sensitivity = Plugin.Config.GetFloat(NscConfigKey.Key_Sensitivity);
+            m_sensitivity = Plugin.Config.GetFloat(NscConfigKey.Key_Sensitivity) * 4;
 
             SetKeyCode(ControllerInput.Laser0Negative, NscConfigKey.Key_Laser0Neg, NscConfigKey.Key_Laser0NegAlt);
             SetKeyCode(ControllerInput.Laser0Positive, NscConfigKey.Key_Laser0Pos, NscConfigKey.Key_Laser0PosAlt);
@@ -273,21 +273,23 @@ namespace NeuroSonic.IO
         {
             int dir = m_directions[ControllerInput.Laser0Positive + 2 * axis].Count
                     - m_directions[ControllerInput.Laser0Negative + 2 * axis].Count;
-            return dir * m_sensitivity;
+            return dir * m_sensitivity * Time.Delta;
         }
 
         public override void Update()
         {
-            int dir0 = m_directions[ControllerInput.Laser0Positive].Count
-                     - m_directions[ControllerInput.Laser0Negative].Count;
-            int dir1 = m_directions[ControllerInput.Laser1Positive].Count
-                     - m_directions[ControllerInput.Laser1Negative].Count;
+            float dir0 = (m_directions[ControllerInput.Laser0Positive].Count
+                     - m_directions[ControllerInput.Laser0Negative].Count)
+                     * Time.Delta * m_sensitivity;
+            float dir1 = (m_directions[ControllerInput.Laser1Positive].Count
+                     - m_directions[ControllerInput.Laser1Negative].Count)
+                     * Time.Delta * m_sensitivity;
 
-            m_rawValues[0] += dir0 * m_sensitivity;
-            m_rawValues[1] += dir1 * m_sensitivity;
+            m_rawValues[0] += dir0;
+            m_rawValues[1] += dir1;
 
-            if (dir0 != 0) AxisChanged?.Invoke(ControllerInput.Laser0Axis, dir0 * m_sensitivity);
-            if (dir1 != 0) AxisChanged?.Invoke(ControllerInput.Laser1Axis, dir1 * m_sensitivity);
+            if (dir0 != 0) AxisChanged?.Invoke(ControllerInput.Laser0Axis, dir0);
+            if (dir1 != 0) AxisChanged?.Invoke(ControllerInput.Laser1Axis, dir1);
         }
 
         protected override void OnKeyPressed(KeyCode key)

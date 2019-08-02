@@ -393,6 +393,8 @@ namespace NeuroSonic.GamePlay.Scoring
                             m_currentStateTick = nextStateTick;
 
                             Logger.Log($"Direction Switch ({ (m_direction == 1 ? "->" : (m_direction == -1 ? "<-" : "|")) }) Missed (by { position - (nextStateTick.Position + JudgementOffset) }): { nextStateTick.SegmentEntity.Position } ({ nextStateTick.SegmentEntity.AbsolutePosition })");
+
+                            m_lockTimer = 0.0;
                         }
                         else break;
 
@@ -428,10 +430,10 @@ namespace NeuroSonic.GamePlay.Scoring
             if (HasStateTicks)
             {
                 var nextStateTick = NextStateTick;
-                if (nextStateTick.State == JudgeState.SwitchDirection && inputDir != m_direction)
+                if (nextStateTick.State == JudgeState.SwitchDirection)
                 {
                     time_t radius = MathL.Abs((double)(position - (NextStateTick.Position + JudgementOffset)));
-                    if (radius < m_directionChangeRadius)
+                    if (radius < m_directionChangeRadius && (inputDir != m_direction || nextStateTick.SegmentEntity.DirectionSign == 0))
                     {
                         AdvanceStateTick();
 
@@ -465,7 +467,7 @@ namespace NeuroSonic.GamePlay.Scoring
             {
                 if (inputDir == m_direction)
                     SetLocked();
-                else m_lockTimerSpeed = 2.0;
+                else m_lockTimerSpeed = 2.5;
             }
             else
             {
