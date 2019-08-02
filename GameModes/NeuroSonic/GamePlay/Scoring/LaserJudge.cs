@@ -197,7 +197,7 @@ namespace NeuroSonic.GamePlay.Scoring
         public float CursorPosition { get; private set; } = 0;
         public float LaserRange { get; private set; } = 1;
 
-        public event Action<time_t> OnSlamHit;
+        public event Action<time_t, Entity> OnSlamHit;
 
         public event Action<time_t, Entity> OnLaserActivated;
         public event Action<time_t, Entity> OnLaserDeactivated;
@@ -318,7 +318,7 @@ namespace NeuroSonic.GamePlay.Scoring
                             AdvanceStateTick();
 
                             //LastLockTime = position;
-                            m_direction = nextStateTick.RootEntity.DirectionSign;
+                            m_direction = 0;
                             m_state = nextStateTick.RootEntity.IsInstant ?
                                 (IsBeingPlayed ? JudgeState.ActiveOn : JudgeState.ActiveOff) :
                                 JudgeState.ActiveOn;
@@ -362,9 +362,6 @@ namespace NeuroSonic.GamePlay.Scoring
                         {
                             var resultKind = IsBeingPlayed ? JudgeKind.Passive : JudgeKind.Miss;
                             OnTickProcessed?.Invoke(nextScoreTick.Entity, nextScoreTick.Position, new JudgeResult(0, resultKind));
-
-                            if (IsBeingPlayed && nextScoreTick.Kind == TickKind.Slam)
-                                OnSlamHit?.Invoke(position);
 
                             AdvanceScoreTick();
                         }
@@ -445,6 +442,9 @@ namespace NeuroSonic.GamePlay.Scoring
                         // We have to check if we're already locked OR a slam
                         // If already locked, we keep locked.
                         // If a SLAM
+
+                        if (nextStateTick.IsSlam)
+                            OnSlamHit?.Invoke(position, nextStateTick.SegmentEntity);
 
                         if (IsLocked)
                             SetLocked();

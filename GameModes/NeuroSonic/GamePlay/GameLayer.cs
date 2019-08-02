@@ -17,6 +17,7 @@ using theori.Charting.Serialization;
 using System.IO;
 using MoonSharp.Interpreter;
 using theori.Scripting;
+using System.Collections.Generic;
 
 namespace NeuroSonic.GamePlay
 {
@@ -72,6 +73,9 @@ namespace NeuroSonic.GamePlay
         private readonly float[] m_cursorAlphas = new float[2];
 
         private readonly EffectDef[] m_currentEffects = new EffectDef[8];
+
+        private readonly List<EventEntity> m_queuedSlamTiedEvents = new List<EventEntity>();
+        private readonly List<time_t> m_queuedSlams = new List<time_t>();
 
         private time_t CurrentQuarterNodeDuration => m_chart.ControlPoints.MostRecent(m_audioController.Position).QuarterNoteDuration;
 
@@ -230,11 +234,24 @@ namespace NeuroSonic.GamePlay
                 } goto case HiSpeedMod.Default; //break;
             }
 
-            m_playback.ObjectHeadCrossPrimary += (dir, obj) =>
+            m_playback.ObjectHeadCrossPrimary += (dir, entity) =>
             {
                 if (dir == PlayDirection.Forward)
-                    m_highwayView.RenderableObjectAppear(obj);
-                else m_highwayView.RenderableObjectDisappear(obj);
+                {
+                    m_highwayView.RenderableObjectAppear(entity);
+                    if (entity is EventEntity evt)
+                    {
+                        switch (evt)
+                        {
+                            case SpinImpulseEvent _:
+                            case SwingImpulseEvent _:
+                            case WobbleImpulseEvent _:
+                                m_queuedSlamTiedEvents.Add(evt);
+                                break;
+                        }
+                    }
+                }
+                else m_highwayView.RenderableObjectDisappear(entity);
             };
             m_playback.ObjectTailCrossSecondary += (dir, obj) =>
             {
@@ -296,6 +313,12 @@ namespace NeuroSonic.GamePlay
                 judge.OnShowCursor += () => m_cursorsActive[iStack] = true;
                 judge.OnHideCursor += () => m_cursorsActive[iStack] = false;
                 judge.OnTickProcessed += Judge_OnTickProcessed;
+                judge.OnSlamHit += (position, entity) =>
+                {
+                    if (position < entity.AbsolutePosition)
+                        m_queuedSlams.Add(entity.AbsolutePosition);
+                    else m_slamSample.Play();
+                };
             }
 
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
@@ -334,36 +357,37 @@ namespace NeuroSonic.GamePlay
             throw new Exception("Cannot suspend gameplay layer");
         }
 
-        private void PlaybackObjectBegin(Entity obj)
+        private void PlaybackObjectBegin(Entity entity)
         {
-            if (obj is AnalogEntity aobj)
+            if (entity is AnalogEntity aobj)
             {
-                if (obj.IsInstant)
+                if (entity.IsInstant)
                 {
                     int dir = -MathL.Sign(aobj.FinalValue - aobj.InitialValue);
                     m_highwayControl.ShakeCamera(dir);
 
                     if (aobj.InitialValue == (aobj.Lane == 6 ? 0 : 1) && aobj.NextConnected == null)
                         m_highwayControl.ApplyRollImpulse(-dir);
-                    m_slamSample.Play();
+
+                    //if (m_judge[(int)entity.Lane].IsBeingPlayed) m_slamSample.Play();
                 }
 
                 if (aobj.PreviousConnected == null)
                 {
                     if (!AreLasersActive) m_audioController.SetEffect(6, CurrentQuarterNodeDuration, currentLaserEffectDef, BASE_LASER_MIX);
-                    currentActiveLasers[(int)obj.Lane - 6] = true;
+                    currentActiveLasers[(int)entity.Lane - 6] = true;
                 }
 
-                m_activeObjects[(int)obj.Lane] = aobj.Head;
+                m_activeObjects[(int)entity.Lane] = aobj.Head;
             }
-            else if (obj is ButtonEntity bobj)
+            else if (entity is ButtonEntity bobj)
             {
                 //if (bobj.HasEffect) m_audioController.SetEffect(obj.Stream, CurrentQuarterNodeDuration, bobj.Effect);
                 //else m_audioController.RemoveEffect(obj.Stream);
 
                 // NOTE(local): can move this out for analog as well, but it doesn't matter RN
                 if (!bobj.IsInstant)
-                    m_activeObjects[(int)obj.Lane] = obj;
+                    m_activeObjects[(int)entity.Lane] = entity;
             }
         }
 
@@ -390,10 +414,7 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        private time_t totalInacc = 0.0;
-        private int numAccs = 0;
-
-        private void Judge_OnTickProcessed(Entity obj, time_t position, JudgeResult result)
+        private void Judge_OnTickProcessed(Entity entity, time_t position, JudgeResult result)
         {
             //Logger.Log($"[{ obj.Stream }] { result.Kind } :: { (int)(result.Difference * 1000) } @ { position }");
 
@@ -401,23 +422,12 @@ namespace NeuroSonic.GamePlay
                 m_comboDisplay.Combo = 0;
             else m_comboDisplay.Combo++;
 
-            if ((int)obj.Lane >= 6) return;
+            if ((int)entity.Lane >= 6) return;
 
-            //if (!obj.IsInstant)
-            //    m_streamHasActiveEffects[(int)obj.Lane] = result.Kind != JudgeKind.Miss;
-            //else
-            if (obj.IsInstant)
+            if (entity.IsInstant)
             {
                 if (result.Kind != JudgeKind.Miss)
-                    CreateKeyBeam((int)obj.Lane, result.Kind, result.Difference < 0.0);
-            }
-
-            if (!(result.Kind == JudgeKind.Miss || result.Kind == JudgeKind.Bad))
-            {
-                totalInacc += result.Difference;
-                numAccs++;
-
-                Logger.Log($"Average inacc: { MathL.Floor(totalInacc.Seconds * 1000 / numAccs) } ms");
+                    CreateKeyBeam((int)entity.Lane, result.Kind, result.Difference < 0.0);
             }
         }
 
@@ -468,13 +478,6 @@ namespace NeuroSonic.GamePlay
 
                     case SlamVolumeEvent pars: m_slamSample.Volume = pars.Volume; break;
                 }
-            }
-
-            switch (evt)
-            {
-                case SpinImpulseEvent spin: m_highwayControl.ApplySpin(spin.Params, spin.AbsolutePosition); break;
-                case SwingImpulseEvent swing: m_highwayControl.ApplySwing(swing.Params, swing.AbsolutePosition); break;
-                case WobbleImpulseEvent wobble: m_highwayControl.ApplyWobble(wobble.Params, wobble.AbsolutePosition); break;
             }
         }
 
@@ -627,7 +630,6 @@ namespace NeuroSonic.GamePlay
             base.Update(delta, total);
 
             time_t position = m_audio?.Position ?? 0;
-
             m_judge.Position = position;
             m_highwayControl.Position = position;
             m_playback.Position = position;
@@ -646,6 +648,35 @@ namespace NeuroSonic.GamePlay
                     return MathL.Lerp(mrPoint.Value, ((GraphPointEvent)mrPoint.Next).Value, alpha);
                 }
                 else return mrPoint.Value;
+            }
+
+            for (int i = 0; i < m_queuedSlams.Count;)
+            {
+                time_t slam = m_queuedSlams[i];
+                if (slam < position)
+                {
+                    m_queuedSlams.RemoveAt(i);
+                    m_slamSample.Play();
+
+                    for (int e = 0; e < m_queuedSlamTiedEvents.Count;)
+                    {
+                        var evt = m_queuedSlamTiedEvents[e];
+                        if (evt.AbsolutePosition < position)
+                        {
+                            switch (evt)
+                            {
+                                case SpinImpulseEvent spin: m_highwayControl.ApplySpin(spin.Params, spin.AbsolutePosition); break;
+                                case SwingImpulseEvent swing: m_highwayControl.ApplySwing(swing.Params, swing.AbsolutePosition); break;
+                                case WobbleImpulseEvent wobble: m_highwayControl.ApplyWobble(wobble.Params, wobble.AbsolutePosition); break;
+
+                                default: e++; continue;
+                            }
+
+                            m_queuedSlamTiedEvents.RemoveAt(e);
+                        }
+                    }
+                }
+                else i++;
             }
 
             m_highwayControl.MeasureDuration = m_chart.ControlPoints.MostRecent(position).MeasureDuration;
@@ -848,11 +879,14 @@ namespace NeuroSonic.GamePlay
                     // TODO(local): a lot of these (all?) don't need to have special mixes. idk why these got here but they're needed for some reason? fix
                     switch (currentLaserEffectDef)
                     {
+                        case BitCrusherDef _:
+                            mix *= currentLaserEffectDef.Mix.Sample(alpha);
+                            break;
+
                         case GateDef _:
                         case RetriggerDef _:
-                        case BitCrusherDef _:
                         case TapeStopDef _:
-                            mix *= currentLaserEffectDef.Mix.Sample(alpha);
+                            mix = currentLaserEffectDef.Mix.Sample(alpha);
                             break;
 
                         case BiQuadFilterDef _: break;
