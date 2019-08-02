@@ -350,8 +350,7 @@ namespace NeuroSonic.GamePlay
 
             var worldNormal = GetAtRoll((TargetBaseRoll + TargetEffectRoll) * 360 + roll, TargetOffset + TargetEffectOffset);
             var worldNoRoll = GetAtRoll(0, 0);
-            // TODO(local): does this need to use offset?
-            var worldCritLine = GetAtRoll(TargetBaseRoll * 360 + roll, TargetOffset + TargetEffectOffset);
+            var worldCritLine = worldNormal; //GetAtRoll((TargetBaseRoll + TargetEffectRoll) * 360 + roll, TargetOffset + TargetEffectOffset);
 
             Vector3 ZoomDirection(Transform t, out float dist)
             {

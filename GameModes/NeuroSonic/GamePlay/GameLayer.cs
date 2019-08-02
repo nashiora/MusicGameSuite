@@ -489,6 +489,10 @@ namespace NeuroSonic.GamePlay
                 case ControllerInput.FX0: UserInput_BtPress(4); break;
                 case ControllerInput.FX1: UserInput_BtPress(5); break;
 
+                case ControllerInput.Start:
+                case ControllerInput.Back:
+                    break;
+
                 default: return false;
             }
 
@@ -505,6 +509,10 @@ namespace NeuroSonic.GamePlay
                 case ControllerInput.BT3: UserInput_BtRelease(3); break;
                 case ControllerInput.FX0: UserInput_BtRelease(4); break;
                 case ControllerInput.FX1: UserInput_BtRelease(5); break;
+
+                case ControllerInput.Start:
+                case ControllerInput.Back:
+                    break;
 
                 default: return false;
             }
@@ -844,7 +852,7 @@ namespace NeuroSonic.GamePlay
                         case RetriggerDef _:
                         case BitCrusherDef _:
                         case TapeStopDef _:
-                            mix = currentLaserEffectDef.Mix.Sample(alpha);
+                            mix *= currentLaserEffectDef.Mix.Sample(alpha);
                             break;
 
                         case BiQuadFilterDef _: break;

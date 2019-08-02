@@ -33,14 +33,14 @@ namespace NeuroSonic.GamePlay
         public float LeftCursorAlpha { get; set; }
         public float RightCursorAlpha { get; set; }
 
-        public CriticalLine(ClientResourceManager skin)
+        public CriticalLine(ClientResourceManager resources)
         {
             var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
             var rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
 
-            var critTexture = skin.AquireTexture("textures/scorebar");
-            var capTexture = skin.AquireTexture("textures/critical_cap");
-            var cursorTexture = skin.AquireTexture("textures/cursor");
+            var critTexture = resources.AquireTexture("textures/scorebar");
+            var capTexture = resources.AquireTexture("textures/critical_cap");
+            var cursorTexture = resources.AquireTexture("textures/cursor");
 
             RelativeSizeAxes = Axes.X;
             Size = new Vector2(0.75f, 0);
