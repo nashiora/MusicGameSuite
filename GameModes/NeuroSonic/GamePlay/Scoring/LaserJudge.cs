@@ -136,6 +136,8 @@ namespace NeuroSonic.GamePlay.Scoring
             public readonly time_t Position;
             public readonly JudgeState State;
 
+            public bool IsSlam => SegmentEntity.IsInstant;
+
             public StateTick(AnalogEntity root, AnalogEntity segment, time_t pos, JudgeState state)
             {
                 RootEntity = root;
@@ -161,11 +163,15 @@ namespace NeuroSonic.GamePlay.Scoring
         }
 
         private readonly time_t m_slamActivateRadius = 100 / 1000.0;
+        private readonly time_t m_directionChangeRadius = 100 / 1000.0;
         private readonly time_t m_cursorResetDistance = 1000 / 1000.0;
+        private readonly time_t m_lockDuration = 200 / 1000.0;
         /// <summary>
         /// The amount of distance the cursor can be from the laser to still be considered active.
         /// </summary>
         private readonly float m_cursorActiveRange = 0.1f;
+
+        private time_t m_lastUpdatePosition = double.MinValue;
 
         private readonly List<StateTick> m_stateTicks = new List<StateTick>();
         private readonly List<ScoreTick> m_scoreTicks = new List<ScoreTick>();
@@ -177,6 +183,10 @@ namespace NeuroSonic.GamePlay.Scoring
 
         private float m_desiredCursorPosition = 0;
         private int m_direction = 0;
+
+        private time_t m_lockTimer = 0.0;
+        private double m_lockTimerSpeed = 1.0;
+        private bool IsLocked => m_lockTimer > 0;
 
         private bool HasStateTicks => m_stateIndex < m_stateTicks.Count;
         private StateTick NextStateTick => m_stateTicks[m_stateIndex];
@@ -196,7 +206,7 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public event Action OnShowCursor;
         public event Action OnHideCursor;
-
+        
         public LaserJudge(Chart chart, LaneLabel label)
             : base(chart, label)
         {
@@ -246,16 +256,21 @@ namespace NeuroSonic.GamePlay.Scoring
                 if (root.PreviousConnected != null) continue;
 
                 time_t cursorResetTime = root.AbsolutePosition - m_cursorResetDistance;
+                time_t laserBeginTime = root.AbsolutePosition - m_directionChangeRadius;
+
                 if (root.Previous is AnalogEntity p)
+                {
                     cursorResetTime = MathL.Max((double)p.AbsoluteEndPosition, (double)cursorResetTime);
+                    laserBeginTime = MathL.Max((double)p.AbsoluteEndPosition, (double)laserBeginTime);
+                }
 
                 m_stateTicks.Add(new StateTick(root, root, cursorResetTime, JudgeState.CursorReset));
-                m_stateTicks.Add(new StateTick(root, root, root.AbsolutePosition, JudgeState.LaserBegin));
+                m_stateTicks.Add(new StateTick(root, root, laserBeginTime, JudgeState.LaserBegin));
 
-                var segment = root.NextConnected as AnalogEntity;
-                if (segment == null)
-                    m_stateTicks.Add(new StateTick(root, root, root.AbsoluteEndPosition, JudgeState.LaserEnd));
-                else
+                if (root.DirectionSign != 0)
+                    m_stateTicks.Add(new StateTick(root, root, root.AbsolutePosition, JudgeState.SwitchDirection));
+
+                if (root.NextConnected is AnalogEntity segment)
                 {
                     while (segment != null)
                     {
@@ -267,6 +282,7 @@ namespace NeuroSonic.GamePlay.Scoring
                         segment = segment.NextConnected as AnalogEntity;
                     }
                 }
+                else m_stateTicks.Add(new StateTick(root, root, root.AbsoluteEndPosition, JudgeState.LaserEnd));
             }
         }
 
@@ -274,6 +290,9 @@ namespace NeuroSonic.GamePlay.Scoring
 
         protected override void AdvancePosition(time_t position)
         {
+            time_t timeDelta = position - m_lastUpdatePosition;
+            m_lastUpdatePosition = position;
+
             if (!HasStateTicks && !HasScoreTicks) return;
 
             switch (m_state)
@@ -291,11 +310,14 @@ namespace NeuroSonic.GamePlay.Scoring
 
                             CursorPosition = m_desiredCursorPosition = nextStateTick.RootEntity.InitialValue;
                             LaserRange = nextStateTick.RootEntity.RangeExtended ? 2 : 1;
+
+                            m_direction = 0;
                         }
                         else if (nextStateTick.State == JudgeState.LaserBegin)
                         {
                             AdvanceStateTick();
 
+                            //LastLockTime = position;
                             m_direction = nextStateTick.RootEntity.DirectionSign;
                             m_state = nextStateTick.RootEntity.IsInstant ?
                                 (IsBeingPlayed ? JudgeState.ActiveOn : JudgeState.ActiveOff) :
@@ -322,7 +344,14 @@ namespace NeuroSonic.GamePlay.Scoring
                         segmentCheck = next;
 
                     m_desiredCursorPosition = segmentCheck.SampleValue(position);
-                    if (AutoPlay) CursorPosition = m_desiredCursorPosition;
+
+                    m_lockTimer -= timeDelta * m_lockTimerSpeed;
+                    if (m_lockTimer < 0) m_lockTimer = 0;
+
+                    if (AutoPlay)
+                        CursorPosition = m_desiredCursorPosition;
+                    else if (IsLocked)
+                        CursorPosition = m_desiredCursorPosition;
 
                     IsBeingPlayed = MathL.Abs(m_desiredCursorPosition - CursorPosition) <= m_cursorActiveRange;
 
@@ -356,12 +385,14 @@ namespace NeuroSonic.GamePlay.Scoring
                             m_state = JudgeState.Idle;
                             m_currentStateTick = null;
                         }
-                        else if (nextStateTick.State == JudgeState.SwitchDirection)
+                        else if (nextStateTick.State == JudgeState.SwitchDirection && position - (nextStateTick.Position + JudgementOffset) >= m_directionChangeRadius)
                         {
                             AdvanceStateTick();
 
                             m_direction = nextStateTick.SegmentEntity.DirectionSign;
                             m_currentStateTick = nextStateTick;
+
+                            Logger.Log($"Direction Switch ({ (m_direction == 1 ? "->" : (m_direction == -1 ? "<-" : "|")) }) Missed (by { position - (nextStateTick.Position + JudgementOffset) }): { nextStateTick.SegmentEntity.Position } ({ nextStateTick.SegmentEntity.AbsolutePosition })");
                         }
                         else break;
 
@@ -374,12 +405,18 @@ namespace NeuroSonic.GamePlay.Scoring
 
             if (HasStateTicks && position - (NextStateTick.Position + JudgementOffset) >= 0)
             {
-                Logger.Log($"{ NextStateTick.State } :: { NextStateTick.SegmentEntity.Position } or { NextStateTick.Position }");
+                //Logger.Log($"{ NextStateTick.State } :: { NextStateTick.SegmentEntity.Position } or { NextStateTick.Position }");
             }
         }
 
         private void AdvanceStateTick() => m_stateIndex++;
         private void AdvanceScoreTick() => m_scoreIndex++;
+
+        private void SetLocked()
+        {
+            m_lockTimer = m_lockDuration;
+            m_lockTimerSpeed = 1.0;
+        }
 
         public void UserInput(float amount, time_t position)
         {
@@ -388,11 +425,119 @@ namespace NeuroSonic.GamePlay.Scoring
             if (m_state == JudgeState.Idle) return;
             int inputDir = MathL.Sign(amount);
 
-            if (m_direction == 0)
+            if (HasStateTicks)
             {
+                var nextStateTick = NextStateTick;
+                if (nextStateTick.State == JudgeState.SwitchDirection && inputDir != m_direction)
+                {
+                    time_t radius = MathL.Abs((double)(position - (NextStateTick.Position + JudgementOffset)));
+                    if (radius < m_directionChangeRadius)
+                    {
+                        AdvanceStateTick();
+
+                        m_direction = nextStateTick.SegmentEntity.DirectionSign;
+                        m_currentStateTick = nextStateTick;
+
+
+                        Logger.Log($"Direction Switch ({ (m_direction == 1 ? "->" : (m_direction == -1 ? "<-" : "|")) }) Hit: { nextStateTick.SegmentEntity.Position } ({ nextStateTick.SegmentEntity.AbsolutePosition })");
+
+                        // We have to check if we're already locked OR a slam
+                        // If already locked, we keep locked.
+                        // If a SLAM
+
+                        if (IsLocked)
+                            SetLocked();
+                        else if (nextStateTick.IsSlam)
+                        {
+                            Logger.Log($"Direction Switch on Slam: { CursorPosition }, { nextStateTick.SegmentEntity.InitialValue } ({ MathL.Abs(CursorPosition - nextStateTick.SegmentEntity.InitialValue) } <? { m_cursorActiveRange })");
+
+                            // If the cursor was near the head of the laser, we lock it regardless of previous locked status.
+                            if (MathL.Abs(CursorPosition - nextStateTick.SegmentEntity.InitialValue) < m_cursorActiveRange)
+                            {
+                                Logger.Log($"Direction Switch on Slam triggered Lock");
+                                SetLocked();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (IsLocked)
+            {
+                if (inputDir == m_direction)
+                    SetLocked();
+                else m_lockTimerSpeed = 2.0;
             }
             else
             {
+                if (m_direction == 0)
+                {
+                    // If we input at all, that's an active role by the user.
+                    // If the user inputs and the cursor happens to be really close, just consider it good!
+                    // They shouldn't need to pay so close attention to the cursor, this value can be tweaked
+                    //  so that a wider radius is accepted.
+                    if (MathL.Abs(m_desiredCursorPosition - CursorPosition) < m_cursorActiveRange * 0.1f)
+                        SetLocked();
+                    else if (CursorPosition < m_desiredCursorPosition)
+                    {
+                        if (inputDir == 1)
+                        {
+                            CursorPosition = MathL.Min(CursorPosition + amount, m_desiredCursorPosition);
+                            if (CursorPosition == m_desiredCursorPosition)
+                                SetLocked();
+                        }
+                        else CursorPosition = MathL.Max(0, CursorPosition + amount);
+                    }
+                    else if (CursorPosition > m_desiredCursorPosition)
+                    {
+                        if (inputDir == -1)
+                        {
+                            CursorPosition = MathL.Max(CursorPosition + amount, m_desiredCursorPosition);
+                            if (CursorPosition == m_desiredCursorPosition)
+                                SetLocked();
+                        }
+                        else CursorPosition = MathL.Min(1, CursorPosition + amount);
+                    }
+                }
+                else
+                {
+                    // Same as above for non-directional lasers, if the player is actively
+                    //  trying to play in the correct direction and the cursor happens to be in about
+                    //  the right location we let them lock and keep going.
+                    if (inputDir == m_direction &&
+                        MathL.Abs(m_desiredCursorPosition - CursorPosition) < m_cursorActiveRange * 0.1f)
+                    {
+                        SetLocked();
+                    }
+                    else if (m_direction == 1)
+                    {
+                        if (inputDir == 1)
+                        {
+                            if (CursorPosition < m_desiredCursorPosition)
+                                CursorPosition = MathL.Min(CursorPosition + amount, m_desiredCursorPosition);
+                            else if (CursorPosition > m_desiredCursorPosition)
+                                CursorPosition = MathL.Min(1, CursorPosition + amount);
+
+                            if (CursorPosition == m_desiredCursorPosition)
+                                SetLocked();
+                        }
+                        else CursorPosition = MathL.Max(0, CursorPosition + amount);
+                    }
+                    else if (m_direction == -1)
+                    {
+                        if (inputDir == -1)
+                        {
+                            if (CursorPosition > m_desiredCursorPosition)
+                                CursorPosition = MathL.Max(CursorPosition + amount, m_desiredCursorPosition);
+                            else if (CursorPosition < m_desiredCursorPosition)
+                                CursorPosition = MathL.Max(0, CursorPosition + amount);
+
+                            if (CursorPosition == m_desiredCursorPosition)
+                                SetLocked();
+                        }
+                        else CursorPosition = MathL.Min(1, CursorPosition + amount);
+                    }
+                }
             }
         }
     }

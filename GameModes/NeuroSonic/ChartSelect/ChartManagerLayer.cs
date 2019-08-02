@@ -34,10 +34,10 @@ namespace NeuroSonic.ChartSelect
         protected override void GenerateMenuItems()
         {
             AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", () => CreateThread(OpenKSH)));
-            AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", () => CreateThread(OpenTheori)));
+            //AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", () => CreateThread(OpenTheori)));
             AddSpacing();
-            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", () => CreateThread(ConvertKSH)));
-            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", () => CreateThread(ConvertKSHAndOpen)));
+            //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", () => CreateThread(ConvertKSH)));
+            //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", () => CreateThread(ConvertKSHAndOpen)));
 
             void CreateThread(ThreadStart function)
             {
@@ -127,26 +127,6 @@ namespace NeuroSonic.ChartSelect
 
                 var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected, autoPlay);
                 m_nextLayer = loader;
-
-#if false
-                var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-                using (var stream = File.OpenRead(Path.Combine(m_chartsDir, setInfo.FilePath, selected.FileName)))
-                {
-                    var chart = serializer.DeserializeChart(selected, stream);
-                    string audioFile = Path.Combine(m_chartsDir, setInfo.FilePath, chart.Info.SongFileName);
-
-                    var audio = AudioTrack.FromFile(audioFile);
-                    audio.Channel = Host.Mixer.MasterChannel;
-                    audio.Volume = chart.Info.SongVolume / 100.0f;
-
-                    AutoPlay autoPlay = AutoPlay.None;
-                    if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
-                        autoPlay = AutoPlay.ButtonsAndLasers;
-
-                    var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
-                    Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
-                }
-#endif
             }
         }
 
@@ -248,26 +228,6 @@ namespace NeuroSonic.ChartSelect
 
                 var loader = new GameLoadingLayer(Plugin.DefaultResourceLocator, selected, autoPlay);
                 m_nextLayer = loader;
-
-#if false
-                var serializer = BinaryTheoriChartSerializer.GetSerializerFor(NeuroSonicGameMode.Instance);
-                using (var stream = File.OpenRead(Path.Combine(m_chartsDir, chartSetInfo.FilePath, selected.FileName)))
-                {
-                    var chart = serializer.DeserializeChart(selected, stream);
-                    string audioFile = Path.Combine(m_chartsDir, chartSetInfo.FilePath, chart.Info.SongFileName);
-
-                    var audio = AudioTrack.FromFile(audioFile);
-                    audio.Channel = Host.Mixer.MasterChannel;
-                    audio.Volume = chart.Info.SongVolume / 100.0f;
-
-                    AutoPlay autoPlay = AutoPlay.None;
-                    if (Keyboard.IsDown(KeyCode.LCTRL) || Keyboard.IsDown(KeyCode.RCTRL))
-                        autoPlay = AutoPlay.ButtonsAndLasers;
-
-                    var game = new GameLayer(Plugin.DefaultResourceLocator, chart, audio, autoPlay);
-                    Host.PushLayer(new GenericTransitionLayer(game, Plugin.DefaultResourceLocator));
-                }
-#endif
             }
         }
 

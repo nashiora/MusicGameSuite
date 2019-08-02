@@ -295,6 +295,7 @@ namespace NeuroSonic.GamePlay
                 judge.AutoPlay = AutoLasers;
                 judge.OnShowCursor += () => m_cursorsActive[iStack] = true;
                 judge.OnHideCursor += () => m_cursorsActive[iStack] = false;
+                judge.OnTickProcessed += Judge_OnTickProcessed;
             }
 
             m_highwayControl = new HighwayControl(HighwayControlConfig.CreateDefaultKsh168());
@@ -399,6 +400,8 @@ namespace NeuroSonic.GamePlay
             if (result.Kind == JudgeKind.Miss || result.Kind == JudgeKind.Bad)
                 m_comboDisplay.Combo = 0;
             else m_comboDisplay.Combo++;
+
+            if ((int)obj.Lane >= 6) return;
 
             //if (!obj.IsInstant)
             //    m_streamHasActiveEffects[(int)obj.Lane] = result.Kind != JudgeKind.Miss;
@@ -513,6 +516,9 @@ namespace NeuroSonic.GamePlay
         {
             switch (input)
             {
+                case ControllerInput.Laser0Axis: UserInput_VolPulse(0, delta); break;
+                case ControllerInput.Laser1Axis: UserInput_VolPulse(1, delta); break;
+
                 default: return false;
             }
 
@@ -555,22 +561,30 @@ namespace NeuroSonic.GamePlay
             return true;
         }
 
-        void UserInput_BtPress(int streamIndex)
+        void UserInput_BtPress(int lane)
         {
             if (AutoButtons) return;
 
-            var result = (m_judge[streamIndex] as ButtonJudge).UserPressed(m_judge.Position);
+            var result = (m_judge[lane] as ButtonJudge).UserPressed(m_judge.Position);
             if (result == null)
-                m_highwayView.CreateKeyBeam(streamIndex, Vector3.One);
+                m_highwayView.CreateKeyBeam(lane, Vector3.One);
             else m_debugOverlay?.AddTimingInfo(result.Value.Difference, result.Value.Kind);
             //else CreateKeyBeam(streamIndex, result.Value.Kind, result.Value.Difference < 0.0);
         }
 
-        void UserInput_BtRelease(int streamIndex)
+        void UserInput_BtRelease(int lane)
         {
             if (AutoButtons) return;
 
-            (m_judge[streamIndex] as ButtonJudge).UserReleased(m_judge.Position);
+            (m_judge[lane] as ButtonJudge).UserReleased(m_judge.Position);
+        }
+
+        void UserInput_VolPulse(int lane, float amount)
+        {
+            if (AutoLasers) return;
+            amount *= 0.5f;
+
+            (m_judge[lane + 6] as LaserJudge).UserInput(amount, m_judge.Position);
         }
 
         private void CreateKeyBeam(int streamIndex, JudgeKind kind, bool isEarly)

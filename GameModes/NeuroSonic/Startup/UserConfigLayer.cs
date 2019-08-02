@@ -266,7 +266,7 @@ namespace NeuroSonic.Startup
             int amt = ctrl ? 1 : 5;
 
             m_ioffValue += dir * amt;
-            Plugin.Config.Set(NscConfigKey.VideoOffset, m_ioffValue);
+            Plugin.Config.Set(NscConfigKey.InputOffset, m_ioffValue);
         }
 
         private void KeyPressed_LeftLaserHue(Nav key)
