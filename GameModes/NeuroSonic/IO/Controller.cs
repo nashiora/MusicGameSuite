@@ -14,6 +14,9 @@ namespace NeuroSonic.IO
             var btInputMode = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice);
             var volInputMode = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.LaserInputDevice);
 
+            // TODO(local): This makes lots of assumptions about the mouse
+            Mouse.Relative = false;
+
             if (btInputMode == InputDevice.Controller && volInputMode == InputDevice.Controller)
                 return new GamepadController(Plugin.Gamepad);
             else if (btInputMode == InputDevice.Keyboard)
@@ -21,7 +24,10 @@ namespace NeuroSonic.IO
                 if (volInputMode == InputDevice.Keyboard)
                     return new KeyboardController();
                 else if (volInputMode == InputDevice.Mouse)
+                {
+                    Mouse.Relative = true;
                     return new KeyboardMouseController();
+                }
             }
 
             throw new InvalidOperationException($"No controller implementation supports Buttons using { btInputMode } and Lasers using { volInputMode }");
@@ -349,19 +355,20 @@ namespace NeuroSonic.IO
 
         private void Mouse_Move(int xDelta, int yDelta)
         {
+            float amt = m_sensitivity * Time.Delta;
             if (xDelta != 0)
             {
                 var inputKind = m_mouseToControllerInput[Axes.X];
-                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = xDelta * m_sensitivity;
-                m_rawValues[inputKind - ControllerInput.Laser0Axis] += xDelta * m_sensitivity;
-                AxisChanged?.Invoke(inputKind, xDelta * m_sensitivity);
+                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = xDelta * amt;
+                m_rawValues[inputKind - ControllerInput.Laser0Axis] += xDelta * amt;
+                AxisChanged?.Invoke(inputKind, xDelta * amt);
             }
             if (yDelta != 0)
             {
                 var inputKind = m_mouseToControllerInput[Axes.Y];
-                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = yDelta * m_sensitivity;
-                m_rawValues[inputKind - ControllerInput.Laser0Axis] += yDelta * m_sensitivity;
-                AxisChanged?.Invoke(inputKind, yDelta * m_sensitivity);
+                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = yDelta * amt;
+                m_rawValues[inputKind - ControllerInput.Laser0Axis] += yDelta * amt;
+                AxisChanged?.Invoke(inputKind, yDelta * amt);
             }
         }
     }
