@@ -675,6 +675,7 @@ namespace NeuroSonic.GamePlay
 
                             m_queuedSlamTiedEvents.RemoveAt(e);
                         }
+                        else e++;
                     }
                 }
                 else i++;
