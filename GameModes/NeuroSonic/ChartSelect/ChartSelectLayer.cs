@@ -62,10 +62,7 @@ namespace NeuroSonic.ChartSelect
         {
             switch (info.KeyCode)
             {
-                case KeyCode.ESCAPE:
-                {
-                    Host.PopToParent(this);
-                } break;
+                case KeyCode.ESCAPE: Host.PopToParent(this); break;
 
                 default: return false;
             }
@@ -77,6 +74,8 @@ namespace NeuroSonic.ChartSelect
         {
             switch (input)
             {
+                case ControllerInput.Back: Host.PopToParent(this); break;
+
                 default: return false;
             }
 

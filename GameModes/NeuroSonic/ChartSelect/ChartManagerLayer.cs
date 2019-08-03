@@ -33,6 +33,8 @@ namespace NeuroSonic.ChartSelect
 
         protected override void GenerateMenuItems()
         {
+            AddMenuItem(new MenuItem(NextOffset, "Go To Chart Select", () => Host.PushLayer(new ChartSelectLayer(Plugin.DefaultResourceLocator))));
+            AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", () => CreateThread(OpenKSH)));
             //AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", () => CreateThread(OpenTheori)));
             AddSpacing();
