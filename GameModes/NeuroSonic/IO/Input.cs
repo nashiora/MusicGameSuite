@@ -35,6 +35,18 @@ namespace NeuroSonic.IO
 
         public static void Controller_ButtonPressed(ControllerInput input)
         {
+            bool allow3BtStartBack = Plugin.Config.GetBool(NscConfigKey.Allow3BtStart);
+            if (allow3BtStartBack && input == ControllerInput.Start)
+            {
+                bool a = IsButtonDown(ControllerInput.BT0);
+                bool b = IsButtonDown(ControllerInput.BT1);
+                bool c = IsButtonDown(ControllerInput.BT2);
+                bool d = IsButtonDown(ControllerInput.BT3);
+
+                if ((a && b && c) || (a && b && d) || (a && c && d) || (b && c && d))
+                    input = ControllerInput.Back;
+            }
+
             for (int i = layers.Count - 1; i >= 0; i--)
             {
                 if (layers[i].ControllerButtonPressed(input))

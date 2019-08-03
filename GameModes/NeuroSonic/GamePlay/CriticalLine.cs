@@ -1,10 +1,7 @@
 ﻿using System.Numerics;
 
-using OpenGL;
-
 using theori.Gui;
 using theori.Graphics;
-using System;
 using theori.Resources;
 
 namespace NeuroSonic.GamePlay

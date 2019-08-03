@@ -28,6 +28,7 @@ namespace NeuroSonic
         Skin,
         Laser0Color,
         Laser1Color,
+        Allow3BtStart,
 
         // Input device setting per element
         LaserInputDevice,
@@ -89,7 +90,6 @@ namespace NeuroSonic
 
     public class NscConfig : Config<NscConfigKey>
     {
-
         protected override void SetDefaults()
         {
             Set(NscConfigKey.HiSpeed, 1.0f);
@@ -101,6 +101,7 @@ namespace NeuroSonic
             Set(NscConfigKey.Skin, "Default");
             Set(NscConfigKey.Laser0Color, 200);
             Set(NscConfigKey.Laser1Color, 300);
+            Set(NscConfigKey.Allow3BtStart, false);
 
             // TODO(local): change this to Keyboard for both by default
             // Input settings

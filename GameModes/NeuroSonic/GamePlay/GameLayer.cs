@@ -493,8 +493,9 @@ namespace NeuroSonic.GamePlay
                 case ControllerInput.FX1: UserInput_BtPress(5); break;
 
                 case ControllerInput.Start:
-                case ControllerInput.Back:
                     break;
+
+                case ControllerInput.Back: Host.PopToParent(this); break;
 
                 default: return false;
             }
