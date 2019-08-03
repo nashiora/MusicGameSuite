@@ -1,4 +1,5 @@
 ﻿using MoonSharp.Interpreter;
+using MoonSharp.Interpreter.Interop;
 
 using theori.Graphics;
 
@@ -9,6 +10,7 @@ namespace theori.Scripting
     [MoonSharpUserData]
     public sealed class ScriptWindowInterface
     {
-        public DynValue GetClientSize() => NewTuple(NewNumber(Window.Width), NewNumber(Window.Height));
+        [MoonSharpVisible(true)]
+        private DynValue GetClientSize() => NewTuple(NewNumber(Window.Width), NewNumber(Window.Height));
     }
 }

@@ -50,7 +50,7 @@ namespace theori
             if (!IsSuspended) return;
             IsSuspended = false;
 
-            Resume();
+            Resumed();
         }
 
         internal void RenderInternal()
@@ -76,6 +76,7 @@ namespace theori
             DrawGui(BackgroundGui);
             Render();
             DrawGui(ForegroundGui);
+            LateRender();
         }
 
         internal void UpdateInternal(float delta, float total)
@@ -110,6 +111,7 @@ namespace theori
 
         public virtual void Update(float delta, float total) { }
         public virtual void Render() { }
+        public virtual void LateRender() { }
     }
 
     public abstract class Overlay : Layer

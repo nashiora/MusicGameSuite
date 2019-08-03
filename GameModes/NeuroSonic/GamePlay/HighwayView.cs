@@ -13,17 +13,19 @@ using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay
 {
+    using EntityMap = Dictionary<Entity, ObjectRenderable3D>;
+
     public class HighwayView : Disposable, IAsyncLoadable
     {
-        struct KeyBeamInfo
+        class KeyBeamInfo
         {
             public float Alpha;
             public Vector3 Color;
         }
 
-        struct GlowInfo
+        class GlowInfo
         {
-            public ChartObject Object;
+            public Entity Object;
             public float Glow;
             public int GlowState;
         }
@@ -58,16 +60,16 @@ namespace NeuroSonic.GamePlay
         private Material laserMaterial, laserEntryMaterial;
 
         private Drawable3D m_highwayDrawable;
-        private Drawable3D[] m_keyBeamDrawables = new Drawable3D[6];
+        private Dictionary<LaneLabel, Drawable3D> m_keyBeamDrawables = new Dictionary<LaneLabel, Drawable3D>();
         private Drawable3D m_lVolEntryDrawable, m_lVolExitDrawable;
         private Drawable3D m_rVolEntryDrawable, m_rVolExitDrawable;
 
         private Vector3 m_lVolColor, m_rVolColor;
 
-        private Dictionary<ChartObject, ObjectRenderable3D>[] m_renderables = new Dictionary<ChartObject, ObjectRenderable3D>[8];
-        private readonly KeyBeamInfo[] m_keyBeamInfos = new KeyBeamInfo[6];
-        private readonly GlowInfo[] m_glowInfos = new GlowInfo[8];
-        private readonly bool[] m_streamsActive = new bool[8].Fill(true);
+        private Dictionary<LaneLabel, EntityMap> m_renderables = new Dictionary<LaneLabel, EntityMap>();
+        private readonly Dictionary<LaneLabel, KeyBeamInfo> m_keyBeamInfos = new Dictionary<LaneLabel, KeyBeamInfo>();
+        private readonly Dictionary<LaneLabel, GlowInfo> m_glowInfos = new Dictionary<LaneLabel, GlowInfo>();
+        private readonly Dictionary<LaneLabel, bool> m_streamsActive = new Dictionary<LaneLabel, bool>();
 
         public time_t PlaybackPosition { get; set; }
 
@@ -90,7 +92,7 @@ namespace NeuroSonic.GamePlay
         public Vector3 CameraOffset { get; set; }
 
         const float SLAM_DUR_TICKS = 1 / 32.0f;
-        time_t SlamDurationTime(ChartObject obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
+        time_t SlamDurationTime(Entity obj) => obj.Chart.ControlPoints.MostRecent(obj.Position).MeasureDuration * SLAM_DUR_TICKS;
 
         public HighwayView(ClientResourceLocator locator)
         {
@@ -102,7 +104,18 @@ namespace NeuroSonic.GamePlay
             Camera = new BasicCamera();
             Camera.SetPerspectiveFoV(60, Window.Aspect, 0.01f, 1000);
             
-            m_renderables.Fill(() => new Dictionary<ChartObject, ObjectRenderable3D>());
+            for (int i = 0; i < 8; i++)
+            {
+                m_renderables[i] = new EntityMap();
+                m_glowInfos[i] = new GlowInfo();
+                m_streamsActive[i] = true;
+
+                if (i < 6)
+                {
+                    m_keyBeamInfos[i] = new KeyBeamInfo();
+                    m_keyBeamDrawables[i] = null;
+                }
+            }
         }
 
         public bool AsyncLoad()
@@ -216,18 +229,18 @@ namespace NeuroSonic.GamePlay
             m_resources.Dispose();
             m_obj3dResources.Dispose();
 
-            foreach (var r in m_renderables)
+            foreach (var (label, r) in m_renderables)
             {
                 foreach (var obj3d in r.Values)
                     obj3d.Dispose();
                 r.Clear();
             }
-            m_renderables.Fill((Dictionary<ChartObject, ObjectRenderable3D>)null);
+            m_renderables.Clear();
         }
 
         public void Reset()
         {
-            foreach (var r in m_renderables)
+            foreach (var (label, r) in m_renderables)
             {
                 foreach (var obj3d in r.Values)
                     obj3d.Dispose();
@@ -235,11 +248,11 @@ namespace NeuroSonic.GamePlay
             }
         }
 
-        public void RenderableObjectAppear(ChartObject obj)
+        public void RenderableObjectAppear(Entity obj)
         {
-            if (obj.Stream >= 8) return;
+            if (!m_renderables.ContainsKey(obj.Lane)) return;
 
-            if (obj is ButtonObject bobj)
+            if (obj is ButtonEntity bobj)
             {
                 ObjectRenderable3D br3d;
                 if (obj.IsInstant)
@@ -250,16 +263,16 @@ namespace NeuroSonic.GamePlay
                     br3d = new ButtonHoldRenderState3D(bobj, zDur * LENGTH_BASE, m_resources, m_obj3dResources);
                 }
 
-                m_renderables[obj.Stream][obj] = br3d;
+                m_renderables[obj.Lane][obj] = br3d;
             }
-            else if (obj is AnalogObject aobj)
+            else if (obj is AnalogEntity aobj)
             {
-                var color = obj.Stream == 6 ? m_lVolColor : m_rVolColor;
+                var color = obj.Lane == 6 ? m_lVolColor : m_rVolColor;
 
                 if (obj.IsInstant)
                 {
                     float zDur = (float)(SlamDurationTime(aobj).Seconds / ViewDuration.Seconds);
-                    m_renderables[obj.Stream][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE, color, m_resources);
+                    m_renderables[obj.Lane][obj] = new SlamRenderState3D(aobj, zDur * LENGTH_BASE, color, m_resources);
                 }
                 else
                 {
@@ -268,23 +281,23 @@ namespace NeuroSonic.GamePlay
                         duration -= SlamDurationTime(aobj.PreviousConnected);
 
                     float zDur = (float)(duration.Seconds / ViewDuration.Seconds);
-                    m_renderables[obj.Stream][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE, color, m_resources);
+                    m_renderables[obj.Lane][obj] = new LaserRenderState3D(aobj, zDur * LENGTH_BASE, color, m_resources);
                 }
             }
         }
 
-        public void RenderableObjectDisappear(ChartObject obj)
+        public void RenderableObjectDisappear(Entity obj)
         {
-            if (obj.Stream >= 8) return;
+            if (!m_renderables.ContainsKey(obj.Lane)) return;
 
-            m_renderables[obj.Stream][obj].Dispose();
-            m_renderables[obj.Stream].Remove(obj);
+            m_renderables[obj.Lane][obj].Dispose();
+            m_renderables[obj.Lane].Remove(obj);
         }
 
-        public void CreateKeyBeam(int lane, Vector3 color)
+        public void CreateKeyBeam(LaneLabel lane, Vector3 color)
         {
-            m_keyBeamInfos[lane].Alpha = 1.0f;
-            m_keyBeamInfos[lane].Color = color;
+            m_keyBeamInfos[(int)lane].Alpha = 1.0f;
+            m_keyBeamInfos[(int)lane].Color = color;
         }
 
         public void SetStreamActive(int stream, bool active)
@@ -292,12 +305,11 @@ namespace NeuroSonic.GamePlay
             m_streamsActive[stream] = active;
         }
 
-        public void SetObjectGlow(ChartObject targetObject, float glow, int glowState)
+        public void SetObjectGlow(Entity targetObject, float glow, int glowState)
         {
-            ref GlowInfo glowInfo = ref m_glowInfos[targetObject.Stream];
-            glowInfo.Object = targetObject;
-            glowInfo.Glow = glow;
-            glowInfo.GlowState = glowState;
+            m_glowInfos[targetObject.Lane].Object = targetObject;
+            m_glowInfos[targetObject.Lane].Glow = glow;
+            m_glowInfos[targetObject.Lane].GlowState = glowState;
         }
 
         public void Update()
@@ -305,7 +317,9 @@ namespace NeuroSonic.GamePlay
             for (int i = 0; i < 6; i++)
             {
                 const float KEY_BEAM_SPEED = 10.0f;
-                m_keyBeamInfos[i].Alpha = Math.Max(0, m_keyBeamInfos[i].Alpha - Time.Delta * KEY_BEAM_SPEED);
+
+                var info = m_keyBeamInfos[i];
+                info.Alpha = Math.Max(0, info.Alpha - Time.Delta * KEY_BEAM_SPEED);
             }
 
             Camera.ViewportWidth = Window.Width;
@@ -336,7 +350,6 @@ namespace NeuroSonic.GamePlay
 
             var worldNormal = GetAtRoll((TargetBaseRoll + TargetEffectRoll) * 360 + roll, TargetOffset + TargetEffectOffset);
             var worldNoRoll = GetAtRoll(0, 0);
-            // TODO(local): does this need to use offset?
             var worldCritLine = GetAtRoll(TargetBaseRoll * 360 + roll, TargetOffset + TargetEffectOffset);
 
             Vector3 ZoomDirection(Transform t, out float dist)
@@ -444,9 +457,9 @@ namespace NeuroSonic.GamePlay
                             float distScaling = zAbs * 1.0f;
                             float widthMult = 1.0f;
 
-                            if (objr.Object.Stream < 4)
+                            if ((int)objr.Object.Lane < 4)
                             {
-                                int fxLaneCheck = 4 + objr.Object.Stream / 2;
+                                int fxLaneCheck = 4 + (int)objr.Object.Lane / 2;
                                 if (objr.Object.Chart[fxLaneCheck].TryGetAt(objr.Object.Position, out var overlap) && overlap.IsInstant)
                                     widthMult = 0.8f;
                             }
@@ -456,15 +469,17 @@ namespace NeuroSonic.GamePlay
 
                         if (objr is GlowingRenderState3D glowObj)
                         {
-                            if (m_glowInfos[objr.Object.Stream].Object == objr.Object)
+                            if (m_glowInfos[objr.Object.Lane].Object == objr.Object)
                             {
-                                glowObj.Glow = m_glowInfos[objr.Object.Stream].Glow;
-                                glowObj.GlowState = m_glowInfos[objr.Object.Stream].GlowState;
+                                glowObj.Glow = m_glowInfos[objr.Object.Lane].Glow;
+                                glowObj.GlowState = m_glowInfos[objr.Object.Lane].GlowState;
                             }
                             else
                             {
-                                glowObj.Glow = m_streamsActive[objr.Object.Stream] ? 0.0f : -0.5f;
-                                glowObj.GlowState = m_streamsActive[objr.Object.Stream] ? 1 : 0;
+                                //glowObj.Glow = m_streamsActive[objr.Object.Lane] ? 0.0f : -0.5f;
+                                //glowObj.GlowState = m_streamsActive[objr.Object.Lane] ? 1 : 0;
+                                glowObj.Glow = 0.0f;
+                                glowObj.GlowState = 1;
                             }
                         }
 
@@ -479,18 +494,18 @@ namespace NeuroSonic.GamePlay
 
                     foreach (var objr in m_renderables[i + 6].Values)
                     {
-                        var analog = objr.Object as AnalogObject;
+                        var analog = objr.Object as AnalogEntity;
                         var glowObj = objr as GlowingRenderState3D;
 
-                        if (m_glowInfos[analog.Stream].Object == analog.Head)
+                        if (m_glowInfos[analog.Lane].Object == analog.Head)
                         {
-                            glowObj.Glow = m_glowInfos[analog.Stream].Glow;
-                            glowObj.GlowState = m_glowInfos[analog.Stream].GlowState;
+                            glowObj.Glow = m_glowInfos[analog.Lane].Glow;
+                            glowObj.GlowState = m_glowInfos[analog.Lane].GlowState;
                         }
                         else
                         {
-                            glowObj.Glow = m_streamsActive[analog.Stream] ? 0.0f : -0.5f;
-                            glowObj.GlowState = m_streamsActive[analog.Stream] ? 1 : 0;
+                            glowObj.Glow = m_streamsActive[analog.Lane] ? 0.0f : -0.5f;
+                            glowObj.GlowState = m_streamsActive[analog.Lane] ? 1 : 0;
                         }
 
                         time_t position = objr.Object.AbsolutePosition;
@@ -511,7 +526,7 @@ namespace NeuroSonic.GamePlay
                             time_t entryPosition = objr.Object.AbsolutePosition;
                             float zEntry = LENGTH_BASE * (float)((entryPosition - PlaybackPosition) / ViewDuration);
 
-                            Transform tEntry = Transform.Translation(((objr.Object as AnalogObject).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
+                            Transform tEntry = Transform.Translation(((objr.Object as AnalogEntity).InitialValue - 0.5f) * laneSpace, 0, -zEntry) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
                             //queue.Draw(tEntry, laserEntryMesh, laserEntryMaterial, i == 0 ? lLaserEntryParams : rLaserEntryParams);
                             (i == 0 ? m_lVolEntryDrawable : m_rVolEntryDrawable).DrawToQueue(queue, tEntry);
                         }
@@ -527,7 +542,7 @@ namespace NeuroSonic.GamePlay
 
                             float zExit = LENGTH_BASE * (float)((exitPosition - PlaybackPosition) / ViewDuration);
 
-                            Transform tExit = Transform.Translation(((objr.Object as AnalogObject).FinalValue - 0.5f) * laneSpace, 0, -zExit) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
+                            Transform tExit = Transform.Translation(((objr.Object as AnalogEntity).FinalValue - 0.5f) * laneSpace, 0, -zExit) * Transform.Scale(1, 1, 1 + HISCALE) * WorldTransform;
                             //queue.Draw(tExit, laserExitMesh, laserExitMaterial, i == 0 ? lLaserExitParams : rLaserExitParams);
                             (i == 0 ? m_lVolExitDrawable : m_rVolExitDrawable).DrawToQueue(queue, tExit);
                         }

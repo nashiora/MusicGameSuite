@@ -1,214 +1,305 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using theori;
 using theori.Charting;
+
+using NeuroSonic.Charting;
 
 namespace NeuroSonic.GamePlay.Scoring
 {
     public sealed class ButtonJudge : StreamJudge
     {
-        public struct Tick
+        enum JudgeState
         {
-            public ChartObject AssociatedObject;
+            Idle,
 
-            public time_t Position;
-            public bool IsHold;
+            ChipAwaitPress,
+            HoldAwaitPress,
+            HoldAwaitRelease,
 
-            public bool IsAutoTick;
+            HoldOff,
+            HoldOn,
+        }
 
-            public Tick(ChartObject obj, time_t pos, bool isHold, bool isAutoTick = false)
+        enum TickKind
+        {
+            Chip,
+            Hold
+        }
+
+        class StateTick
+        {
+            public readonly ButtonEntity Entity;
+
+            public readonly time_t Position;
+            public readonly JudgeState State;
+
+            public StateTick(ButtonEntity entity, time_t pos, JudgeState state)
             {
-                AssociatedObject = obj;
+                Entity = entity;
                 Position = pos;
-                IsHold = isHold;
-
-                IsAutoTick = isAutoTick;
+                State = state;
             }
         }
 
-        public const int TOTAL_MISS_MILLIS = 150 * 2;
-        public const int TOTAL_NEAR_MILLIS = 100 * 2;
-        public const int TOTAL_CRIT_MILLIS = 50 * 2;
-        public const int TOTAL_PERF_MILLIS = 25 * 2;
-
-        public const int TOTAL_HOLD_MILLIS = 12 * 2;
-
-        private const double MISS_RADIUS = (TOTAL_MISS_MILLIS / 2) / 1000.0;
-        private const double NEAR_RADIUS = (TOTAL_NEAR_MILLIS / 2) / 1000.0;
-        private const double CRIT_RADIUS = (TOTAL_CRIT_MILLIS / 2) / 1000.0;
-        private const double PERF_RADIUS = (TOTAL_PERF_MILLIS / 2) / 1000.0;
-
-        private const double HOLD_RADIUS = (TOTAL_HOLD_MILLIS / 2) / 1000.0;
-
-        private const double MAX_RADIUS = MISS_RADIUS;
-
-        private bool m_userHeld = false;
-        private time_t m_userWhen = 0.0;
-        private ChartObject m_lastPressedObject;
-
-        private readonly List<Tick> m_ticks = new List<Tick>();
-
-        public event Action<time_t, ChartObject> OnChipPressed;
-
-        public event Action<time_t, ChartObject> OnHoldPressed;
-        public event Action<time_t, ChartObject> OnHoldReleased;
-
-        public event Action<ChartObject, time_t, JudgeResult> OnTickProcessed;
-
-        public ButtonJudge(Chart chart, int streamIndex)
-            : base(chart, streamIndex)
+        class ScoreTick
         {
-        }
+            public readonly ButtonEntity Entity;
 
-        protected override time_t JudgementRadius => MAX_RADIUS;
+            public readonly time_t Position;
+            public readonly TickKind Kind;
 
-        public JudgeResult? UserPressed(time_t timeStamp)
-        {
-            if (AutoPlay) return null;
-
-            m_userHeld = true;
-            m_userWhen = timeStamp;
-
-            if (m_ticks.Count == 0) return null;
-
-            var tick = m_ticks[0];
-            // Don't ACTUALLY handle holds handled in here
-            if (tick.IsHold)
+            public ScoreTick(ButtonEntity entity, time_t pos, TickKind kind)
             {
-                OnHoldPressed?.Invoke(timeStamp, tick.AssociatedObject);
-                m_lastPressedObject = tick.AssociatedObject;
-                return null;
+                Entity = entity;
+                Position = pos;
+                Kind = kind;
             }
-            else OnChipPressed?.Invoke(timeStamp, tick.AssociatedObject);
-
-            m_ticks.RemoveAt(0);
-
-            time_t diff = tick.Position + JudgementOffset - timeStamp;
-            time_t absDiff = MathL.Abs(diff.Seconds);
-
-            time_t offsetTime = timeStamp - JudgementOffset;
-
-            JudgeResult result;
-            if (absDiff <= PERF_RADIUS)
-                result = new JudgeResult(diff, JudgeKind.Perfect);
-            else if (absDiff <= CRIT_RADIUS)
-                result = new JudgeResult(diff, JudgeKind.Critical);
-            else if (absDiff <= NEAR_RADIUS)
-                result = new JudgeResult(diff, JudgeKind.Near);
-            // TODO(local): Is this how we want to handle misses?
-            else result = new JudgeResult(diff, JudgeKind.Bad);
-
-            OnTickProcessed?.Invoke(tick.AssociatedObject, offsetTime, result);
-            return result;
         }
 
-        public void UserReleased(time_t timeStamp)
+        private readonly time_t m_chipPerfectRadius = 25 / 1000.0;
+        private readonly time_t m_chipCriticalRadius = 50 / 1000.0;
+        private readonly time_t m_chipNearRadius = 100 / 1000.0;
+        private readonly time_t m_chipMissRadius = 150 / 1000.0;
+
+        private readonly time_t m_holdActivateRadius = 100 / 1000.0;
+
+        private readonly List<StateTick> m_stateTicks = new List<StateTick>();
+        private readonly List<ScoreTick> m_scoreTicks = new List<ScoreTick>();
+
+        private JudgeState m_state = JudgeState.Idle;
+        private StateTick m_currentStateTick;
+
+        private int m_stateIndex = 0, m_scoreIndex = 0;
+
+        private bool HasStateTicks => m_stateIndex < m_stateTicks.Count;
+        private StateTick NextStateTick => m_stateTicks[m_stateIndex];
+
+        private bool HasScoreTicks => m_scoreIndex < m_scoreTicks.Count;
+        private ScoreTick NextScoreTick => m_scoreTicks[m_scoreIndex];
+
+        public event Action<time_t, Entity> OnChipPressed;
+
+        public event Action<time_t, Entity> OnHoldPressed;
+        public event Action<time_t, Entity> OnHoldReleased;
+
+        public event Action<Entity, time_t, JudgeResult> OnTickProcessed;
+
+        public ButtonJudge(Chart chart, LaneLabel label)
+            : base(chart, label)
         {
-            m_userHeld = false;
+            tick_t tickStep = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
+            tick_t tickMargin = 2 * tickStep;
 
-            if (m_ticks.Count > 0 && m_ticks[0].IsHold && m_lastPressedObject == m_ticks[0].AssociatedObject)
+            foreach (var entity in chart[label])
             {
-                OnHoldReleased?.Invoke(timeStamp, m_ticks[0].AssociatedObject);
+                var button = (ButtonEntity)entity;
+
+                if (button.IsInstant)
+                {
+                    m_stateTicks.Add(new StateTick(button, button.AbsolutePosition, JudgeState.ChipAwaitPress));
+                    m_scoreTicks.Add(new ScoreTick(button, button.AbsolutePosition, TickKind.Chip));
+                }
+                else
+                {
+                    m_stateTicks.Add(new StateTick(button, button.AbsolutePosition, JudgeState.HoldAwaitPress));
+                    // end state is placed at the last score tick
+
+                    int numTicks = MathL.FloorToInt((double)(button.Duration - tickMargin) / (double)tickStep);
+                    if (numTicks <= 0)
+                    {
+                        m_scoreTicks.Add(new ScoreTick(button, button.AbsolutePosition + button.AbsoluteDuration / 2, TickKind.Hold));
+                        m_stateTicks.Add(new StateTick(button, button.AbsolutePosition + button.AbsoluteDuration / 2, JudgeState.HoldAwaitRelease));
+                    }
+                    else for (int i = 0; i < numTicks; i++)
+                    {
+                        tick_t pos = button.Position + tickMargin + tickStep * i;
+                        m_scoreTicks.Add(new ScoreTick(button, chart.CalcTimeFromTick(pos), TickKind.Hold));
+
+                        if (i == numTicks - 1)
+                            m_stateTicks.Add(new StateTick(button, chart.CalcTimeFromTick(pos), JudgeState.HoldAwaitRelease));
+                    }
+                }
             }
         }
+
+        public override int CalculateNumScorableTicks() => m_scoreTicks.Count;
 
         protected override void AdvancePosition(time_t position)
         {
-            // remove old ticks first
-            while (!AutoPlay && m_ticks.Count > 0)
+            // This check just makes sure that we can process ticks.
+            // If there are no state ticks, there should never be score ticks left.
+            if (HasStateTicks)
             {
-                var tick = m_ticks[0];
-
-                time_t radius = tick.IsHold ? HOLD_RADIUS : MAX_RADIUS;
-                if (tick.Position + JudgementOffset < position - radius)
-                {
-                    m_ticks.RemoveAt(0);
-                    OnTickProcessed?.Invoke(tick.AssociatedObject, position, new JudgeResult(tick.Position + JudgementOffset - position, JudgeKind.Miss));
-                }
-                else break;
+                Debug.Assert(HasScoreTicks);
             }
+            else return;
 
-            while (m_ticks.Count > 0)
+            // Now, if we have ticks we can continue
+
+            switch (m_state)
             {
-                var tick = m_ticks[0];
-                if (AutoPlay && position >= tick.Position)
+                case JudgeState.Idle:
                 {
-                    m_ticks.RemoveAt(0);
-                    if (tick.IsAutoTick)
+                    var nextStateTick = NextStateTick;
+
+                    time_t difference = position - (nextStateTick.Position + JudgementOffset);
+
+                    // check missed chips
+                    if (nextStateTick.State == JudgeState.ChipAwaitPress && difference > m_chipMissRadius)
                     {
-                        if (tick.Position == tick.AssociatedObject.AbsolutePosition)
-                            OnHoldPressed?.Invoke(position, tick.AssociatedObject);
-                        //else OnHoldReleased?.Invoke(position, tick.AssociatedObject);
+                        var scoreTick = NextScoreTick;
+
+                        Debug.Assert(scoreTick.Kind == TickKind.Chip);
+                        Debug.Assert(scoreTick.Position == nextStateTick.Position);
+
+                        OnTickProcessed?.Invoke(scoreTick.Entity, position, new JudgeResult(m_chipMissRadius, JudgeKind.Miss));
+
+                        AdvanceStateTick();
+                        AdvanceScoreTick();
+
+                        IsBeingPlayed = false;
                     }
-                    else if (tick.IsHold)
+                    else if (nextStateTick.State == JudgeState.HoldAwaitPress && difference > 0)
                     {
-                        OnTickProcessed?.Invoke(tick.AssociatedObject, position - JudgementOffset, new JudgeResult(0, JudgeKind.Passive));
+                        m_state = JudgeState.HoldOff;
+
+                        AdvanceStateTick();
+                        m_currentStateTick = nextStateTick;
+
+                        IsBeingPlayed = false;
                     }
-                    else
-                    {
-                        OnChipPressed?.Invoke(position, tick.AssociatedObject);
-                        OnTickProcessed?.Invoke(tick.AssociatedObject, tick.Position, new JudgeResult(0, JudgeKind.Perfect));
-                    }
-                }
-                else // ===== NO AUTO PLAY =====
+                } break;
+
+                case JudgeState.HoldOn:
+                case JudgeState.HoldOff:
                 {
-                    if (!tick.IsHold) break;
+                    var nextScoreTick = NextScoreTick;
+                    Debug.Assert(nextScoreTick.Entity == m_currentStateTick.Entity);
 
-                    time_t check = tick.AssociatedObject.AbsolutePosition + JudgementOffset - m_userWhen;
-                    if (check > MISS_RADIUS) break;
-
-                    time_t diff = tick.Position + JudgementOffset - position;
-                    time_t absDiff = MathL.Abs(diff.Seconds);
-
-                    if (m_userHeld && diff > 0 && absDiff <= HOLD_RADIUS)
+                    if (position - (nextScoreTick.Position + JudgementOffset) >= 0)
                     {
-                        m_ticks.RemoveAt(0);
-                        OnTickProcessed?.Invoke(tick.AssociatedObject, position - JudgementOffset, new JudgeResult(diff, JudgeKind.Passive));
+                        var resultKind = IsBeingPlayed ? JudgeKind.Passive : JudgeKind.Miss;
+                        OnTickProcessed?.Invoke(nextScoreTick.Entity, nextScoreTick.Position, new JudgeResult(0, resultKind));
+
+                        AdvanceScoreTick();
                     }
-                    else break;
-                }
+
+                    var nextStateTick = NextStateTick;
+                    if (nextStateTick.State == JudgeState.HoldAwaitRelease && position - (nextStateTick.Position + JudgementOffset) >= 0)
+                    {
+                        AdvanceStateTick();
+
+                        m_state = JudgeState.Idle;
+                        m_currentStateTick = null;
+                    }
+                } break;
             }
         }
 
-        protected override void ObjectEnteredJudgement(ChartObject obj)
+        private void AdvanceStateTick() => m_stateIndex++;
+        private void AdvanceScoreTick() => m_scoreIndex++;
+
+        public JudgeResult? UserPressed(time_t position)
         {
-            if (AutoPlay && !obj.IsInstant)
-                m_ticks.Add(new Tick(obj, obj.AbsolutePosition, true, true));
-
-            if (obj.IsInstant)
+            // This check just makes sure that we can process ticks.
+            // If there are no state ticks, there should never be score ticks left.
+            if (HasStateTicks)
             {
-                var chipTick = new Tick(obj, obj.AbsolutePosition, false);
-                m_ticks.Add(chipTick);
+                Debug.Assert(HasScoreTicks);
             }
-            else
+            else return null;
+
+            switch (m_state)
             {
-                tick_t step = (Chart.MaxBpm >= 255 ? 2.0 : 1.0) / (4 * 4);
-                tick_t margin = 2 * step;
-
-                int numTicks = MathL.FloorToInt((double)(obj.Duration - margin) / (double)step);
-
-                if (numTicks == 0)
-                    m_ticks.Add(new Tick(obj, obj.AbsolutePosition + obj.AbsoluteDuration / 2, true));
-                else
+                case JudgeState.Idle:
                 {
-                    tick_t pos = obj.Position + margin;
-                    for (int i = 0; i < numTicks; i++)
+                    var nextStateTick = NextStateTick;
+
+                    time_t difference = position - (nextStateTick.Position + JudgementOffset);
+                    time_t absDifference = Math.Abs((double)difference);
+
+                    if (nextStateTick.State == JudgeState.ChipAwaitPress && absDifference <= m_chipMissRadius)
                     {
-                        time_t timeAtTick = Chart.CalcTimeFromTick(pos + i * step);
-                        m_ticks.Add(new Tick(obj, timeAtTick, true));
+                        var scoreTick = NextScoreTick;
+
+                        Debug.Assert(scoreTick.Kind == TickKind.Chip);
+                        Debug.Assert(scoreTick.Position == nextStateTick.Position);
+
+                        // `difference` applies to both ticks, don't recalculate
+
+                        JudgeResult result;
+                        if (absDifference <= m_chipPerfectRadius)
+                            result = new JudgeResult(difference, JudgeKind.Perfect);
+                        else if (absDifference <= m_chipCriticalRadius)
+                            result = new JudgeResult(difference, JudgeKind.Critical);
+                        else if (absDifference <= m_chipNearRadius)
+                            result = new JudgeResult(difference, JudgeKind.Near);
+                        // TODO(local): Is this how we want to handle misses?
+                        else result = new JudgeResult(difference, JudgeKind.Bad);
+
+                        OnTickProcessed?.Invoke(scoreTick.Entity, position, result);
+                        OnChipPressed?.Invoke(position, scoreTick.Entity);
+
+                        AdvanceStateTick();
+                        AdvanceScoreTick();
+
+                        // state stays idle after a chip press, chips are instantaneous
+
+                        IsBeingPlayed = true;
+
+                        return result;
                     }
-                }
+                    else if (nextStateTick.State == JudgeState.HoldAwaitPress && absDifference <= m_holdActivateRadius)
+                    {
+                        OnHoldPressed?.Invoke(position, nextStateTick.Entity);
+
+                        AdvanceStateTick();
+                        // No need to advance a score tick, we haven't judged anything
+
+                        // state is `hold on` because ofc we pressed the hold!
+                        m_state = JudgeState.HoldOn;
+                        m_currentStateTick = nextStateTick;
+
+                        IsBeingPlayed = true;
+                    }
+
+                    // do nothing when pressed otherwise
+                } break;
+
+                case JudgeState.HoldOff:
+                {
+                    OnHoldPressed?.Invoke(position, m_currentStateTick.Entity);
+
+                    m_state = JudgeState.HoldOn;
+
+                    IsBeingPlayed = true;
+                } break;
+
+                case JudgeState.HoldOn: throw new InvalidOperationException();
             }
 
-            if (AutoPlay && !obj.IsInstant)
-                m_ticks.Add(new Tick(obj, obj.AbsoluteEndPosition, true, true));
+            return null;
         }
 
-        protected override void ObjectExitedJudgement(ChartObject obj)
+        public void UserReleased(time_t position)
         {
-            if (m_lastPressedObject == obj)
-                m_lastPressedObject = null;
+            switch (m_state)
+            {
+                case JudgeState.Idle:
+                case JudgeState.HoldOff: break; // do nothing when released
+
+                case JudgeState.HoldOn:
+                {
+                    OnHoldReleased?.Invoke(position, m_currentStateTick.Entity);
+
+                    m_state = JudgeState.HoldOff;
+
+                    IsBeingPlayed = false;
+                } break;
+            }
         }
     }
 }

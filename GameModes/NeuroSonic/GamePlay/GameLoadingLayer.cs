@@ -37,24 +37,24 @@ namespace NeuroSonic.GamePlay
 
         private LuaScript m_script;
 
-        public GameLoadingLayer(ClientResourceLocator locator, ChartInfo chartInfo)
+        public GameLoadingLayer(ClientResourceLocator locator, ChartInfo chartInfo, AutoPlay autoPlay)
         {
             m_state = State.Entering;
 
             m_locator = locator;
             m_resources = new ClientResourceManager(locator);
 
-            m_game = new GameLayer(m_locator, chartInfo);
+            m_game = new GameLayer(m_locator, chartInfo, autoPlay);
         }
 
-        public GameLoadingLayer(ClientResourceLocator locator, Chart chart, AudioTrack audio)
+        public GameLoadingLayer(ClientResourceLocator locator, Chart chart, AudioTrack audio, AutoPlay autoPlay)
         {
             m_state = State.Entering;
 
             m_locator = locator;
             m_resources = new ClientResourceManager(locator);
 
-            m_game = new GameLayer(m_locator, chart, audio);
+            m_game = new GameLayer(m_locator, chart, audio, autoPlay);
         }
 
         public override void Init()
@@ -161,7 +161,7 @@ namespace NeuroSonic.GamePlay
                     if (result == null || !result.CastToBool())
                     {
                         Host.RemoveLayer(this);
-                        m_game?.Play();
+                        //m_game?.Begin();
 
                         return;
                     }

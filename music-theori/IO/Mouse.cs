@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using static SDL2.SDL;
 
 namespace theori.IO
 {
@@ -9,6 +10,8 @@ namespace theori.IO
         internal static int x, y;
         internal static int dx, dy;
         internal static int sx, sy;
+
+        internal static bool relative;
 
         public static int X => x;
         public static int Y => y;
@@ -27,6 +30,12 @@ namespace theori.IO
         
         private static readonly HashSet<MouseButton> lastHeldButtons = new HashSet<MouseButton>();
         private static readonly HashSet<MouseButton> heldButtons = new HashSet<MouseButton>();
+
+        public static bool Relative
+        {
+            get => relative;
+            set => SDL_SetRelativeMouseMode((relative = value) ? SDL_bool.SDL_TRUE : SDL_bool.SDL_FALSE);
+        }
 
         internal static void Update()
         {

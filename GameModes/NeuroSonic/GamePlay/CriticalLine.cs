@@ -1,10 +1,7 @@
 ﻿using System.Numerics;
 
-using OpenGL;
-
 using theori.Gui;
 using theori.Graphics;
-using System;
 using theori.Resources;
 
 namespace NeuroSonic.GamePlay
@@ -30,14 +27,17 @@ namespace NeuroSonic.GamePlay
         public float LeftCursorPosition { get => m_leftPos; set { m_leftPos = value; m_isDirty = true; } }
         public float RightCursorPosition { get => m_rightPos; set { m_rightPos = value; m_isDirty = true; } }
 
-        public CriticalLine(ClientResourceManager skin)
+        public float LeftCursorAlpha { get; set; }
+        public float RightCursorAlpha { get; set; }
+
+        public CriticalLine(ClientResourceManager resources)
         {
             var lVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser0Color) / 360.0f, 1, 1));
             var rVolColor = Color.HSVtoRGB(new Vector3(Plugin.Config.GetInt(NscConfigKey.Laser1Color) / 360.0f, 1, 1));
 
-            var critTexture = skin.AquireTexture("textures/scorebar");
-            var capTexture = skin.AquireTexture("textures/critical_cap");
-            var cursorTexture = skin.AquireTexture("textures/cursor");
+            var critTexture = resources.AquireTexture("textures/scorebar");
+            var capTexture = resources.AquireTexture("textures/critical_cap");
+            var cursorTexture = resources.AquireTexture("textures/cursor");
 
             RelativeSizeAxes = Axes.X;
             Size = new Vector2(0.75f, 0);
@@ -101,8 +101,17 @@ namespace NeuroSonic.GamePlay
 
             m_container.Scale = new Vector2(desiredCritWidth / m_image.Size.X);
 
+            Vector4 ColorWithAlpha(Vector4 color, float alpha)
+            {
+                color.W = alpha;
+                return color;
+            }
+
             m_cursorLeft.Position = new Vector2(LeftCursorPosition, 0);
+            m_cursorLeft.Color = ColorWithAlpha(m_cursorLeft.Color, LeftCursorAlpha);
+
             m_cursorRight.Position = new Vector2(RightCursorPosition, 0);
+            m_cursorRight.Color = ColorWithAlpha(m_cursorRight.Color, RightCursorAlpha);
         }
     }
 }

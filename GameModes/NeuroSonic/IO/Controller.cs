@@ -14,6 +14,9 @@ namespace NeuroSonic.IO
             var btInputMode = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.ButtonInputDevice);
             var volInputMode = Plugin.Config.GetEnum<InputDevice>(NscConfigKey.LaserInputDevice);
 
+            // TODO(local): This makes lots of assumptions about the mouse
+            Mouse.Relative = false;
+
             if (btInputMode == InputDevice.Controller && volInputMode == InputDevice.Controller)
                 return new GamepadController(Plugin.Gamepad);
             else if (btInputMode == InputDevice.Keyboard)
@@ -21,7 +24,10 @@ namespace NeuroSonic.IO
                 if (volInputMode == InputDevice.Keyboard)
                     return new KeyboardController();
                 else if (volInputMode == InputDevice.Mouse)
+                {
+                    Mouse.Relative = true;
                     return new KeyboardMouseController();
+                }
             }
 
             throw new InvalidOperationException($"No controller implementation supports Buttons using { btInputMode } and Lasers using { volInputMode }");
@@ -244,7 +250,7 @@ namespace NeuroSonic.IO
 
         public KeyboardController()
         {
-            m_sensitivity = Plugin.Config.GetFloat(NscConfigKey.Key_Sensitivity);
+            m_sensitivity = Plugin.Config.GetFloat(NscConfigKey.Key_Sensitivity) * 4;
 
             SetKeyCode(ControllerInput.Laser0Negative, NscConfigKey.Key_Laser0Neg, NscConfigKey.Key_Laser0NegAlt);
             SetKeyCode(ControllerInput.Laser0Positive, NscConfigKey.Key_Laser0Pos, NscConfigKey.Key_Laser0PosAlt);
@@ -273,21 +279,23 @@ namespace NeuroSonic.IO
         {
             int dir = m_directions[ControllerInput.Laser0Positive + 2 * axis].Count
                     - m_directions[ControllerInput.Laser0Negative + 2 * axis].Count;
-            return dir * m_sensitivity;
+            return dir * m_sensitivity * Time.Delta;
         }
 
         public override void Update()
         {
-            int dir0 = m_directions[ControllerInput.Laser0Positive].Count
-                     - m_directions[ControllerInput.Laser0Negative].Count;
-            int dir1 = m_directions[ControllerInput.Laser1Positive].Count
-                     - m_directions[ControllerInput.Laser1Negative].Count;
+            float dir0 = (m_directions[ControllerInput.Laser0Positive].Count
+                     - m_directions[ControllerInput.Laser0Negative].Count)
+                     * Time.Delta * m_sensitivity;
+            float dir1 = (m_directions[ControllerInput.Laser1Positive].Count
+                     - m_directions[ControllerInput.Laser1Negative].Count)
+                     * Time.Delta * m_sensitivity;
 
-            m_rawValues[0] += dir0 * m_sensitivity;
-            m_rawValues[1] += dir1 * m_sensitivity;
+            m_rawValues[0] += dir0;
+            m_rawValues[1] += dir1;
 
-            if (dir0 != 0) AxisChanged?.Invoke(ControllerInput.Laser0Axis, dir0 * m_sensitivity);
-            if (dir1 != 0) AxisChanged?.Invoke(ControllerInput.Laser1Axis, dir1 * m_sensitivity);
+            if (dir0 != 0) AxisChanged?.Invoke(ControllerInput.Laser0Axis, dir0);
+            if (dir1 != 0) AxisChanged?.Invoke(ControllerInput.Laser1Axis, dir1);
         }
 
         protected override void OnKeyPressed(KeyCode key)
@@ -347,19 +355,20 @@ namespace NeuroSonic.IO
 
         private void Mouse_Move(int xDelta, int yDelta)
         {
+            float amt = m_sensitivity * Time.Delta;
             if (xDelta != 0)
             {
                 var inputKind = m_mouseToControllerInput[Axes.X];
-                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = xDelta * m_sensitivity;
-                m_rawValues[inputKind - ControllerInput.Laser0Axis] += xDelta * m_sensitivity;
-                AxisChanged?.Invoke(inputKind, xDelta * m_sensitivity);
+                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = xDelta * amt;
+                m_rawValues[inputKind - ControllerInput.Laser0Axis] += xDelta * amt;
+                AxisChanged?.Invoke(inputKind, xDelta * amt);
             }
             if (yDelta != 0)
             {
                 var inputKind = m_mouseToControllerInput[Axes.Y];
-                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = yDelta * m_sensitivity;
-                m_rawValues[inputKind - ControllerInput.Laser0Axis] += yDelta * m_sensitivity;
-                AxisChanged?.Invoke(inputKind, yDelta * m_sensitivity);
+                m_nextDelta[inputKind - ControllerInput.Laser0Axis] = yDelta * amt;
+                m_rawValues[inputKind - ControllerInput.Laser0Axis] += yDelta * amt;
+                AxisChanged?.Invoke(inputKind, yDelta * amt);
             }
         }
     }

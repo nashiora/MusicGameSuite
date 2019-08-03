@@ -3,9 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
+using CSCore;
+using CSCore.Codecs;
+
+using OpenGL;
+
+using System.Numerics;
+
 using theori.Audio;
 using theori.Audio.NVorbis;
 using theori.BootLoaders;
+using theori.Charting;
 using theori.Configuration;
 using theori.GameModes;
 using theori.Graphics;
@@ -13,11 +21,7 @@ using theori.IO;
 using theori.Platform;
 using theori.Resources;
 using theori.Scripting;
-
-using CSCore;
-using CSCore.Codecs;
-
-using OpenGL;
+using theori.Charting.Effects;
 
 namespace theori
 {
@@ -341,7 +345,15 @@ namespace theori
 
         public static bool InitScriptingSystem()
         {
+            LuaScript.RegisterType<Anchor>();
+
+            LuaScript.RegisterType<Vector2>();
+            LuaScript.RegisterType<Vector3>();
+            LuaScript.RegisterType<Vector4>();
+
+            LuaScript.RegisterType<Font>();
             LuaScript.RegisterType<Texture>();
+            LuaScript.RegisterType<TextRasterizer>();
 
             LuaScript.RegisterType<BasicSpriteRenderer>();
             LuaScript.RegisterType<ClientResourceManager>();
@@ -375,9 +387,9 @@ namespace theori
 
         #endregion
 
-        public static void RegisterSharedGameMode(GameMode desc)
+        public static void RegisterSharedGameMode(GameMode gameMode)
         {
-            if (!desc.SupportsSharedUsage)
+            if (!gameMode.SupportsSharedUsage)
             {
                 Logger.Log($"{ nameof(RegisterSharedGameMode) } called with a game mode that does not support shared usage.");
                 return;
@@ -386,15 +398,17 @@ namespace theori
             foreach (var mode in sharedGameModes)
             {
                 // simply don't add exact duplicates
-                if (mode == desc) return;
-                if (mode.Name == desc.Name)
+                if (mode == gameMode) return;
+                if (mode.Name == gameMode.Name)
                 {
                     Logger.Log("Attempt to add a game mode with the same name as a previously added game mode. Until unique identification is added, this is illegal.");
                     return;
                 }
             }
 
-            sharedGameModes.Add(desc);
+            sharedGameModes.Add(gameMode);
+            Entity.RegisterTypesFromGameMode(gameMode);
+            EffectDef.RegisterTypesFromGameMode(gameMode);
         }
 
         private static void ProgramLoop()
@@ -484,11 +498,16 @@ namespace theori
             runProgramLoop = false;
         }
 
-        public static void StartStandalone(GameMode desc, string[] args)
+        public static void StartStandalone(GameMode gameMode, string[] args)
         {
-            if (desc != null)
-                desc.InvokeStandalone(args);
+            if (gameMode != null)
+            {
+                Entity.RegisterTypesFromGameMode(gameMode);
+                EffectDef.RegisterTypesFromGameMode(gameMode);
+                gameMode.InvokeStandalone(args);
+            }
             else PushLayer(new StandaloneBootLoader(args));
+
             ProgramLoop();
         }
 

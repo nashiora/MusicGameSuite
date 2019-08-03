@@ -54,34 +54,4 @@ namespace theori.Audio.Effects
 	        }
         }
     }
-
-    public class WobbleEffectDef : EffectDef
-    {
-        public EffectParamF Period;
-
-        public WobbleEffectDef(EffectParamF mix, EffectParamF period)
-            : base(EffectType.Wobble, mix)
-        {
-            Period = period;
-        }
-
-        public override Dsp CreateEffectDsp(int sampleRate) => new Wobble(sampleRate);
-
-        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
-        {
-            base.ApplyToDsp(effect, qnDur, alpha);
-            if (effect is Wobble wobble)
-            {
-                wobble.SetPeriod(Period.Sample(alpha) * qnDur.Seconds * 4);
-            }
-        }
-
-        public override bool Equals(EffectDef other)
-        {
-            if (!(other is WobbleEffectDef wob)) return false;
-            return Type == wob.Type && Mix == wob.Mix && Period == wob.Period;
-        }
-
-        public override int GetHashCode() => HashCode.For(Type, Mix, Period);
-    }
 }

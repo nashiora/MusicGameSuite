@@ -25,13 +25,28 @@ namespace theori.Graphics
         public float HorizontalBearingX, HorizontalBearingY;
     }
 
+    /// <summary>
+    /// Calling GetDefault results in repeated opening, copying and closing of a stream of
+    ///  the file font unless the specific given font size has already been created and cached.
+    /// This is because I haven't figured out how I want to go about pixel size.
+    /// The PixelSize property is treated effectively read only, despite the option clearly
+    ///  being there to change it.
+    /// It shouldn't be hard to specify the texture size before rendering glyphs, and cache glyphs
+    ///  based on what size was used to render them, ut just hasn't been done yet.
+    /// The "Default" API will need re-adjusted soon when that kind of change is implemented.
+    /// </summary>
     public class Font
     {
         private const string FALLBACK_FONT_NAME = "fonts/NotoSansCJKjp-Regular.otf";
 
-        public static readonly Font Default32;
-        public static readonly Font Default24;
-        public static readonly Font Default16;
+        private static readonly Dictionary<uint, Font> m_defaults = new Dictionary<uint, Font>();
+
+        public static Font Default64 => m_defaults[64];
+        public static Font Default32 => m_defaults[32];
+        public static Font Default24 => m_defaults[24];
+        public static Font Default16 => m_defaults[16];
+        public static Font Default12 => m_defaults[12];
+        public static Font Default8  => m_defaults[ 8];
 
         static Font()
         {
@@ -40,10 +55,27 @@ namespace theori.Graphics
                 byte[] mem = new byte[stream.Length];
                 stream.Read(mem, 0, mem.Length);
 
-                Default32 = new Font(FALLBACK_FONT_NAME, mem, 32);
-                Default24 = new Font(FALLBACK_FONT_NAME, mem, 24);
-                Default16 = new Font(FALLBACK_FONT_NAME, mem, 16);
+                uint[] defaultSize = { 8, 12, 16, 24, 32, 64 };
+                foreach (uint size in defaultSize)
+                    m_defaults[size] = new Font(FALLBACK_FONT_NAME, mem, size);
             }
+        }
+
+        public static Font GetDefault(int size)
+        {
+            uint usize = (uint)MathL.Clamp(size, 7, 256);
+            if (!m_defaults.TryGetValue(usize, out var font))
+            {
+                using (var stream = Resources.ClientResourceLocator.Default.OpenFileStream(FALLBACK_FONT_NAME))
+                {
+                    byte[] mem = new byte[stream.Length];
+                    stream.Read(mem, 0, mem.Length);
+
+                    font = new Font(FALLBACK_FONT_NAME, mem, usize);
+                    m_defaults[usize] = font;
+                }
+            }
+            return font;
         }
 
         public string Name { get; }

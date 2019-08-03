@@ -2,8 +2,103 @@
 using System.Collections;
 using System.Collections.Generic;
 
+using theori.GameModes;
+
 namespace theori.Charting
 {
+    [Flags]
+    public enum EntityRelation
+    {
+        /// <summary>
+        /// Specifies that there is no required relation between two entity types.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Specifies that the given entity type must be the same as the required entity type.
+        /// </summary>
+        Equal = 0b01,
+        /// <summary>
+        /// Specifies that the given entity type must be a subclass of the required entity type.
+        /// </summary>
+        Subclass = 0b10,
+
+        /// <summary>
+        /// Specifies that the given entity type must be equal to or a subclass of the required entity type.
+        /// </summary>
+        EqualOrSubclass = Equal | Subclass,
+    }
+
+    public struct LaneLabel : IEquatable<LaneLabel>
+    {
+        public enum Kind
+        {
+            Text, Number
+        }
+
+        public static implicit operator LaneLabel(string text) => new LaneLabel(text);
+        public static implicit operator LaneLabel(int number) => new LaneLabel(number);
+
+        public static explicit operator int(LaneLabel label)
+        {
+            if (label.LabelKind != Kind.Number)
+                throw new ArgumentException("Label was not numeric.", nameof(label));
+            return label.m_num;
+        }
+
+        public static explicit operator string(LaneLabel label)
+        {
+            if (label.LabelKind != Kind.Text)
+                throw new ArgumentException("Label was not textual.", nameof(label));
+            return label.m_text;
+        }
+
+        public static bool operator ==(LaneLabel a, LaneLabel b) => a.Equals(b);
+        public static bool operator !=(LaneLabel a, LaneLabel b) => !a.Equals(b);
+
+        public static bool operator ==(LaneLabel a, string b) => a.LabelKind == Kind.Text && a.m_text == b;
+        public static bool operator !=(LaneLabel a, string b) => a.LabelKind != Kind.Text || a.m_text != b;
+
+        public static bool operator ==(LaneLabel a, int b) => a.LabelKind == Kind.Number && a.m_num == b;
+        public static bool operator !=(LaneLabel a, int b) => a.LabelKind != Kind.Number || a.m_num != b;
+
+        private readonly string m_text;
+        private readonly int m_num;
+
+        private readonly int m_hashCode;
+
+        public readonly Kind LabelKind;
+
+        public LaneLabel(string text)
+        {
+            LabelKind = Kind.Text;
+            m_text = text ?? throw new ArgumentNullException(nameof(text));
+            m_hashCode = m_text.GetHashCode();
+
+            m_num = 0;
+        }
+
+        public LaneLabel(int num)
+        {
+            LabelKind = Kind.Number;
+            m_num = num;
+            m_hashCode = num;
+
+            m_text = null;
+        }
+
+        public override bool Equals(object obj) => obj is LaneLabel label && Equals(label);
+        public bool Equals(LaneLabel that)
+        {
+            if (LabelKind != that.LabelKind) return false;
+            return LabelKind == Kind.Text ? m_text == that.m_text : m_num == that.m_num;
+        }
+
+        public override int GetHashCode() => m_hashCode;
+
+        public override string ToString() => LabelKind == Kind.Text ? m_text : m_num.ToString();
+    }
+
     /// <summary>
     /// Contains all relevant data for a single chart.
     /// </summary>
@@ -12,16 +107,29 @@ namespace theori.Charting
         public ChartSetInfo SetInfo => Info.Set;
         public ChartInfo Info { get; set; } = new ChartInfo();
 
-        public readonly int StreamCount;
+        public readonly GameMode GameMode;
 
-        /// <summary>
-        /// Contains StreamCount ObjectStreams.
-        /// Each object "stream" is an ordered linked list of objects.
-        /// </summary>
-        public readonly ObjectStream[] ObjectStreams;
+        private readonly Dictionary<LaneLabel, ChartLane> m_lanes = new Dictionary<LaneLabel, ChartLane>();
+        public IEnumerable<ChartLane> Lanes => m_lanes.Values;
+
         public readonly ControlPointList ControlPoints;
 
-        public ObjectStream this[int stream] => ObjectStreams[stream];
+        public time_t LastObjectTime
+        {
+            get
+            {
+                time_t lastTime = double.MinValue;
+                foreach (var lane in Lanes)
+                {
+                    if (lane.Count == 0) continue;
+
+                    time_t t = lane.Last.AbsolutePosition;
+                    if (t > lastTime)
+                        lastTime = t;
+                }
+                return lastTime;
+            }
+        }
 
         private time_t m_offset;
         public time_t Offset
@@ -39,13 +147,28 @@ namespace theori.Charting
             get
             {
                 tick_t end = 0;
-                for (int i = 0; i < StreamCount; i++)
+                foreach (var lane in Lanes)
                 {
-                    var last = ObjectStreams[i].LastObject;
+                    var last = lane.Last;
                     if (last != null)
                         end = end < last.EndPosition ? last.EndPosition : end;
                 }
                 return end;
+            }
+        }
+
+        public time_t TimeStart
+        {
+            get
+            {
+                time_t start = double.MaxValue;
+                foreach (var lane in Lanes)
+                {
+                    var last = lane.First;
+                    if (last != null)
+                        start = start > last.AbsolutePosition ? last.AbsolutePosition : start;
+                }
+                return start;
             }
         }
 
@@ -54,9 +177,9 @@ namespace theori.Charting
             get
             {
                 time_t end = 0;
-                for (int i = 0; i < StreamCount; i++)
+                foreach (var lane in Lanes)
                 {
-                    var last = ObjectStreams[i].LastObject;
+                    var last = lane.Last;
                     if (last != null)
                         end = end < last.AbsoluteEndPosition ? last.AbsoluteEndPosition : end;
                 }
@@ -83,53 +206,103 @@ namespace theori.Charting
             }
         }
 
-        public Chart(int streamCount)
+        public Chart(GameMode gameMode = null)
         {
-            StreamCount = streamCount;
-            ObjectStreams = new ObjectStream[streamCount];
-            for (int i = 0; i < streamCount; i++)
-                ObjectStreams[i] = new ObjectStream(this, i);
-
+            GameMode = gameMode;
             ControlPoints = new ControlPointList(this);
         }
 
+        public Chart(int laneCount, GameMode gameMode = null)
+        {
+            GameMode = gameMode;
+            ControlPoints = new ControlPointList(this);
+
+            for (int i = 0; i < laneCount; i++)
+                CreateOpenLane(i);
+        }
+
+        #region Lane Creation
+
+        private void ThrowIfLaneExists(LaneLabel name)
+        {
+            if (m_lanes.ContainsKey(name))
+                throw new ArgumentException(nameof(name));
+        }
+
+        public ChartLane CreateOpenLane(LaneLabel name)
+        {
+            ThrowIfLaneExists(name);
+            return m_lanes[name] = new ChartLane(this, name);
+        }
+
+        public ChartLane CreateTypedLane<TEntity>(LaneLabel name, EntityRelation relation = EntityRelation.Equal)
+            where TEntity : Entity
+        {
+            return CreateTypedLane(name, typeof(TEntity), relation);
+        }
+
+        public ChartLane CreateTypedLane(LaneLabel name, Type type, EntityRelation relation = EntityRelation.Equal)
+        {
+            ThrowIfLaneExists(name);
+            return m_lanes[name] = new ChartLane(this, name, new[] { type }, relation);
+        }
+
+        public ChartLane CreateMultiTypedLane<TEntity0, TEntity1>(LaneLabel name, EntityRelation relation = EntityRelation.Equal)
+            where TEntity0 : Entity
+            where TEntity1 : Entity
+        {
+            return CreateMultiTypedLane(name, new[] { typeof(TEntity0), typeof(TEntity1) }, relation);
+        }
+
+        public ChartLane CreateMultiTypedLane<TEntity0, TEntity1, TEntity2>(LaneLabel name, EntityRelation relation = EntityRelation.Equal)
+            where TEntity0 : Entity
+            where TEntity1 : Entity
+            where TEntity2 : Entity
+        {
+            return CreateMultiTypedLane(name, new[] { typeof(TEntity0), typeof(TEntity1), typeof(TEntity2) }, relation);
+        }
+
+        public ChartLane CreateMultiTypedLane<TEntity0, TEntity1, TEntity2, TEntity3>(LaneLabel name, EntityRelation relation = EntityRelation.Equal)
+            where TEntity0 : Entity
+            where TEntity1 : Entity
+            where TEntity2 : Entity
+            where TEntity3 : Entity
+        {
+            return CreateMultiTypedLane(name, new[] { typeof(TEntity0), typeof(TEntity1), typeof(TEntity2), typeof(TEntity3) }, relation);
+        }
+
+        public ChartLane CreateMultiTypedLane<TEntity0, TEntity1, TEntity2, TEntity3, TEntity4>(LaneLabel name, EntityRelation relation = EntityRelation.Equal)
+            where TEntity0 : Entity
+            where TEntity1 : Entity
+            where TEntity2 : Entity
+            where TEntity3 : Entity
+            where TEntity4 : Entity
+        {
+            return CreateMultiTypedLane(name, new[] { typeof(TEntity0), typeof(TEntity1), typeof(TEntity2), typeof(TEntity3), typeof(TEntity4) }, relation);
+        }
+
+        public ChartLane CreateMultiTypedLane(LaneLabel name, Type[] types, EntityRelation relation = EntityRelation.Equal)
+        {
+            ThrowIfLaneExists(name);
+            return m_lanes[name] = new ChartLane(this, name, types, relation);
+        }
+
+        #endregion
+
+        #region Lane Getting
+
+        public ChartLane this[LaneLabel name] => GetLane(name);
+        public ChartLane GetLane(LaneLabel name) => m_lanes[name];
+
+        #endregion
+
         internal void InvalidateTimeCalc()
         {
-            for (int i = 0; i < StreamCount; i++)
-                ObjectStreams[i].InvalidateTimeCalc();
+            foreach (var lane in Lanes)
+                lane.InvalidateTimeCalc();
                 
             ControlPoints.InvalidateTimeCalc();
         }
-
-        /// <summary>
-        /// Shortcut function which adds the given object to the stream it specifies.
-        /// This is identical to `ObjectStreams[obj.Stream].Add(obj)`.
-        /// </summary>
-        public void AddObject(ChartObject obj) => ObjectStreams[obj.Stream].Add(obj);
-
-        public void ForEachObjectInRange(int stream, tick_t startPos, tick_t endPos, bool includeDuration, Action<ChartObject> action) =>
-            this[stream].ForEachInRange(startPos, endPos, includeDuration, action);
-
-        public void ForEachObjectInRange(int stream, time_t startPos, time_t endPos, bool includeDuration, Action<ChartObject> action) =>
-            this[stream].ForEachInRange(startPos, endPos, includeDuration, action);
-
-        public void ForEachObjectInRange(tick_t startPos, tick_t endPos, bool includeDuration, Action<ChartObject> action)
-        {
-            for (int i = 0; i < StreamCount; i++)
-                this[i].ForEachInRange(startPos, endPos, includeDuration, action);
-        }
-
-        public void ForEachObjectInRange(time_t startPos, time_t endPos, bool includeDuration, Action<ChartObject> action)
-        {
-            for (int i = 0; i < StreamCount; i++)
-                this[i].ForEachInRange(startPos, endPos, includeDuration, action);
-        }
-
-        public void ForEachControlPointInRange(int stream, tick_t startPos, tick_t endPos, Action<ControlPoint> action) =>
-            ControlPoints.ForEachInRange(startPos, endPos, action);
-
-        public void ForEachControlPointInRange(int stream, time_t startPos, time_t endPos, Action<ControlPoint> action) =>
-            ControlPoints.ForEachInRange(startPos, endPos, action);
 
         public time_t CalcTimeFromTick(tick_t pos)
         {
@@ -137,30 +310,81 @@ namespace theori.Charting
             return cp.AbsolutePosition + cp.MeasureDuration * (pos - cp.Position);
         }
 
-        public sealed class ObjectStream : IEnumerable<ChartObject>
+        public sealed class ChartLane : IEnumerable<Entity>
         {
             private readonly Chart m_chart;
-            private readonly int m_stream;
-            private readonly OrderedLinkedList<ChartObject> m_objects = new OrderedLinkedList<ChartObject>();
+            public readonly LaneLabel Label;
 
-            public ChartObject FirstObject => m_objects.Count == 0 ? null : m_objects[0];
-            public ChartObject LastObject => m_objects.Count == 0 ? null : m_objects[m_objects.Count - 1];
+            private readonly OrderedLinkedList<Entity> m_entities = new OrderedLinkedList<Entity>();
+
+            private readonly Type[] m_allowedTypes;
+            public readonly EntityRelation Relation;
+
+            public IEnumerable<Type> AllowedTypes => m_allowedTypes;
+
+            public Entity First => m_entities.Count == 0 ? null : m_entities[0];
+            public Entity Last => m_entities.Count == 0 ? null : m_entities[m_entities.Count - 1];
             
-            public int Count => m_objects.Count;
-            public ChartObject this[int index] => m_objects[index];
+            public int Count => m_entities.Count;
+            public Entity this[int index] => m_entities[index];
 
-            internal ObjectStream(Chart chart, int stream)
+            internal ChartLane(Chart chart, LaneLabel name)
             {
                 m_chart = chart;
-                m_stream = stream;
+                Label = name;
+                Relation = EntityRelation.None;
             }
 
-            public IEnumerator<ChartObject> GetEnumerator() => m_objects.GetEnumerator();
-            IEnumerator IEnumerable.GetEnumerator() => m_objects.GetEnumerator();
+            internal ChartLane(Chart chart, LaneLabel name, Type[] types, EntityRelation relation)
+            {
+                m_chart = chart;
+                Label = name;
+                m_allowedTypes = types;
+                Relation = relation;
+            }
+
+            public IEnumerator<Entity> GetEnumerator() => m_entities.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => m_entities.GetEnumerator();
 
             internal void InvalidateTimeCalc()
             {
-                foreach (var obj in m_objects) obj.InvalidateTimingCalc();
+                foreach (var obj in m_entities) obj.InvalidateTimingCalc();
+            }
+
+            private void ValidateTypeRequirement(Type requestedType)
+            {
+                if (requestedType != typeof(Entity) && !requestedType.IsSubclassOf(typeof(Entity)))
+                    throw new ChartFormatException($"{ requestedType } does not inherit from { nameof(Entity) }: cannot add to { nameof(ChartLane) }");
+
+                if (Relation == EntityRelation.None)
+                    return; // always allow any type when no relation is specified
+
+                bool isAllowed = false;
+                foreach (var allowedType in m_allowedTypes)
+                {
+                    if (isAllowed) break;
+
+                    if ((Relation & EntityRelation.Equal) != 0)
+                    {
+                        if (allowedType == requestedType)
+                            isAllowed = true;
+                    }
+                    else if ((Relation & EntityRelation.Subclass) != 0)
+                    {
+                        if (requestedType.IsSubclassOf(allowedType))
+                            isAllowed = true;
+                    }
+                }
+
+                if (!isAllowed)
+                {
+                    string message;
+                    if (Label != null)
+                        message = $"{ nameof(ChartLane) } (\"{ Label }\") does not allow entities of type { requestedType } ({ Entity.GetEntityIdByType(requestedType) }).";
+                    else message = $"{ nameof(ChartLane) } does not allow entities of type { requestedType } ({ Entity.GetEntityIdByType(requestedType) }).";
+
+                    throw new ChartFormatException(message);
+                }
             }
 
             /// <summary>
@@ -173,39 +397,42 @@ namespace theori.Charting
             /// If the given object already belongs to this chart, but in
             ///  a different object stream, it is first removed from that stream.
             ///  
-            /// This function adds the given object to this stream and assigns
+            /// This function adds the given object to this stream and assigns.
             ///  the object's Chart and Stream fields accordingly.
             /// </summary>
-            public void Add(ChartObject obj)
+            public void Add(Entity obj)
             {
                 System.Diagnostics.Debug.Assert(obj.Position >= 0);
+                ValidateTypeRequirement(obj.GetType());
 
                 // already added in the correct place
-                if (obj.Chart == m_chart && obj.Stream == m_stream)
+                if (obj.Chart == m_chart && obj.Lane == Label)
                     return;
 
                 if (obj.Chart != null)
                 {
                     if (obj.Chart != m_chart)
                         throw new ArgumentException("Given object is parented to a different chart!.", nameof(obj));
-                    m_chart.ObjectStreams[obj.m_stream].Remove(obj);
+                    m_chart[obj.Lane].Remove(obj);
                 }
 
                 obj.Chart = m_chart;
-                obj.m_stream = m_stream;
+                obj.m_lane = Label;
 
-                m_objects.Add(obj);
+                m_entities.Add(obj);
             }
 
             /// <summary>
             /// Constructs a new Object and calls `Add(Object)` to add it to this stream.
             /// The newly created Object is returned.
             /// </summary>
-            public ChartObject Add(tick_t position, tick_t duration = default) => Add<ChartObject>(position, duration);
+            public Entity Add(tick_t position, tick_t duration = default) => Add<Entity>(position, duration);
 
             public T Add<T>(tick_t position, tick_t duration = default)
-                where T : ChartObject, new()
+                where T : Entity, new()
             {
+                ValidateTypeRequirement(typeof(T));
+
                 var obj = new T()
                 {
                     Position = position,
@@ -216,16 +443,28 @@ namespace theori.Charting
                 return obj;
             }
 
+            public Entity Add(Type entityType, tick_t position, tick_t duration = default)
+            {
+                ValidateTypeRequirement(entityType);
+
+                var obj = (Entity)Activator.CreateInstance(entityType);
+                obj.Position = position;
+                obj.Duration = duration;
+
+                Add(obj);
+                return obj;
+            }
+
             /// <summary>
             /// If the object is contained in this stream, it is removed and
             ///  its Chart property is set to null.
             /// </summary>
             /// <param name="obj"></param>
-            public void Remove(ChartObject obj)
+            public void Remove(Entity obj)
             {
-                if (obj.Chart == m_chart && obj.Stream == m_stream)
+                if (obj.Chart == m_chart && obj.Lane == Label)
                 {
-                    bool rem = m_objects.Remove(obj);
+                    bool rem = m_entities.Remove(obj);
                     System.Diagnostics.Debug.Assert(rem);
                     obj.Chart = null;
                 }
@@ -236,12 +475,12 @@ namespace theori.Charting
             /// If `includeDuration` is true, the first object which contains
             ///  the given position is returned.
             /// </summary>
-            public ChartObject Find(tick_t position, bool includeDuration)
+            public Entity Find(tick_t position, bool includeDuration)
             {
                 // TODO(local): make this a binary search?
-                for (int i = 0, count = m_objects.Count; i < count; i++)
+                for (int i = 0, count = m_entities.Count; i < count; i++)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (includeDuration)
                     {
                         if (obj.Position <= position && obj.Duration >= position)
@@ -255,12 +494,12 @@ namespace theori.Charting
             }
 
             public T Find<T>(tick_t position, bool includeDuration)
-                where T : ChartObject
+                where T : Entity
             {
                 // TODO(local): make this a binary search?
-                for (int i = 0, count = m_objects.Count; i < count; i++)
+                for (int i = 0, count = m_entities.Count; i < count; i++)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (includeDuration)
                     {
                         if (obj.Position <= position && obj.Duration >= position && obj is T t)
@@ -273,11 +512,11 @@ namespace theori.Charting
                 return null;
             }
 
-            public ChartObject MostRecent(tick_t position)
+            public Entity MostRecent(tick_t position)
             {
-                for (int i = m_objects.Count - 1; i >= 0; i--)
+                for (int i = m_entities.Count - 1; i >= 0; i--)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (obj.Position <= position)
                         return obj;
                 }
@@ -285,22 +524,22 @@ namespace theori.Charting
             }
 
             public T MostRecent<T>(tick_t position)
-                where T : ChartObject
+                where T : Entity
             {
-                for (int i = m_objects.Count - 1; i >= 0; i--)
+                for (int i = m_entities.Count - 1; i >= 0; i--)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (obj.Position <= position && obj is T t)
                         return t;
                 }
                 return null;
             }
 
-            public ChartObject MostRecent(time_t position)
+            public Entity MostRecent(time_t position)
             {
-                for (int i = m_objects.Count - 1; i >= 0; i--)
+                for (int i = m_entities.Count - 1; i >= 0; i--)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (obj.AbsolutePosition <= position)
                         return obj;
                 }
@@ -308,46 +547,46 @@ namespace theori.Charting
             }
 
             public T MostRecent<T>(time_t position)
-                where T : ChartObject
+                where T : Entity
             {
-                for (int i = m_objects.Count - 1; i >= 0; i--)
+                for (int i = m_entities.Count - 1; i >= 0; i--)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (obj.AbsolutePosition <= position && obj is T t)
                         return t;
                 }
                 return null;
             }
 
-            public void ForEach(Action<ChartObject> action)
+            public void ForEach(Action<Entity> action)
             {
                 if (action == null) return;
-                for (int i = 0, count = m_objects.Count; i < count; i++)
-                    action(m_objects[i]);
+                for (int i = 0, count = m_entities.Count; i < count; i++)
+                    action(m_entities[i]);
             }
 
             public void ForEach<T>(Action<T> action)
-                where T : ChartObject
+                where T : Entity
             {
                 if (action == null) return;
-                for (int i = 0, count = m_objects.Count; i < count; i++)
-                    action((T)m_objects[i]);
+                for (int i = 0, count = m_entities.Count; i < count; i++)
+                    action((T)m_entities[i]);
             }
 
-            public void ForEachInRange(tick_t startPos, tick_t endPos, bool includeDuration, Action<ChartObject> action)
+            public void ForEachInRange(tick_t startPos, tick_t endPos, bool includeDuration, Action<Entity> action)
             {
                 if (action == null) return;
 
-		        tick_t GetEndPosition(ChartObject obj)
+		        tick_t GetEndPosition(Entity obj)
 		        {
 			        if (includeDuration)
 				        return obj.EndPosition;
 			        else return obj.Position;
 		        }
 		
-			    for (int i = 0; i < m_objects.Count; i++)
+			    for (int i = 0; i < m_entities.Count; i++)
 			    {
-				    var obj = m_objects[i];
+				    var obj = m_entities[i];
 				    if (GetEndPosition(obj) < startPos)
 					    continue;
 				    if (obj.Position > endPos)
@@ -356,20 +595,20 @@ namespace theori.Charting
 			    }
             }
 
-            public void ForEachInRange(time_t startPos, time_t endPos, bool includeDuration, Action<ChartObject> action)
+            public void ForEachInRange(time_t startPos, time_t endPos, bool includeDuration, Action<Entity> action)
             {
                 if (action == null) return;
 
-		        time_t GetEndPosition(ChartObject obj)
+		        time_t GetEndPosition(Entity obj)
 		        {
 			        if (includeDuration)
 				        return obj.AbsoluteEndPosition;
 			        else return obj.AbsolutePosition;
 		        }
 		
-			    for (int i = 0; i < m_objects.Count; i++)
+			    for (int i = 0; i < m_entities.Count; i++)
 			    {
-				    var obj = m_objects[i];
+				    var obj = m_entities[i];
 				    if (GetEndPosition(obj) < startPos)
 					    continue;
 				    if (obj.AbsolutePosition > endPos)
@@ -378,12 +617,12 @@ namespace theori.Charting
 			    }
             }
 
-            public bool TryGetAt(tick_t position, out ChartObject overlap)
+            public bool TryGetAt(tick_t position, out Entity overlap)
             {
                 overlap = null;
-                for (int i = 0; i < m_objects.Count && overlap == null; i++)
+                for (int i = 0; i < m_entities.Count && overlap == null; i++)
                 {
-                    var obj = m_objects[i];
+                    var obj = m_entities[i];
                     if (obj.Position == position)
                         overlap = obj;
                 }
@@ -394,12 +633,44 @@ namespace theori.Charting
         public sealed class ControlPointList : IEnumerable<ControlPoint>
         {
             private readonly Chart m_chart;
+
             private readonly OrderedLinkedList<ControlPoint> m_controlPoints = new OrderedLinkedList<ControlPoint>();
 
             public int Count => m_controlPoints.Count;
             public ControlPoint this[int index] => m_controlPoints[index];
 
             public ControlPoint Root => m_controlPoints[0];
+
+            public double ModeBeatsPerMinute
+            {
+                get
+                {
+                    Dictionary<double, time_t> durations = new Dictionary<double, time_t>();
+
+                    time_t chartEnd = m_chart.LastObjectTime;
+                    time_t longestTime = -1;
+
+                    double result = 120.0;
+                    foreach (var point in m_controlPoints)
+                    {
+                        double bpm = point.BeatsPerMinute;
+                        if (!durations.ContainsKey(bpm))
+                            durations[bpm] = 0.0;
+
+                        if (point.HasNext)
+                            durations[bpm] += point.Next.AbsolutePosition - point.AbsolutePosition;
+                        else durations[bpm] += chartEnd - point.AbsolutePosition;
+
+                        if (durations[bpm] > longestTime)
+                        {
+                            longestTime = durations[bpm];
+                            result = bpm;
+                        }
+                    }
+
+                    return result;
+                }
+            }
 
             internal ControlPointList(Chart chart)
             {

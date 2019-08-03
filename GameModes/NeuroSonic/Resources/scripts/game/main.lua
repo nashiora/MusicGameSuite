@@ -1,61 +1,40 @@
-﻿
-local CenterpieceTex;
-local ParticlesTex = { };
 
-local ParticleSpawners = { };
-local Particles = { };
+local Layout;
+local LayoutWidth, LayoutHeight;
+local LayoutScale;
 
-local function ShallowCopy(value)
-	if (type(value) == "table") then
-		local result = { };
-		for k, v in next, value do
-			result[k] = v;
+local ViewportWidth, ViewportHeight;
+
+local IntroAnimTimer = 0.0;
+
+local Layouts = {
+	Landscape = { },
+	WideLandscape = { },
+	Portrait = { },
+};
+
+local function CalculateLayout()
+	ViewportWidth, ViewportHeight = g2d.GetViewportSize();
+	Layout = ViewportWidth > ViewportHeight and "Landscape" or "Portrait";
+	if (Layout == "Landscape") then
+		if (ViewportWidth / ViewportHeight > 2) then
+			Layout = "Wide-" .. Layout;
+			LayoutWidth = 1680;
+		else
+			LayoutWidth = 1280;
 		end
-		return result;
+	else
+		LayoutWidth = 720;
 	end
-	
-	return value;
+	LayoutScale = ViewportWidth / LayoutWidth;
+	LayoutHeight = ViewportHeight / LayoutScale;
 end
 
-local function DeepCopy(value)
-	if (type(value) == "table") then
-		local result = { };
-		for k, v in next, value do
-			result[DeepCopy(k)] = DeepCopy(v);
-		end
-		return result;
-	end
-	
-	return value;
-end
-
-local function CreateParticleSpawner(frequency, spawnOffset, texture, size, posx, posy, distance, lifetime)
-	local spawner = {
-		Frequency = frequency,
-		Timer = frequency + spawnOffset,
-
-		Prototype = {
-			Texture = texture,
-			Size = size,
-			Position = { X = posx, Y = posy },
-			MaxDistance = distance,
-			Distance = distance,
-			Lifetime = lifetime,
-		},
-
-		SpawnParticle = function(self)
-			return DeepCopy(self.Prototype);
-		end,
-	};
-	return spawner;
+local function DoLayoutTransform()
+	g2d.Scale(LayoutScale, LayoutScale);
 end
 
 function AsyncLoad()
-	CenterpieceTex = res.QueueTextureLoad("textures/game_bg/centerpiece");
-	ParticlesTex[1] = res.QueueTextureLoad("textures/game_bg/particle0");
-	ParticlesTex[2] = res.QueueTextureLoad("textures/game_bg/particle1");
-	ParticlesTex[3] = res.QueueTextureLoad("textures/game_bg/particle2");
-
 	return true;
 end
 
@@ -64,83 +43,113 @@ function AsyncFinalize()
 end
 
 function Init()
-	for i = 1, 2 do
-		local side = (i == 1 and -1 or 1);
-		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.50, 0.35, ParticlesTex[1],  95, side * 0.35, -0.35, 20, 1.00));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.00, ParticlesTex[1], 125, side * 0.50,  0.55, 18, 1.00));
-		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.65, 0.15, ParticlesTex[2], 120, side * 0.75,  0.95, 22, 1.00));
-		
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.35, ParticlesTex[3], 110, side * 0.70,  0.75, 18, 0.90));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.20, ParticlesTex[3],  90, side * 0.90,  1.25, 20, 1.00));
-		table.insert(ParticleSpawners, CreateParticleSpawner(0.55, 0.05, ParticlesTex[3],  75, side * 0.80, -0.15, 22, 1.10));
-		
-		for i = 1, 10 do
-			local y = -3.0 + (i - 1) * 0.6;
-			local x = -4.0 - 0.5 * (5 - i);
-			if (i % 2 == 0) then
-				x = x + 0.35;
-			end
-
-			table.insert(ParticleSpawners, CreateParticleSpawner(0.7, (i % 3) * 0.15, ParticlesTex[3], 85, side * x, y, 25, 2.00 - (i % 4) * 0.1));
-		end
-	end
+	CalculateLayout();
+	game.Begin();
 end
 
 function Update(delta, total)
-	for _, spawner in next, ParticleSpawners do
-		spawner.Timer = spawner.Timer - delta;
-		if (spawner.Timer <= 0) then
-			spawner.Timer = spawner.Frequency;
+	do -- check if layout needs to be refreshed
+		local cvw, cvh = g2d.GetViewportSize();
+		if (ViewportWidth != cvw and ViewportHeight != cvh) then
+			CalculateLayout();
+		end
+	end
 
-			local particle = spawner:SpawnParticle();
-			table.insert(Particles, particle);
-		end
-	end
-	
-	for k, particle in next, Particles do
-		particle.Distance = particle.Distance - delta * (particle.MaxDistance / particle.Lifetime);
-		if (particle.Distance <= 0) then
-			table.remove(Particles, k);
-		end
-	end
+	Layouts[Layout]:Update(delta, total);
 end
 
 function Draw()
-	local width, height = window.GetClientSize();
-	local originx, originy = width / 2, height * HorizonHeight;
-
-	local centerSize = width * 0.6;
-
-	--local spins = -math.min(1, SpinTimer * 2) * 720 - math.min(1, SwingTimer * 2) * 360;
-
 	g2d.SaveTransform();
-	g2d.Rotate(-CombinedTilt * 0.25);
-	g2d.Translate(originx, originy);
+	DoLayoutTransform();
 
-	g2d.SetImageColor(255, 255, 255, 255);
-	g2d.Image(CenterpieceTex, -centerSize / 2, -centerSize * 0.8, centerSize, centerSize);
+	Layouts[Layout]:Draw();
 
 	g2d.RestoreTransform();
+end
+
+-- Landscape Layout
+
+function Layouts.Landscape.Update(self, delta, total)
+end
+
+function Layouts.Landscape.DrawHeader(self)
+	local w, h = LayoutWidth / 2, 20;
+	local x, y = (LayoutWidth - w) / 2, 0;
 
 	g2d.SaveTransform();
-	g2d.Rotate(-CombinedTilt * 0.25);
-	g2d.Translate(originx, originy);
+	g2d.Translate(x, y);
 
-	for _, particle in next, Particles do
-		local posx = width * (particle.Position.X / particle.Distance);
-		local posy = height * (particle.Position.Y / particle.Distance);
-		local size = particle.Size / particle.Distance;
+	g2d.SetColor(255, 255, 255);
+	g2d.FillRect(0, 0, w, h);
+
+	g2d.SetColor(0, 0, 0);
+	g2d.SetFont(nil, 16);
+	g2d.SetTextAlign(Anchor.MiddleCenter);
+	g2d.Write(game.meta.SongTitle .. " / " .. game.meta.SongArtist, w / 2, h / 2);
+
+	g2d.RestoreTransform();
+end
+
+function Layouts.Landscape.DrawChartInfo(self)
+	local x, y = 10, 10;
+
+	g2d.SaveTransform();
+	g2d.Translate(x, y);
+
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(0, 0, 300, 120);
+
+	local diffPlateHeight = 20;
+	local jacketPadding = 5;
+	local jacketSize = 120 - 20 - 3 * jacketPadding - diffPlateHeight;
+
+	g2d.SetColor(255, 255, 255);
+	g2d.FillRect(10, 10, jacketSize + 2 * jacketPadding, 120 - 20);
+
+	g2d.SetColor(0, 0, 0); -- TEMP, DRAW JACKET IMAGE
+	g2d.FillRect(10 + jacketPadding, 10 + jacketPadding, jacketSize, jacketSize);
+
+	local diffColor = game.meta.DifficultyColor;
+	g2d.SetColor(diffColor.x, diffColor.y, diffColor.z);
+	g2d.FillRect(10 + jacketPadding, 10 + 2 * jacketPadding + jacketSize, jacketSize, diffPlateHeight);
+
+	g2d.SetColor(0, 0, 0);
+	g2d.SetFont(nil, 12);
+	g2d.SetTextAlign(Anchor.MiddleLeft);
+	g2d.Write(game.meta.DifficultyName .. " " .. game.meta.DifficultyLevel, 10 + 2 * jacketPadding, 10 + 2 * jacketPadding + jacketSize + diffPlateHeight / 2);
+
+	g2d.RestoreTransform();
+end
+
+function Layouts.Landscape.Draw(self)
+	self:DrawChartInfo();
+	self:DrawHeader();
+	
+	-- Score
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(LayoutWidth - 10 - 300, 10, 300, 120);
+	
+	-- Gauge
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(LayoutWidth * 3 / 4 - 35, LayoutHeight / 2 - 200, 70, 400);
 		
-		local alpha = 1;
-		if (particle.Distance > particle.MaxDistance - 4) then	
-			alpha = 1 - math.min(4, particle.Distance - (particle.MaxDistance - 4)) / 4;
-		elseif (particle.Distance < 4) then
-			alpha = particle.Distance / 4;
-		end
+	-- Chart Info
+	g2d.SetColor(60, 60, 60, 225);
+	g2d.FillRect(10, LayoutHeight - 10 - 160, 300, 160);
+end
 
-		g2d.SetImageColor(255, 255, 255, math.floor(255 * alpha));
-		g2d.Image(particle.Texture, posx - size / 2, posy - size / 2, size, size);
-	end
+-- Wide Landscape Layout
+
+function Layouts.WideLandscape.Update(self, delta, total)
+end
+
+function Layouts.WideLandscape.Draw(self)
+end
+
+-- Portrait Layout
+
+function Layouts.Portrait.Update(self, delta, total)
+end
+
+function Layouts.Portrait.Draw(self)
 end

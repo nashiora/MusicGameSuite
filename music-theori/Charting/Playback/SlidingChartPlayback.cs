@@ -13,11 +13,11 @@ namespace theori.Charting.Playback
         public readonly string Name;
         public time_t Position { get; internal set; }
 
-        public Action<ChartObject> HeadCross;
-        public Action<ChartObject> TailCross;
+        public Action<Entity> HeadCross;
+        public Action<Entity> TailCross;
 
-        internal List<ChartObject>[] m_objectsAhead;
-        internal List<ChartObject>[] m_objectsBehind;
+        internal Dictionary<LaneLabel, List<Entity>> m_objectsAhead;
+        internal Dictionary<LaneLabel, List<Entity>> m_objectsBehind;
 
         public PlaybackWindow(string name, time_t where)
         {
@@ -25,12 +25,12 @@ namespace theori.Charting.Playback
             Position = where;
         }
 
-        internal void OnHeadCross(ChartObject obj)
+        internal void OnHeadCross(Entity obj)
         {
             HeadCross?.Invoke(obj);
         }
 
-        internal void OnTailCross(ChartObject obj)
+        internal void OnTailCross(Entity obj)
         {
             TailCross?.Invoke(obj);
         }
@@ -67,19 +67,19 @@ namespace theori.Charting.Playback
 
         private readonly List<PlaybackWindow> m_customWindows = new List<PlaybackWindow>();
 
-        private List<ChartObject>[] m_objsAhead, m_objsBehind;
-        private List<ChartObject>[] m_objsPrimary, m_objsSecondary;
+        private Dictionary<LaneLabel, List<Entity>> m_objsAhead, m_objsBehind;
+        private Dictionary<LaneLabel, List<Entity>> m_objsPrimary, m_objsSecondary;
 
         #region Granular Events
         
-        public event Action<PlayDirection, ChartObject> ObjectHeadCrossPrimary;
-        public event Action<PlayDirection, ChartObject> ObjectTailCrossPrimary;
+        public event Action<PlayDirection, Entity> ObjectHeadCrossPrimary;
+        public event Action<PlayDirection, Entity> ObjectTailCrossPrimary;
         
-        public event Action<PlayDirection, ChartObject> ObjectHeadCrossCritical;
-        public event Action<PlayDirection, ChartObject> ObjectTailCrossCritical;
+        public event Action<PlayDirection, Entity> ObjectHeadCrossCritical;
+        public event Action<PlayDirection, Entity> ObjectTailCrossCritical;
         
-        public event Action<PlayDirection, ChartObject> ObjectHeadCrossSecondary;
-        public event Action<PlayDirection, ChartObject> ObjectTailCrossSecondary;
+        public event Action<PlayDirection, Entity> ObjectHeadCrossSecondary;
+        public event Action<PlayDirection, Entity> ObjectTailCrossSecondary;
 
         #endregion
 
@@ -88,16 +88,18 @@ namespace theori.Charting.Playback
             SetChart(chart);
         }
 
+#if false
         public PlaybackWindow CreateWindow(string name, time_t where)
         {
             var window = new PlaybackWindow(name, where);
             if (Chart != null)
             {
-                window.m_objectsAhead = new List<ChartObject>[Chart.StreamCount].Fill(i => new List<ChartObject>(Chart[i]));
-                window.m_objectsBehind = new List<ChartObject>[Chart.StreamCount].Fill(() => new List<ChartObject>());
+                window.m_objectsAhead = new List<Entity>[Chart.LaneCount].Fill(i => new List<Entity>(Chart[i]));
+                window.m_objectsBehind = new List<Entity>[Chart.LaneCount].Fill(() => new List<Entity>());
             }
             return window;
         }
+#endif
 
         public void Reset()
         {
@@ -111,28 +113,33 @@ namespace theori.Charting.Playback
 
             m_position = -9999;
 
-            m_objsAhead = new List<ChartObject>[Chart.StreamCount];
-            m_objsAhead.Fill(i =>
+            Dictionary<LaneLabel, List<Entity>> CreateFilledObjs()
             {
-                var result = new List<ChartObject>(chart[i]);
-                //chart[i].ForEach(obj => result.Add(obj));
+                var result = new Dictionary<LaneLabel, List<Entity>>();
+                foreach (var lane in chart.Lanes)
+                    result[lane.Label] = new List<Entity>(lane);
                 return result;
-            });
+            }
+
+            Dictionary<LaneLabel, List<Entity>> CreateObjs()
+            {
+                var result = new Dictionary<LaneLabel, List<Entity>>();
+                foreach (var lane in chart.Lanes)
+                    result[lane.Label] = new List<Entity>();
+                return result;
+            }
+
+            m_objsAhead = CreateFilledObjs();
 
             foreach (var window in m_customWindows)
             {
-                window.m_objectsAhead = new List<ChartObject>[Chart.StreamCount].Fill(i => new List<ChartObject>(Chart[i]));
-                window.m_objectsBehind = new List<ChartObject>[Chart.StreamCount].Fill(() => new List<ChartObject>());
+                window.m_objectsAhead = CreateFilledObjs();
+                window.m_objectsBehind = CreateObjs();
             }
 
-            m_objsPrimary = new List<ChartObject>[chart.StreamCount];
-            m_objsPrimary.Fill(() => new List<ChartObject>());
-
-            m_objsSecondary = new List<ChartObject>[chart.StreamCount];
-            m_objsSecondary.Fill(() => new List<ChartObject>());
-
-            m_objsBehind = new List<ChartObject>[chart.StreamCount];
-            m_objsBehind.Fill(() => new List<ChartObject>());
+            m_objsPrimary = CreateObjs();
+            m_objsSecondary = CreateObjs();
+            m_objsBehind = CreateObjs();
         }
 
         private void SetNextPosition(time_t nextPos)
@@ -150,11 +157,13 @@ namespace theori.Charting.Playback
                 CheckEdgeForward(nextPos, m_objsPrimary, m_objsSecondary, OnHeadCrossCritical, OnTailCrossCritical);
                 CheckEdgeForward(nextPos - LookBehind, m_objsSecondary, m_objsBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
 
+#if false
                 foreach (var window in m_customWindows)
                 {
                     CheckEdgeForward(nextPos + window.Position, window.m_objectsAhead, window.m_objectsBehind,
                         (dir, obj) => window.OnHeadCross(obj), (dir, obj) => window.OnTailCross(obj));
                 }
+#endif
             }
             else
             {
@@ -164,17 +173,16 @@ namespace theori.Charting.Playback
             }
         }
 
-        private void CheckEdgeForward(time_t edge, List<ChartObject>[] objsFrom, List<ChartObject>[] objsTo, Action<PlayDirection, ChartObject> headCross, Action<PlayDirection, ChartObject> tailCross)
+        private void CheckEdgeForward(time_t edge, Dictionary<LaneLabel, List<Entity>> objsFrom, Dictionary<LaneLabel, List<Entity>> objsTo, Action<PlayDirection, Entity> headCross, Action<PlayDirection, Entity> tailCross)
         {
-            for (int stream = 0; stream < Chart.StreamCount; stream++)
+            foreach (var (label, from) in objsFrom)
             {
-                var from = objsFrom[stream];
                 for (int i = 0; i < from.Count; )
                 {
                     var obj = from[i];
                     if (obj.AbsolutePosition < edge)
                     {
-                        var to = objsTo[stream];
+                        var to = objsTo[label];
                         if (!to.Contains(obj))
                         {
                             // entered the seconary section, passed the critical-edge.
@@ -197,17 +205,16 @@ namespace theori.Charting.Playback
             }
         }
         
-        private void CheckEdgeBackward(time_t edge, List<ChartObject>[] objsFrom, List<ChartObject>[] objsTo, Action<PlayDirection, ChartObject> headCross, Action<PlayDirection, ChartObject> tailCross)
+        private void CheckEdgeBackward(time_t edge, Dictionary<LaneLabel, List<Entity>> objsFrom, Dictionary<LaneLabel, List<Entity>> objsTo, Action<PlayDirection, Entity> headCross, Action<PlayDirection, Entity> tailCross)
         {
-            for (int stream = 0; stream < Chart.StreamCount; stream++)
+            foreach (var (label, from) in objsFrom)
             {
-                var from = objsFrom[stream];
                 for (int i = 0; i < from.Count; )
                 {
                     var obj = from[i];
                     if (obj.AbsoluteEndPosition > edge)
                     {
-                        var to = objsTo[stream];
+                        var to = objsTo[label];
                         if (!to.Contains(obj))
                         {
                             // entered the seconary section, passed the critical-edge.
@@ -229,26 +236,27 @@ namespace theori.Charting.Playback
                 }
             }
         }
-        
-        public void AddObject(ChartObject obj)
+
+#if false
+        public void AddObject(Entity obj)
         {
-            List<ChartObject>[] CreateFake()
+            List<Entity>[] CreateFake()
             {
-                var fake = new List<ChartObject>[Chart.StreamCount];
-                fake.Fill(() => new List<ChartObject>());
+                var fake = new List<Entity>[Chart.LaneCount];
+                fake.Fill(() => new List<Entity>());
                 return fake;
             }
 
-            void TransferFake(List<ChartObject>[] fake, List<ChartObject>[] real)
+            void TransferFake(List<Entity>[] fake, List<Entity>[] real)
             {
-                for (int i = 0; i < Chart.StreamCount; i++)
+                for (int i = 0; i < Chart.LaneCount; i++)
                     real[i].AddRange(fake[i]);
             }
             
-            List<ChartObject>[] fakeAhead = CreateFake();
-            List<ChartObject>[] fakePrimary = CreateFake();
-            List<ChartObject>[] fakeSecondary = CreateFake();
-            List<ChartObject>[] fakeBehind = CreateFake();
+            List<Entity>[] fakeAhead = CreateFake();
+            List<Entity>[] fakePrimary = CreateFake();
+            List<Entity>[] fakeSecondary = CreateFake();
+            List<Entity>[] fakeBehind = CreateFake();
 
             fakeAhead[obj.Stream].Add(obj);
 
@@ -262,18 +270,18 @@ namespace theori.Charting.Playback
             TransferFake(fakeBehind, m_objsBehind);
         }
 
-        public void RemoveObject(ChartObject obj)
+        public void RemoveObject(Entity obj)
         {
-            List<ChartObject>[] CreateFake()
+            List<Entity>[] CreateFake()
             {
-                var fake = new List<ChartObject>[Chart.StreamCount];
-                fake.Fill(() => new List<ChartObject>());
+                var fake = new List<Entity>[Chart.LaneCount];
+                fake.Fill(() => new List<Entity>());
                 return fake;
             }
 
-            void TransferReal(List<ChartObject>[] fake, List<ChartObject>[] real)
+            void TransferReal(List<Entity>[] fake, List<Entity>[] real)
             {
-                for (int i = 0; i < Chart.StreamCount; i++)
+                for (int i = 0; i < Chart.LaneCount; i++)
                 {
                     if (real[i].Contains(obj))
                     {
@@ -285,10 +293,10 @@ namespace theori.Charting.Playback
                 }
             }
             
-            List<ChartObject>[] fakeAhead = CreateFake();
-            List<ChartObject>[] fakePrimary = CreateFake();
-            List<ChartObject>[] fakeSecondary = CreateFake();
-            List<ChartObject>[] fakeBehind = CreateFake();
+            List<Entity>[] fakeAhead = CreateFake();
+            List<Entity>[] fakePrimary = CreateFake();
+            List<Entity>[] fakeSecondary = CreateFake();
+            List<Entity>[] fakeBehind = CreateFake();
             
             TransferReal(fakeAhead, m_objsAhead);
             TransferReal(fakePrimary, m_objsPrimary);
@@ -299,14 +307,15 @@ namespace theori.Charting.Playback
             CheckEdgeForward(Chart.TimeEnd + 1, fakePrimary, fakeSecondary, OnHeadCrossCritical, OnTailCrossCritical);
             CheckEdgeForward(Chart.TimeEnd + 1, fakeSecondary, fakeBehind, OnHeadCrossSecondary, OnTailCrossSecondary);
         }
+#endif
 
-        private void OnHeadCrossPrimary(PlayDirection dir, ChartObject obj) => ObjectHeadCrossPrimary?.Invoke(dir, obj);
-        private void OnTailCrossPrimary(PlayDirection dir, ChartObject obj) => ObjectTailCrossPrimary?.Invoke(dir, obj);
+        private void OnHeadCrossPrimary(PlayDirection dir, Entity obj) => ObjectHeadCrossPrimary?.Invoke(dir, obj);
+        private void OnTailCrossPrimary(PlayDirection dir, Entity obj) => ObjectTailCrossPrimary?.Invoke(dir, obj);
 
-        private void OnHeadCrossCritical(PlayDirection dir, ChartObject obj) => ObjectHeadCrossCritical?.Invoke(dir, obj);
-        private void OnTailCrossCritical(PlayDirection dir, ChartObject obj) => ObjectTailCrossCritical?.Invoke(dir, obj);
+        private void OnHeadCrossCritical(PlayDirection dir, Entity obj) => ObjectHeadCrossCritical?.Invoke(dir, obj);
+        private void OnTailCrossCritical(PlayDirection dir, Entity obj) => ObjectTailCrossCritical?.Invoke(dir, obj);
 
-        private void OnHeadCrossSecondary(PlayDirection dir, ChartObject obj) => ObjectHeadCrossSecondary?.Invoke(dir, obj);
-        private void OnTailCrossSecondary(PlayDirection dir, ChartObject obj) => ObjectTailCrossSecondary?.Invoke(dir, obj);
+        private void OnHeadCrossSecondary(PlayDirection dir, Entity obj) => ObjectHeadCrossSecondary?.Invoke(dir, obj);
+        private void OnTailCrossSecondary(PlayDirection dir, Entity obj) => ObjectTailCrossSecondary?.Invoke(dir, obj);
     }
 }

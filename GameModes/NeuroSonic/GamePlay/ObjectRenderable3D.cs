@@ -31,9 +31,9 @@ namespace NeuroSonic.GamePlay
 
     internal abstract class ObjectRenderable3D : System.Disposable
     {
-        public readonly ChartObject Object;
+        public readonly Entity Object;
 
-        protected ObjectRenderable3D(ChartObject obj)
+        protected ObjectRenderable3D(Entity obj)
         {
             Object = obj;
         }
@@ -46,7 +46,7 @@ namespace NeuroSonic.GamePlay
         private float m_glow = -1.0f;
         private int m_glowState = -1;
 
-        protected GlowingRenderState3D(ChartObject obj)
+        protected GlowingRenderState3D(Entity obj)
             : base(obj)
         {
         }
@@ -68,20 +68,20 @@ namespace NeuroSonic.GamePlay
 
     internal class ButtonChipRenderState3D : ObjectRenderable3D
     {
-        public new ButtonObject Object => (ButtonObject)base.Object;
+        public new ButtonEntity Object => (ButtonEntity)base.Object;
 
         private int m_width = 1;
 
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public ButtonChipRenderState3D(ButtonObject obj, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
+        public ButtonChipRenderState3D(ButtonEntity obj, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
             : base(obj)
         {
             Debug.Assert(obj.IsChip, "Hold object passed to render state which expects a chip");
 
             string textureName;
-            if (obj.Stream < 4)
+            if ((int)obj.Lane < 4)
             {
                 if (obj.HasSample)
                     textureName = "textures/bt_chip_sample";
@@ -116,7 +116,7 @@ namespace NeuroSonic.GamePlay
         private const float ENTRY_LENGTH = 0.1f;
         private const float EXIT_LENGTH = ENTRY_LENGTH * 0.5f;
 
-        public new ButtonObject Object => (ButtonObject)base.Object;
+        public new ButtonEntity Object => (ButtonEntity)base.Object;
 
         private Transform m_entryTransform = Transform.Scale(1, 1, ENTRY_LENGTH);
         private Transform m_exitTransform = Transform.Scale(1, 1, EXIT_LENGTH);
@@ -126,13 +126,13 @@ namespace NeuroSonic.GamePlay
 
         private readonly Drawable3D[] m_drawables;
 
-        public ButtonHoldRenderState3D(ButtonObject obj, float len, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
+        public ButtonHoldRenderState3D(ButtonEntity obj, float len, ClientResourceManager resources, ObjectRenderable3DStaticResources staticResources)
             : base(obj)
         {
             Debug.Assert(obj.IsHold, "Chip object passed to render state which expects a hold");
 
             string holdTextureName;
-            if (obj.Stream < 4)
+            if ((int)obj.Lane < 4)
                 holdTextureName = "textures/bt_hold";
             else
             {
@@ -198,12 +198,12 @@ namespace NeuroSonic.GamePlay
     {
         private const float LASER_WIDTH = 2.0f;
 
-        public new AnalogObject Object => (AnalogObject)base.Object;
+        public new AnalogEntity Object => (AnalogEntity)base.Object;
         
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public SlamRenderState3D(AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
+        public SlamRenderState3D(AnalogEntity obj, float len, Vector3 color, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(obj.IsInstant, "Analog for slam render state wasn't a slam");
@@ -349,12 +349,12 @@ namespace NeuroSonic.GamePlay
         private const float LASER_WIDTH = 2.0f;
         private const float AUTO_RESOLUTION_AMT = 1.0f / 32;
 
-        public new AnalogObject Object => (AnalogObject)base.Object;
+        public new AnalogEntity Object => (AnalogEntity)base.Object;
         
         private Transform m_transform = Transform.Identity;
         private readonly Drawable3D m_drawable;
 
-        public LaserRenderState3D(AnalogObject obj, float len, Vector3 color, ClientResourceManager skin)
+        public LaserRenderState3D(AnalogEntity obj, float len, Vector3 color, ClientResourceManager skin)
             : base(obj)
         {
             Debug.Assert(!obj.IsInstant, "analog for segment render state was a slam");

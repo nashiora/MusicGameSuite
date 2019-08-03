@@ -1,5 +1,5 @@
 ﻿using theori.Charting;
-using theori.Charting.IO;
+using theori.Charting.Serialization;
 
 namespace theori.GameModes
 {
@@ -52,7 +52,7 @@ namespace theori.GameModes
             Name = name;
         }
 
-        public abstract ChartObjectSerializer GetSerializerByID(int id);
-        public abstract ChartObjectSerializer GetSerializerFor(ChartObject obj);
+        public virtual ChartFactory CreateChartFactory() => new ChartFactory();
+        //public virtual ChartSerializer CreateSerializer(string chartsDir) => new ChartSerializer(chartsDir, this);
     }
 }

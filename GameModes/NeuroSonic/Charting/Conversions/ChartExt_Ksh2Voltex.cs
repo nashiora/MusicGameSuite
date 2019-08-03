@@ -1,12 +1,9 @@
 ﻿using System;
 
 using theori;
-using theori.Audio.Effects;
 using theori.Charting;
 
 using NeuroSonic.Charting.KShootMania;
-
-using Chart = theori.Charting.Chart;
 
 namespace NeuroSonic.Charting.Conversions
 {
@@ -61,10 +58,8 @@ namespace NeuroSonic.Charting.Conversions
             bool hasActiveEffects = !(ksh.Metadata.MusicFile != null && ksh.Metadata.MusicFileNoFx != null);
             Logger.Log("ksh.convert effects disabled");
 
-            var chart = new Chart(StreamIndex.COUNT)
-            {
-                Offset = ksh.Metadata.OffsetMillis / 1_000.0
-            };
+            var chart = NeuroSonicChartFactory.Instance.CreateNew();
+            chart.Offset = ksh.Metadata.OffsetMillis / 1_000.0;
 
             chart.Info = new ChartInfo()
             {
@@ -88,24 +83,22 @@ namespace NeuroSonic.Charting.Conversions
             {
                 if (double.TryParse(ksh.Metadata.BeatsPerMinute, out double bpm))
                     chart.ControlPoints.Root.BeatsPerMinute = bpm;
-                
-                var laserParams = chart[StreamIndex.LaserParams].Add<LaserParamsEvent>(0);
+
+                var laserParams = chart[NscLane.LaserEvent].Add<LaserParamsEvent>(0);
                 laserParams.LaserIndex = LaserIndex.Both;
 
-                var laserGain = chart[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(0);
+                var laserGain = chart[NscLane.LaserEvent].Add<LaserFilterGainEvent>(0);
                 laserGain.LaserIndex = LaserIndex.Both;
                 if (!hasActiveEffects)
                     laserGain.Gain = 0.0f;
                 else laserGain.Gain = ksh.Metadata.PFilterGain / 100.0f;
                 
-                var laserFilter = chart[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(0);
+                var laserFilter = chart[NscLane.LaserEvent].Add<LaserFilterKindEvent>(0);
                 laserFilter.LaserIndex = LaserIndex.Both;
-                laserFilter.Effect = ksh.FilterDefines[ksh.Metadata.FilterType];
+                laserFilter.Effect = new KshEffectRef(ksh.Metadata.FilterType, null).CreateEffectDef(ksh.FilterDefines);
 
-                var slamVolume = chart[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(0);
-                if (!hasActiveEffects)
-                    slamVolume.Volume = 0.0f;
-                else slamVolume.Volume = ksh.Metadata.SlamVolume / 100.0f;
+                var slamVolume = chart[NscLane.LaserEvent].Add<SlamVolumeEvent>(0);
+                slamVolume.Volume = ksh.Metadata.SlamVolume / 100.0f;
             }
 
             var lastCp = chart.ControlPoints.Root;
@@ -113,7 +106,7 @@ namespace NeuroSonic.Charting.Conversions
             var buttonStates = new TempButtonState[6];
             var laserStates = new TempLaserState[2];
             bool[] laserIsExtended = new bool[2] { false, false };
-            PathPointEvent lastTiltEvent = null;
+            GraphPointEvent lastTiltEvent = null;
 
             foreach (var tickRef in ksh)
             {
@@ -157,9 +150,9 @@ namespace NeuroSonic.Charting.Conversions
                         {
                             if (hasActiveEffects)
                             {
-                                var effectEvent = chart[StreamIndex.EffectKind].Add<EffectKindEvent>(chartPos);
+                                var effectEvent = chart[NscLane.ButtonEvent].Add<EffectKindEvent>(chartPos);
                                 effectEvent.EffectIndex = key == "fx-l" ? 4 : 5;
-                                effectEvent.Effect = (string)setting.Value.Value == "" ? null : ksh.FxDefines[setting.Value.ToString()];
+                                effectEvent.Effect = (setting.Value.Value as KshEffectRef)?.CreateEffectDef(ksh.FxDefines);
                                 Logger.Log($"ksh.convert set { key } { effectEvent.Effect?.GetType().Name ?? "nothing" }");
                             }
                             else Logger.Log($"ksh.convert effects disabled for { key }");
@@ -179,7 +172,7 @@ namespace NeuroSonic.Charting.Conversions
                         {
                             if (hasActiveEffects)
                             {
-                                var laserGain = chart[StreamIndex.LaserFilterGain].Add<LaserFilterGainEvent>(chartPos);
+                                var laserGain = chart[NscLane.LaserEvent].Add<LaserFilterGainEvent>(chartPos);
                                 laserGain.LaserIndex = LaserIndex.Both;
                                 laserGain.Gain = setting.Value.ToInt() / 100.0f;
                                 Logger.Log($"ksh.convert set { key } { setting.Value }");
@@ -191,9 +184,9 @@ namespace NeuroSonic.Charting.Conversions
                         {
                             if (hasActiveEffects)
                             {
-                                var laserFilter = chart[StreamIndex.LaserFilterKind].Add<LaserFilterKindEvent>(chartPos);
+                                var laserFilter = chart[NscLane.LaserEvent].Add<LaserFilterKindEvent>(chartPos);
                                 laserFilter.LaserIndex = LaserIndex.Both;
-                                laserFilter.Effect = (string)setting.Value.Value == "" ? null : ksh.FilterDefines[setting.Value.ToString()];
+                                laserFilter.Effect = (setting.Value.Value as KshEffectRef)?.CreateEffectDef(ksh.FilterDefines);
                                 Logger.Log($"ksh.convert set { key } { laserFilter.Effect?.GetType().Name ?? "nothing" }");
                             }
                             else Logger.Log($"ksh.convert effects disabled for { key }");
@@ -216,13 +209,9 @@ namespace NeuroSonic.Charting.Conversions
 
                         case "chokkakuvol":
                         {
-                            if (hasActiveEffects)
-                            {
-                                var slamVoume = chart[StreamIndex.SlamVolume].Add<SlamVolumeEvent>(chartPos);
-                                slamVoume.Volume = setting.Value.ToInt() / 100.0f;
-                                Logger.Log($"ksh.convert set { key } { setting.Value }");
-                            }
-                            else Logger.Log($"ksh.convert effects disabled for { key }");
+                            var slamVoume = chart[NscLane.LaserEvent].Add<SlamVolumeEvent>(chartPos);
+                            slamVoume.Volume = setting.Value.ToInt() / 100.0f;
+                            Logger.Log($"ksh.convert set { key } { setting.Value }");
                         } break;
 
                         case "laserrange_l": { laserIsExtended[0] = true; } break;
@@ -230,35 +219,35 @@ namespace NeuroSonic.Charting.Conversions
                         
                         case "zoom_bottom":
                         {
-                            var point = chart[StreamIndex.Zoom].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraZoom].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             Logger.Log($"ksh.convert zoom { setting.Value }");
                         } break;
                         
                         case "zoom_top":
                         {
-                            var point = chart[StreamIndex.Pitch].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraPitch].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             Logger.Log($"ksh.convert pitch { setting.Value }");
                         } break;
                         
                         case "zoom_side":
                         {
-                            var point = chart[StreamIndex.Offset].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraOffset].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 100.0f;
                             Logger.Log($"ksh.convert offset { setting.Value }");
                         } break;
 
                         case "roll": // NOTE(local): This is an extension, not originally supported in KSH. Used primarily for development purposes, but may also be exported to KSH should someone want to export back to that format.
                         {
-                            var point = chart[StreamIndex.Roll].Add<PathPointEvent>(chartPos);
+                            var point = chart[NscLane.CameraTilt].Add<GraphPointEvent>(chartPos);
                             point.Value = setting.Value.ToInt() / 360.0f;
                             Logger.Log($"ksh.convert custom manual tilt { setting.Value }");
                         } break;
 
                         case "tilt":
                         {
-                            var laserApps = chart[StreamIndex.LaserApplication].Add<LaserApplicationEvent>(chartPos);
+                            var laserApps = chart[NscLane.LaserEvent].Add<LaserApplicationEvent>(chartPos);
 
                             string v = setting.Value.ToString();
                             if (v.StartsWith("keep_"))
@@ -267,7 +256,7 @@ namespace NeuroSonic.Charting.Conversions
                                 v = v.Substring(5);
                             }
                             
-                            var laserParams = chart[StreamIndex.LaserParams].Add<LaserParamsEvent>(chartPos);
+                            var laserParams = chart[NscLane.LaserEvent].Add<LaserParamsEvent>(chartPos);
                             laserParams.LaserIndex = LaserIndex.Both;
 
                             bool disableTilt = true;
@@ -281,11 +270,11 @@ namespace NeuroSonic.Charting.Conversions
 
                                         if (lastTiltEvent == null)
                                         {
-                                            var startPoint = chart[StreamIndex.Roll].Add<PathPointEvent>(chartPos);
+                                            var startPoint = chart[NscLane.CameraTilt].Add<GraphPointEvent>(chartPos);
                                             startPoint.Value = 0;
                                         }
 
-                                        var point = chart[StreamIndex.Roll].Add<PathPointEvent>(chartPos);
+                                        var point = chart[NscLane.CameraTilt].Add<GraphPointEvent>(chartPos);
                                         point.Value = -manualValue * 14 / 360.0f;
 
                                         lastTiltEvent = point;
@@ -332,7 +321,7 @@ namespace NeuroSonic.Charting.Conversions
                         var state = buttonStates[b];
 
                         var startPos = state.StartPosition;
-                        var button = chart[b].Add<ButtonObject>(startPos, endPos - startPos);
+                        var button = chart[(LaneLabel)b].Add<ButtonEntity>(startPos, endPos - startPos);
                     }
 
                     switch (data.State)
@@ -348,7 +337,7 @@ namespace NeuroSonic.Charting.Conversions
                         case KshButtonState.ChipSample:
                         {
                             //System.Diagnostics.Trace.WriteLine(b);
-                            chart[b].Add<ButtonObject>(chartPos);
+                            chart[(LaneLabel)b].Add<ButtonEntity>(chartPos);
                         } break;
                         
                         case KshButtonState.Hold:
@@ -379,7 +368,7 @@ namespace NeuroSonic.Charting.Conversions
                             {
                                 var cDuration = laserStates[l].PreviousSlamDuration;
 
-                                var connector = chart[l + 6].Add<AnalogObject>(startPos, cDuration);
+                                var connector = chart[(LaneLabel)(l + 6)].Add<AnalogEntity>(startPos, cDuration);
                                 connector.InitialValue = startAlpha;
                                 connector.FinalValue = startAlpha;
                                 connector.RangeExtended = laserIsExtended[l];
@@ -388,7 +377,7 @@ namespace NeuroSonic.Charting.Conversions
                             }
                         }
 
-                        var analog = chart[l + 6].Add<AnalogObject>(startPos, duration);
+                        var analog = chart[(LaneLabel)(l + 6)].Add<AnalogEntity>(startPos, duration);
                         analog.InitialValue = startAlpha;
                         analog.FinalValue = endAlpha;
                         analog.RangeExtended = laserIsExtended[l];
@@ -474,14 +463,14 @@ namespace NeuroSonic.Charting.Conversions
                     case KshAddKind.Spin:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration * 2, 192);
-                        var spin = chart[StreamIndex.HighwayEffect].Add<SpinImpulseEvent>(chartPos, duration);
+                        var spin = chart[NscLane.HighwayEvent].Add<SpinImpulseEvent>(chartPos, duration);
                         spin.Direction = (AngularDirection)tick.Add.Direction;
                     } break;
 
                     case KshAddKind.Swing:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration * 2, 192);
-                        var swing = chart[StreamIndex.HighwayEffect].Add<SwingImpulseEvent>(chartPos, duration);
+                        var swing = chart[NscLane.HighwayEvent].Add<SwingImpulseEvent>(chartPos, duration);
                         swing.Direction = (AngularDirection)tick.Add.Direction;
                         swing.Amplitude = tick.Add.Amplitude * 70 / 100.0f;
                     } break;
@@ -489,7 +478,7 @@ namespace NeuroSonic.Charting.Conversions
                     case KshAddKind.Wobble:
                     {
                         tick_t duration = tick_t.FromFraction(tick.Add.Duration, 192);
-                        var wobble = chart[StreamIndex.HighwayEffect].Add<WobbleImpulseEvent>(chartPos, duration);
+                        var wobble = chart[NscLane.HighwayEvent].Add<WobbleImpulseEvent>(chartPos, duration);
                         wobble.Direction = (LinearDirection)tick.Add.Direction;
                         wobble.Amplitude = tick.Add.Amplitude / 250.0f;
                         wobble.Decay = (Decay)tick.Add.Decay;

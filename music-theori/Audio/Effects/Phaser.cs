@@ -119,30 +119,4 @@ namespace theori.Audio.Effects
             public float za;
         };
     }
-
-    public sealed class PhaserEffectDef : EffectDef
-    {
-        public PhaserEffectDef(EffectParamF mix)
-            : base(EffectType.Phaser, mix)
-        {
-        }
-
-        public override Dsp CreateEffectDsp(int sampleRate) => new Phaser(sampleRate);
-
-        public override void ApplyToDsp(Dsp effect, time_t qnDur, float alpha = 0)
-        {
-            base.ApplyToDsp(effect, qnDur, alpha);
-            if (effect is Phaser p)
-            {
-            }
-        }
-
-        public override bool Equals(EffectDef other)
-        {
-            if (!(other is PhaserEffectDef ph)) return false;
-            return Type == ph.Type && Mix == ph.Mix;
-        }
-
-        public override int GetHashCode() => HashCode.For(Type, Mix);
-    }
 }

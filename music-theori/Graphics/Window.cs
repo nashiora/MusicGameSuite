@@ -18,7 +18,9 @@ namespace theori.Graphics
     {
         public static bool ShouldExitApplication { get; private set; }
 
-        private static IntPtr window, context;
+        public static bool HasFocus { get; private set; }
+
+        internal static IntPtr window, context;
         
         public static int Width { get; private set; }
         public static int Height { get; private set; }
@@ -242,8 +244,14 @@ namespace theori.Graphics
                             case SDL_WindowEventID.SDL_WINDOWEVENT_ENTER: break;
                             case SDL_WindowEventID.SDL_WINDOWEVENT_LEAVE: break;
                                 
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED: break;
-                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST: break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_GAINED:
+                            {
+                                HasFocus = true;
+                            } break;
+                            case SDL_WindowEventID.SDL_WINDOWEVENT_FOCUS_LOST:
+                            {
+                                HasFocus = false;
+                            } break;
 
                             case SDL_WindowEventID.SDL_WINDOWEVENT_SIZE_CHANGED:
                                 Width = evt.window.data1;

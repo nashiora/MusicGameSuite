@@ -37,48 +37,63 @@ namespace NeuroSonic.Charting
         }
     }
 
-    public sealed class AnalogObject : ChartObject
+    // TODO(local): Convert analog objects to a sequence of graph points
+
+    [EntityType("Analog")]
+    public sealed class AnalogEntity : Entity
     {
         private float m_initialValue, m_finalValue;
         private CurveShape m_shape = CurveShape.Linear;
         private float m_a, m_b;
         private bool m_extended;
 
-        public AnalogObject Head => FirstConnectedOf<AnalogObject>();
-        public AnalogObject Tail => LastConnectedOf<AnalogObject>();
+        public AnalogEntity Head => FirstConnectedOf<AnalogEntity>();
+        public AnalogEntity Tail => LastConnectedOf<AnalogEntity>();
+
+        public int DirectionSign => MathL.Sign(FinalValue - InitialValue);
 
         public bool IsSlam => IsInstant;
 
+        [TheoriProperty("initial")]
         public float InitialValue
         {
             get => m_initialValue;
             set => SetPropertyField(nameof(InitialValue), ref m_initialValue, value);
         }
 
+        [TheoriProperty("final")]
         public float FinalValue
         {
             get => m_finalValue;
             set => SetPropertyField(nameof(FinalValue), ref m_finalValue, value);
         }
 
+        [TheoriIgnoreDefault]
+        [TheoriProperty("shape")]
         public CurveShape Shape
         {
             get => m_shape;
             set => SetPropertyField(nameof(Shape), ref m_shape, value);
         }
 
+        [TheoriIgnoreDefault]
+        [TheoriProperty("a")]
         public float CurveA
         {
             get => m_a;
             set => SetPropertyField(nameof(CurveA), ref m_a, MathL.Clamp(value, 0, 1));
         }
 
+        [TheoriIgnoreDefault]
+        [TheoriProperty("b")]
         public float CurveB
         {
             get => m_b;
             set => SetPropertyField(nameof(CurveB), ref m_b, MathL.Clamp(value, 0, 1));
         }
 
+        [TheoriIgnoreDefault]
+        [TheoriProperty("extended")]
         public bool RangeExtended
         {
             get => m_extended;

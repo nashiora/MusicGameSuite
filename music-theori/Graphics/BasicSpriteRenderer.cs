@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using MoonSharp.Interpreter;
-
+using MoonSharp.Interpreter.Interop;
 using OpenGL;
 
 using theori.Resources;
+
+using static MoonSharp.Interpreter.DynValue;
 
 namespace theori.Graphics
 {
@@ -22,10 +24,15 @@ namespace theori.Graphics
 
         private Vector4 m_drawColor = Vector4.One, m_imageColor = Vector4.One;
         private Transform m_transform = Transform.Identity;
+        private Anchor m_textAlign = Anchor.TopLeft;
 
         private readonly Stack<Transform> m_savedTransforms = new Stack<Transform>();
 
         private RenderQueue m_queue;
+        private Font m_font = Font.Default16;
+
+        private readonly List<TextRasterizer> m_rasterizers = new List<TextRasterizer>();
+        private readonly Dictionary<Font, TextRasterizer> m_labels = new Dictionary<Font, TextRasterizer>();
 
         [MoonSharpHidden]
         public BasicSpriteRenderer(ClientResourceLocator locator = null, Vector2? viewportSize = null)
@@ -60,6 +67,9 @@ namespace theori.Graphics
             m_transform = Transform.Identity;
             m_drawColor = Vector4.One;
             m_imageColor = Vector4.One;
+            m_textAlign = Anchor.TopLeft;
+
+            SetFont(null, 16);
 
             Vector2 viewportSize = m_viewport ?? new Vector2(Window.Width, Window.Height);
             m_queue = new RenderQueue(new RenderState
@@ -73,6 +83,10 @@ namespace theori.Graphics
         public void EndFrame()
         {
             Flush();
+
+            foreach (var r in m_rasterizers)
+                r.Dispose();
+            m_rasterizers.Clear();
 
             m_queue.Dispose();
             m_queue = null;
@@ -122,6 +136,14 @@ namespace theori.Graphics
             m_transform = m_transform * new Transform(shear);
         }
 
+        [MoonSharpVisible(true)]
+        private DynValue GetViewportSize()
+        {
+            if (m_viewport is Vector2 v)
+                return NewTuple(NewNumber(v.X), NewNumber(v.Y));
+            else return NewTuple(NewNumber(Window.Width), NewNumber(Window.Height));
+        }
+
         public void SetColor(float r, float g, float b) => SetColor(r, g, b, 255);
 
         public void SetColor(float r, float g, float b, float a)
@@ -154,6 +176,49 @@ namespace theori.Graphics
             var p = new MaterialParams();
             p["MainTexture"] = texture;
             p["Color"] = m_imageColor;
+
+            m_queue.Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
+        }
+
+        public void SetFont(Font font, int size)
+        {
+            if (font == null) font = Font.GetDefault(size);
+            m_font = font;
+        }
+
+        public void SetTextAlign(Anchor align)
+        {
+            m_textAlign = align;
+        }
+
+        public void Write(string text, float x, float y)
+        {
+            var rasterizer = new TextRasterizer(m_font, text);
+            rasterizer.Rasterize();
+
+            m_rasterizers.Add(rasterizer);
+
+            Vector2 offset = Vector2.Zero, size = new Vector2(rasterizer.Width, rasterizer.Height);
+            switch ((Anchor)((int)m_textAlign & 0x0F))
+            {
+                case Anchor.Top: break;
+                case Anchor.Middle: offset.Y = (int)(-size.Y / 2); break;
+                case Anchor.Bottom: offset.Y = -size.Y; break;
+            }
+
+            switch ((Anchor)((int)m_textAlign & 0xF0))
+            {
+                case Anchor.Left: break;
+                case Anchor.Center: offset.X = (int)(-size.X / 2); break;
+                case Anchor.Right: offset.X = -size.X; break;
+            }
+
+            var transform = Transform.Scale(rasterizer.Width, rasterizer.Height, 1)
+                          * Transform.Translation(x + offset.X, y + offset.Y, 0);
+
+            var p = new MaterialParams();
+            p["MainTexture"] = rasterizer.Texture;
+            p["Color"] = m_drawColor;
 
             m_queue.Draw(transform * m_transform, m_rectMesh, m_basicMaterial, p);
         }
