@@ -2,24 +2,20 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Numerics;
+using System.Linq;
+using System.Threading;
 
 using theori;
 using theori.Audio;
 using theori.Charting;
 using theori.Charting.Serialization;
+using theori.Database;
 using theori.IO;
-using theori.Gui;
-using theori.Graphics;
 
 using NeuroSonic.Startup;
 using NeuroSonic.GamePlay;
 using NeuroSonic.Charting.KShootMania;
 using NeuroSonic.Charting.Conversions;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Threading;
-using theori.Database;
 
 namespace NeuroSonic.ChartSelect
 {
