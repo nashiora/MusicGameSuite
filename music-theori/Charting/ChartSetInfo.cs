@@ -13,18 +13,15 @@ namespace theori.Charting
         /// <summary>
         /// The database primary key.
         /// </summary>
-        public int ID { get; set; }
+        public long ID { get; set; }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public long LastWriteTime { get; set; }
 
-        private int? m_onlineIDBacking;
+        private long? m_onlineIDBacking;
         /// <summary>
         /// The online ID for the chart set, or null if this hasn't been uploaded.
         /// </summary>
-        public int? OnlineID
+        public long? OnlineID
         {
             get => m_onlineIDBacking;
             set => m_onlineIDBacking = value > 0 ? value : null;

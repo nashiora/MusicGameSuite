@@ -5,6 +5,21 @@ namespace theori.Graphics
 {
     public static class Color
     {
+        public static Vector3 HexToVector3(int rgb)
+        {
+            //       RR GG BB  (not necessary, but explains that there should ONLY be these bits)
+            rgb &= 0xFF_FF_FF;
+
+            float c(int i) => ((rgb >> (i * sizeof(byte))) & 0xFF) / 255.0f;
+            return new Vector3(c(2), c(1), c(0));
+        }
+
+        public static int Vector3ToHex(Vector3 rgb)
+        {
+            int c(float v, int i) => (MathL.RoundToInt(v * 255) & 0xFF) << (i * sizeof(byte));
+            return c(rgb.X, 2) | c(rgb.Y, 1) | c(rgb.Z, 0);
+        }
+
         public static Vector3 HSVtoRGB(Vector3 hsv)
         {
             Vector4 K = new Vector4(1, 2.0f / 3, 1.0f / 3, 3);

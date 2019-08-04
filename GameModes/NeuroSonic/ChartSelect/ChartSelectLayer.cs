@@ -1,4 +1,5 @@
 ﻿using theori;
+using theori.Database;
 using theori.IO;
 using theori.Resources;
 using theori.Scripting;
@@ -10,6 +11,7 @@ namespace NeuroSonic.ChartSelect
         private readonly ClientResourceLocator m_locator;
 
         private ClientResourceManager m_resources;
+        private ChartDatabase m_database;
 
         private AsyncLoader m_loader;
         private LuaScript m_script;
@@ -18,6 +20,24 @@ namespace NeuroSonic.ChartSelect
         {
             m_locator = locator;
             m_resources = new ClientResourceManager(locator);
+        }
+
+        public override bool AsyncLoad()
+        {
+            // NOTE(local): Separate database files for different things?
+            // Not entirely sure if multiple databases matters for standalone, or at all for that matter,
+            //  since we plan to have online chart repos be streamed and scores uploaded rather than stored locally.
+            // So only local charts would -need- a database? And extra databases would be caches for the
+            //  repos you play with? So that's a reason for multiple dbs?
+            m_database = new ChartDatabase("nsc-local.chart-db");
+            m_database.OpenLocal(Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory));
+
+            return true;
+        }
+
+        public override bool AsyncFinalize()
+        {
+            return true;
         }
 
         public override void Init()

@@ -2,6 +2,6 @@
 {
     public interface IHasPrimaryKey
     {
-        int ID { get; set; }
+        long ID { get; set; }
     }
 }

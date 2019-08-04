@@ -85,6 +85,7 @@
     <Compile Include="HashCode.cs" />
     <Compile Include="IO\EndianHelper.cs" />
     <Compile Include="IO\Error.cs" />
+    <Compile Include="IO\PathL.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MathL.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

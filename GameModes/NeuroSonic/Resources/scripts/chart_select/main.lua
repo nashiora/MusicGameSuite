@@ -18,6 +18,6 @@ function Update(delta, total)
 end
 
 function Draw()
-  g2d.SetColor(255,0,0,255);
-  g2d.FillRect(10,10,255,255);
+	g2d.SetColor(255, 0, 0, 255);
+	g2d.FillRect(10, 10, 255, 255);
 end

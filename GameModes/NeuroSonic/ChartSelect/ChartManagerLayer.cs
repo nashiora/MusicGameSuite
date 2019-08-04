@@ -19,6 +19,7 @@ using NeuroSonic.Charting.Conversions;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using theori.Database;
 
 namespace NeuroSonic.ChartSelect
 {
@@ -36,6 +37,10 @@ namespace NeuroSonic.ChartSelect
             AddMenuItem(new MenuItem(NextOffset, "Go To Chart Select", () => Host.PushLayer(new ChartSelectLayer(Plugin.DefaultResourceLocator))));
             AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", () => CreateThread(OpenKSH)));
+            AddSpacing();
+            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set (and Index)", () => CreateThread(ConvertKSHAndIndex)));
+            //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Chart Library to Theori Library (and Index)", () => CreateThread(ConvertKSHLibraryAndIndex)));
+
             //AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", () => CreateThread(OpenTheori)));
             AddSpacing();
             //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", () => CreateThread(ConvertKSH)));
@@ -199,6 +204,26 @@ namespace NeuroSonic.ChartSelect
             setSerializer.SaveToFile(m_chartsDir, chartSetInfo);
 
             return chartSetInfo;
+        }
+
+        private void ConvertKSHAndIndex()
+        {
+            var dialog = new OpenFileDialogDesc("Open KSH Chart", new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
+
+            var dialogResult = FileSystem.ShowOpenFileDialog(dialog);
+            if (dialogResult.DialogResult == DialogResult.OK)
+            {
+                string primaryKshFile = dialogResult.FilePath;
+                var chartSetInfo = ConvertKSHAndSave(primaryKshFile, out _);
+
+                var database = new ChartDatabase("nsc-local.chart-db");
+                database.OpenLocal(Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory));
+                database.AddSet(chartSetInfo);
+                database.SaveData();
+                database.Close();
+
+                Process.Start(Path.Combine(Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory), chartSetInfo.FilePath));
+            }
         }
 
         private void ConvertKSH()

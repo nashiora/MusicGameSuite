@@ -13,9 +13,11 @@ namespace theori.Charting
         /// <summary>
         /// The database primary key.
         /// </summary>
-        public int ID { get; set; }
+        public long ID { get; set; }
 
-        public int SetID => Set.ID;
+        public long LastWriteTime { get; set; }
+
+        public long SetID => Set.ID;
         public ChartSetInfo Set { get; set; }
 
         /// <summary>
@@ -52,6 +54,8 @@ namespace theori.Charting
         public Vector3? DifficultyColor { get; set; } = null;
 
         public time_t ChartDuration { get; set; } = 0;
+
+        public string Tags { get; set; } = "";
         
         public override bool Equals(object obj) => obj is ChartInfo info && Equals(info);
         bool IEquatable<ChartInfo>.Equals(ChartInfo other)
