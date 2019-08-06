@@ -15,14 +15,13 @@ namespace System.IO
         }
 
         //https://iandevlin.com/blog/2010/01/csharp/generating-a-relative-path-in-csharp/
-        public static string RelativePath(string absPath, string relTo)
+        public static string RelativePath(string root, string toRelative)
         {
-            string[] absDirs = absPath.Split('\\');
-            string[] relDirs = relTo.Split('\\');
+            string[] absDirs = root.Split('\\');
+            string[] relDirs = toRelative.Split('\\');
 
             // Get the shortest of the two paths
-            int len = absDirs.Length < relDirs.Length ? absDirs.Length :
-            relDirs.Length;
+            int len = absDirs.Length < relDirs.Length ? absDirs.Length : relDirs.Length;
 
             // Use to determine where in the loop we exited
             int lastCommonRoot = -1;

@@ -26,21 +26,29 @@ namespace NeuroSonic.ChartSelect
         private string m_chartsDir = Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory);
 
         private Thread m_loadThread = null;
+
         private Layer m_nextLayer = null;
+        private string m_convertDirectory = null;
 
         protected override void GenerateMenuItems()
         {
             AddMenuItem(new MenuItem(NextOffset, "Go To Chart Select", () => Host.PushLayer(new ChartSelectLayer(Plugin.DefaultResourceLocator))));
             AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Open KSH Chart Directly", () => CreateThread(OpenKSH)));
+            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", () => CreateThread(ConvertKSHAndOpen)));
             AddSpacing();
             AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set (and Index)", () => CreateThread(ConvertKSHAndIndex)));
+            AddMenuItem(new MenuItem(NextOffset, "Convert KSH Chart Library to Theori Set Library (and Index)", () => CreateThread(ConvertKSHLibraryAndIndex)));
+            AddMenuItem(new MenuItem(NextOffset, "Delete NSC Chart Database", () =>
+            {
+                if (File.Exists("nsc-local.chart-db"))
+                    File.Delete("nsc-local.chart-db");
+            }));
             //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Chart Library to Theori Library (and Index)", () => CreateThread(ConvertKSHLibraryAndIndex)));
 
             //AddMenuItem(new MenuItem(NextOffset, "Open Theori Chart Directly", () => CreateThread(OpenTheori)));
             AddSpacing();
             //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts to Theori Set", () => CreateThread(ConvertKSH)));
-            //AddMenuItem(new MenuItem(NextOffset, "Convert KSH Charts and Open Selected", () => CreateThread(ConvertKSHAndOpen)));
 
             void CreateThread(ThreadStart function)
             {
@@ -202,6 +210,63 @@ namespace NeuroSonic.ChartSelect
             return chartSetInfo;
         }
 
+        private ChartSetInfo ConvertKSHInDirectory(string kshChartsDirectory, string setDirectory)
+        {
+            string kshFullPath = Path.Combine(kshChartsDirectory, setDirectory);
+
+            var chartFiles = new List<(string, Chart)>();
+            foreach (string kshChartFile in Directory.EnumerateFiles(kshFullPath, "*.ksh"))
+            {
+                KshChartMetadata kshMeta;
+                using (var reader = new StreamReader(File.OpenRead(kshChartFile)))
+                    kshMeta = KshChartMetadata.Create(reader);
+
+                var kshChart = KshChart.CreateFromFile(kshChartFile);
+                var chart = kshChart.ToVoltex();
+
+                chartFiles.Add((kshChartFile, chart));
+            }
+
+            var chartSetInfo = new ChartSetInfo()
+            {
+                ID = 0, // no database ID, it's not in the database yet
+                OnlineID = null, // no online stuff, it's not uploaded
+
+                FilePath = setDirectory,
+                FileName = ".theori-set",
+            };
+
+            string nscChartDirectory = Path.Combine(m_chartsDir, setDirectory);
+            if (!Directory.Exists(nscChartDirectory))
+                Directory.CreateDirectory(nscChartDirectory);
+
+            foreach (var (kshChartFile, chart) in chartFiles)
+            {
+                string audioFile = Path.Combine(kshFullPath, chart.Info.SongFileName);
+                if (File.Exists(audioFile))
+                {
+                    string audioFileDest = Path.Combine(m_chartsDir, setDirectory, Path.GetFileName(audioFile));
+                    if (File.Exists(audioFileDest))
+                        File.Delete(audioFileDest);
+                    File.Copy(audioFile, audioFileDest);
+                }
+
+                chart.Info.Set = chartSetInfo;
+                chart.Info.FileName = $"{ Path.GetFileNameWithoutExtension(kshChartFile) }.theori";
+
+                chartSetInfo.Charts.Add(chart.Info);
+            }
+
+            var s = new ChartSerializer(m_chartsDir, NeuroSonicGameMode.Instance);
+            foreach (var (_, chart) in chartFiles)
+                s.SaveToFile(chart);
+
+            var setSerializer = new ChartSetSerializer();
+            setSerializer.SaveToFile(m_chartsDir, chartSetInfo);
+
+            return chartSetInfo;
+        }
+
         private void ConvertKSHAndIndex()
         {
             var dialog = new OpenFileDialogDesc("Open KSH Chart", new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
@@ -219,6 +284,18 @@ namespace NeuroSonic.ChartSelect
                 database.Close();
 
                 Process.Start(Path.Combine(Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory), chartSetInfo.FilePath));
+            }
+        }
+
+        private void ConvertKSHLibraryAndIndex()
+        {
+            var dialog = new FolderBrowserDialogDesc("Open KSH Chart");
+
+            var dialogResult = FileSystem.ShowFolderBrowserDialog(dialog);
+            if (dialogResult.DialogResult == DialogResult.OK)
+            {
+                m_convertDirectory = dialogResult.FolderPath;
+                // triggers in update
             }
         }
 
@@ -270,6 +347,57 @@ namespace NeuroSonic.ChartSelect
                 Host.PushLayer(m_nextLayer);
                 m_nextLayer = null;
             }
+            else if (m_convertDirectory != null)
+            {
+                string kshChartsDir = m_convertDirectory;
+                m_convertDirectory = null;
+
+                System.Threading.Tasks.Task.Run(() => ConvertKSHLibraryWorker(kshChartsDir));
+            }
+        }
+
+        private void ConvertKSHLibraryWorker(string kshChartsDir)
+        {
+            var database = new ChartDatabase("nsc-local.chart-db");
+            database.OpenLocal(Plugin.Config.GetString(NscConfigKey.StandaloneChartsDirectory));
+
+            void EnumerateDirectory(string directory, int subDirDepth)
+            {
+                Logger.Log($"Scanning { directory }");
+                foreach (string subDir in Directory.EnumerateDirectories(directory))
+                {
+                    if (Directory.GetFiles(subDir, "*.ksh").Length != 0)
+                    {
+                        string relativeDir = PathL.RelativePath(kshChartsDir, subDir);
+
+                        try
+                        {
+                            Logger.Log($"Converting { relativeDir }");
+
+                            Logger.Block();
+                            var chartSetInfo = ConvertKSHInDirectory(kshChartsDir, relativeDir);
+                            database.AddSet(chartSetInfo);
+                            Logger.Unblock();
+
+                            Logger.Log($".. Done!");
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.Log(e);
+                        }
+                    }
+                    else if (subDirDepth > 0)
+                        EnumerateDirectory(subDir, subDirDepth - 1);
+                }
+            }
+
+            EnumerateDirectory(kshChartsDir, 1);
+            Logger.Log($".. Finished Scanning!");
+
+            database.SaveData();
+            database.Close();
+
+            Process.Start(m_chartsDir);
         }
     }
 }

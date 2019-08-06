@@ -7,6 +7,7 @@ using theori.IO;
 using theori.Platform;
 
 using OpenFileDialog = System.Windows.Forms.OpenFileDialog;
+using CommonOpenFileDialog = Microsoft.WindowsAPICodePack.Dialogs.CommonOpenFileDialog;
 
 namespace NeuroSonic.Win32.Platform
 {
@@ -38,21 +39,43 @@ namespace NeuroSonic.Win32.Platform
                 return $"{ filter.Description } ({ string.Join(", ", exts) })|{ string.Join(";", exts) }";
             }
 
-            var dialog = new OpenFileDialog()
+            using (var dialog = new OpenFileDialog()
             {
                 Filter = string.Join("|", desc.Filters.Select(GetFilterFor)),
-            };
+            })
+            {
+                var result = new OpenFileResult()
+                {
+                    DialogResult = (DialogResult)dialog.ShowDialog(),
+                };
+                if (result.DialogResult == DialogResult.OK)
+                {
+                    result.FilePath = dialog.FileName;
+                }
 
-            var result = new OpenFileResult()
-            {
-                DialogResult = (DialogResult)dialog.ShowDialog(),
-            };
-            if (result.DialogResult == DialogResult.OK)
-            {
-                result.FilePath = dialog.FileName;
+                return result;
             }
+        }
 
-            return result;
+        public FolderBrowserResult ShowFolderBrowserDialog(FolderBrowserDialogDesc desc)
+        {
+            Debug.Assert(RuntimeInfo.IsWindows);
+
+            using (var dialog = new CommonOpenFileDialog()
+            {
+                IsFolderPicker = true,
+            })
+            {
+                var result = new FolderBrowserResult()
+                {
+                    DialogResult = (DialogResult)dialog.ShowDialog(),
+                };
+                if (result.DialogResult == DialogResult.OK)
+                {
+                    result.FolderPath = dialog.FileName;
+                }
+                return result;
+            }
         }
     }
 }

@@ -35,6 +35,16 @@
         }
     }
 
+    public struct FolderBrowserDialogDesc
+    {
+        public string Name;
+
+        public FolderBrowserDialogDesc(string name)
+        {
+            Name = name;
+        }
+    }
+
     public struct OpenFileResult
     {
         public DialogResult DialogResult;
@@ -43,11 +53,21 @@
         public string[] AllResults => FilePath?.Split(';') ?? new string[0];
     }
 
+    public struct FolderBrowserResult
+    {
+        public DialogResult DialogResult;
+        public string FolderPath;
+    }
+
     public static class FileSystem
     {
         public static OpenFileResult ShowOpenFileDialog(OpenFileDialogDesc desc)
         {
             return Host.Platform.ShowOpenFileDialog(desc);
+        }
+        public static FolderBrowserResult ShowFolderBrowserDialog(FolderBrowserDialogDesc desc)
+        {
+            return Host.Platform.ShowFolderBrowserDialog(desc);
         }
     }
 }

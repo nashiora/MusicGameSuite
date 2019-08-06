@@ -10,5 +10,6 @@ namespace theori.Platform
         IntPtr GetProcAddress(IntPtr library, string procName);
 
         OpenFileResult ShowOpenFileDialog(OpenFileDialogDesc desc);
+        FolderBrowserResult ShowFolderBrowserDialog(FolderBrowserDialogDesc desc);
     }
 }
