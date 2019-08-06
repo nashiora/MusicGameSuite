@@ -11,102 +11,6 @@ namespace NeuroSonic.GamePlay.Scoring
 {
     public class LaserJudge : StreamJudge
     {
-        enum InputState
-        {
-            /// <summary>
-            /// Valid inputs have been inputed, the system will expect more valid inputs.
-            /// 
-            /// If no inputs are given for a short while, the UnlockedActive input state
-            ///  is triggered until more valid inputs are given.
-            /// </summary>
-            LockedActive,
-
-            /// <summary>
-            /// No inputs have been entered, but the laser is not incactive yet.
-            /// 
-            /// If valid inputs are given to the current motion state, we go back to
-            ///  the LockedActive input state.
-            /// If the cursor falls too far outside of the laser or invalid inputs are
-            ///  given then the Inactive input state is triggered.
-            /// </summary>
-            UnlockedActive,
-
-            /// <summary>
-            /// Invalid inputs have been inputed, so we're waiting for more valid ones.
-            /// 
-            /// If the cursor fals back inside the laser (and subsequent valid inputs are
-            ///  given in most cases) then the LockedActive input state is triggered again.
-            /// </summary>
-            Inactive,
-        }
-
-        enum MotionState
-        {
-            /// <summary>
-            /// There is no laser to follow.
-            /// 
-            /// Any input is valid and will do nothing, no matter the input state.
-            /// </summary>
-            Idle,
-
-            /// <summary>
-            /// The state of NOT currently beign in a laser, but
-            ///  begin ready for it.
-            /// Cursor movement is not yet active but will reset to the
-            ///  start value of the upcoming laser.
-            ///  
-            /// Any input is valid if either of the *Active input states are in use
-            ///  and will do nothing, and any input is invalid if the Inactive
-            ///  input state is in use.
-            /// </summary>
-            AnticipateBegin,
-
-            /// <summary>
-            /// During a laser segment; all segments will start with this state.
-            /// At the end of a segment where the direction is changing, the 
-            ///  AnticipateDirectionSwitch state is used (after this state has been
-            ///  used at least once for valid input)
-            ///  
-            /// In the LockedActive input state, only inputs in the correct
-            ///  direction are considered valid; inputs in the incorrect direction
-            ///  will trigger the UnlockedActive input state, and no inputs at all
-            ///  will do the same after a short while.
-            /// In the Inactive input state any input is invalid until the usual
-            ///  re-activation criteria are met.
-            /// </summary>
-            SingleDirection,
-            /// <summary>
-            /// The state of a segment with the same start and end alpha values.
-            /// 
-            /// In the UnlockedActive input state, only input values in the direction
-            ///  towards the target cursor values are valid and set the input state
-            ///  to LockedActive; invalid inputs set it to Inactive immediately.
-            /// The LockedActive input state accepts all inputs and does nothing.
-            /// In the Inactive input state any input is invalid until the
-            ///  usual re-activation criteria are met.
-            /// </summary>
-            HoldPosition,
-
-            /// <summary>
-            /// After a valid input for SingleDirection, when the direction
-            ///  changes this state is used.
-            /// Both directions will be accepted with different outcomes:
-            /// If the previous direction is inputed, that's fine and this state is
-            ///  kept as is.
-            /// If the new direction is inputed, the state switches to the next (which
-            ///  will most likely only ever be SingleDirection)
-            ///  
-            /// In the LockedActive input state, an input in the new direction immediately
-            ///  switches to the next state (should always be SingleDirection next)
-            /// </summary>
-            AnticipateDirectionSwitch,
-            /// <summary>
-            /// The state of a slam being near.
-            /// No matter the previous state
-            /// </summary>
-            AnticipateSlam,
-        }
-
         enum JudgeState
         {
             Idle,
@@ -120,6 +24,7 @@ namespace NeuroSonic.GamePlay.Scoring
             LaserEnd,
 
             SwitchDirection,
+            SameDirectionSlam,
         }
 
         enum TickKind
@@ -206,7 +111,7 @@ namespace NeuroSonic.GamePlay.Scoring
 
         public event Action OnShowCursor;
         public event Action OnHideCursor;
-        
+
         public LaserJudge(Chart chart, LaneLabel label)
             : base(chart, label)
         {
@@ -276,6 +181,8 @@ namespace NeuroSonic.GamePlay.Scoring
                     {
                         if (segment.DirectionSign != ((AnalogEntity)segment.Previous).DirectionSign)
                             m_stateTicks.Add(new StateTick(root, segment, segment.AbsolutePosition, JudgeState.SwitchDirection));
+                        else if (segment.IsInstant)
+                            m_stateTicks.Add(new StateTick(root, segment, segment.AbsolutePosition, JudgeState.SameDirectionSlam));
 
                         if (segment.NextConnected == null)
                             m_stateTicks.Add(new StateTick(root, segment, segment.AbsoluteEndPosition, JudgeState.LaserEnd));
@@ -334,7 +241,8 @@ namespace NeuroSonic.GamePlay.Scoring
                             nextStateTick = NextStateTick;
                         else break;
                     }
-                } break;
+                }
+                break;
 
                 case JudgeState.ActiveOn:
                 case JudgeState.ActiveOff:
@@ -393,13 +301,18 @@ namespace NeuroSonic.GamePlay.Scoring
 
                             m_lockTimer = 0.0;
                         }
+                        else if (nextStateTick.State == JudgeState.SameDirectionSlam && position - (nextStateTick.Position + JudgementOffset) >= m_directionChangeRadius)
+                        {
+                            AdvanceStateTick();
+                        }
                         else break;
 
                         if (HasStateTicks)
                             nextStateTick = NextStateTick;
                         else break;
                     }
-                } break;
+                }
+                break;
             }
 
             if (HasStateTicks && position - (NextStateTick.Position + JudgementOffset) >= 0)
@@ -459,6 +372,17 @@ namespace NeuroSonic.GamePlay.Scoring
                                 SetLocked();
                             }
                         }
+                    }
+                }
+                else if (nextStateTick.State == JudgeState.SameDirectionSlam)
+                {
+                    time_t radius = MathL.Abs((double)(position - (NextStateTick.Position + JudgementOffset)));
+                    if (radius < m_directionChangeRadius && inputDir == m_direction)
+                    {
+                        Debug.Assert(nextStateTick.SegmentEntity.IsInstant);
+
+                        AdvanceStateTick();
+                        OnSlamHit?.Invoke(position, nextStateTick.SegmentEntity);
                     }
                 }
             }
