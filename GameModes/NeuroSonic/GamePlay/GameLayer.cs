@@ -882,7 +882,7 @@ namespace NeuroSonic.GamePlay
                     switch (currentLaserEffectDef)
                     {
                         case BitCrusherDef _:
-                            mix *= currentLaserEffectDef.Mix.Sample(alpha);
+                            mix = currentLaserEffectDef.Mix.Sample(alpha);
                             break;
 
                         case GateDef _:

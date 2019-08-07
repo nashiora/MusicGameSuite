@@ -251,6 +251,15 @@ namespace NeuroSonic.ChartSelect
                     File.Copy(audioFile, audioFileDest);
                 }
 
+                string jacketFile = Path.Combine(kshFullPath, chart.Info.JacketFileName);
+                if (File.Exists(jacketFile))
+                {
+                    string jacketFileDest = Path.Combine(m_chartsDir, setDirectory, Path.GetFileName(jacketFile));
+                    if (File.Exists(jacketFileDest))
+                        File.Delete(jacketFileDest);
+                    File.Copy(jacketFile, jacketFileDest);
+                }
+
                 chart.Info.Set = chartSetInfo;
                 chart.Info.FileName = $"{ Path.GetFileNameWithoutExtension(kshChartFile) }.theori";
 
@@ -300,7 +309,7 @@ namespace NeuroSonic.ChartSelect
         }
 
         private void ConvertKSH()
-    {
+        {
             var dialog = new OpenFileDialogDesc("Open KSH Chart",
                                 new[] { new FileFilter("K-Shoot MANIA Files", "ksh") });
 

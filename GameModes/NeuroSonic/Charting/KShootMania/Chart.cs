@@ -55,33 +55,45 @@ namespace NeuroSonic.Charting.KShootMania
     public struct KshButtonData
     {
         public KshButtonState State;
-        public KshFxKind FxKind;
     }
 
-    public enum KshFxKind
+    public enum KshOldFxHoldKind
     {
         None = 0,
 
-        BitCrush = 'B',
+        BitCrusher = 'B',
         
-        Gate4  = 'G',
-        Gate8  = 'H',
-        Gate16 = 'I',
-        Gate32 = 'J',
-        Gate12 = 'K',
-        Gate24 = 'L',
+        Gate_4  = 'G',
+        Gate_8  = 'H',
+        Gate_16 = 'I',
+        Gate_32 = 'J',
+        Gate_12 = 'K',
+        Gate_24 = 'L',
         
-        Retrigger8  = 'S',
-        Retrigger16 = 'T',
-        Retrigger32 = 'U',
-        Retrigger12 = 'V',
-        Retrigger24 = 'W',
+        Retrigger_8  = 'S',
+        Retrigger_16 = 'T',
+        Retrigger_32 = 'U',
+        Retrigger_12 = 'V',
+        Retrigger_24 = 'W',
 
         Phaser = 'Q',
         Flanger = 'F',
         Wobble = 'X',
         SideChain = 'D',
         TapeStop = 'A',
+    }
+
+    static class KshOldFxHoldKind_Ext
+    {
+        public static void GetEffectInfo(this KshOldFxHoldKind kind, out string name, out string param)
+        {
+            string str = kind.ToString();
+            if (!str.TrySplit('_', out name, out param))
+            {
+                name = str;
+                param = null;
+            }
+        }
     }
 
     public struct KshLaserData
@@ -325,14 +337,14 @@ namespace NeuroSonic.Charting.KShootMania
             chart.FilterDefines["hpf1"] = new KshEffectDef(KshEffectKind.HighPass, null);
             chart.FilterDefines["bitc"] = new KshEffectDef(KshEffectKind.BitCrusher, new Dictionary<string, IEffectParam>()
             {
-                ["reduction"] = new EffectParamI(0, 45, Ease.InExpo),
+                ["reduction"] = new EffectParamI(4, 45, Ease.InExpo),
             });
             chart.FilterDefines["fx;bitc"] = chart.FilterDefines["bitc"];
 
             var block = new KshBlock();
             var tick = new KshTick();
 
-            string line;
+            string line, lastFx = "00";
             while ((line = reader.ReadLine()) != null)
             {
                 if (string.IsNullOrEmpty(line))
@@ -495,7 +507,7 @@ namespace NeuroSonic.Charting.KShootMania
                         else
                         {
                             string effectName = value, effectParam = null;
-                            if (value.TrySplit(';', out string name, out string param))
+                            if (value != "fx;bitc" && value.TrySplit(';', out string name, out string param))
                             {
                                 effectName = name;
                                 effectParam = param;
@@ -584,15 +596,22 @@ namespace NeuroSonic.Charting.KShootMania
                                 
                             default:
                             {
-                                var kind = (KshFxKind)c;
-                                if (Enum.IsDefined(typeof(KshFxKind), kind) && kind != KshFxKind.None)
+                                var kind = (KshOldFxHoldKind)c;
+                                if (Enum.IsDefined(typeof(KshOldFxHoldKind), kind) && kind != KshOldFxHoldKind.None)
                                 {
                                     tick.Fx[i].State = KshButtonState.Hold;
-                                    tick.Fx[i].FxKind = kind;
+                                    if (lastFx[i] != c)
+                                    {
+                                        kind.GetEffectInfo(out string effectName, out string effectParam);
+                                        var effectRef = new Variant(new KshEffectRef(effectName, effectParam));
+
+                                        tick.Settings.Add(new KshTickSetting(i == 0 ? "fx-l" : "fx-r", effectRef));
+                                    }
                                 }
                             } break;
                         }
                     }
+                    lastFx = fx;
 
                     for (int i = 0; i < MathL.Min(2, vol.Length); i++)
                     {

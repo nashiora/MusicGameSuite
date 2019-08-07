@@ -12,9 +12,7 @@ namespace NeuroSonic.Charting.Conversions
         class TempButtonState
         {
             public tick_t StartPosition;
-
-            public byte SampleIndex = 0xFF;
-            public bool UsingSample = false;
+            public string Sample;
 
             public TempButtonState(tick_t pos)
             {
@@ -115,6 +113,9 @@ namespace NeuroSonic.Charting.Conversions
                 int blockOffset = tickRef.Block;
                 tick_t chartPos = blockOffset + (double)tickRef.Index / tickRef.MaxIndex;
 
+                string[] chipHitSounds = new string[6];
+                float[] chipHitSoundsVolume = new float[6];
+
                 foreach (var setting in tick.Settings)
                 {
                     string key = setting.Key;
@@ -156,6 +157,23 @@ namespace NeuroSonic.Charting.Conversions
                                 Logger.Log($"ksh.convert set { key } { effectEvent.Effect?.GetType().Name ?? "nothing" }");
                             }
                             else Logger.Log($"ksh.convert effects disabled for { key }");
+                        } break;
+
+                        case "fx-l_se":
+                        case "fx-r_se":
+                        {
+                            string chipFx = (string)setting.Value.Value;
+                            float volume = 1.0f;
+
+                            if (chipFx.Split(';', out string fxName, out string volStr))
+                            {
+                                chipFx = fxName;
+                                volume = int.Parse(volStr) / 100.0f;
+                            }
+
+                            int i = key == "fx-l_se" ? 4 : 5;
+                            chipHitSoundsVolume[i] = volume;
+                            chipHitSounds[i] = chipFx;
                         } break;
 
                         case "fx-l_param1":
@@ -314,7 +332,6 @@ namespace NeuroSonic.Charting.Conversions
                     bool isFx = b >= 4;
                     
                     var data = isFx ? tick.Fx[b - 4] : tick.Bt[b];
-                    var fxKind = data.FxKind;
 
                     void CreateHold(tick_t endPos)
                     {
@@ -336,8 +353,9 @@ namespace NeuroSonic.Charting.Conversions
                         case KshButtonState.Chip:
                         case KshButtonState.ChipSample:
                         {
-                            //System.Diagnostics.Trace.WriteLine(b);
-                            chart[(LaneLabel)b].Add<ButtonEntity>(chartPos);
+                            var chip = chart[(LaneLabel)b].Add<ButtonEntity>(chartPos);
+                            chip.Sample = chipHitSounds[b];
+                            chip.SampleVolume = chipHitSoundsVolume[b];
                         } break;
                         
                         case KshButtonState.Hold:
