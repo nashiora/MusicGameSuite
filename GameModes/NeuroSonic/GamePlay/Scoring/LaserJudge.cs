@@ -253,7 +253,8 @@ namespace NeuroSonic.GamePlay.Scoring
 
                     m_desiredCursorPosition = segmentCheck.SampleValue(position);
 
-                    m_lockTimer -= timeDelta * m_lockTimerSpeed;
+                    if (m_direction != 0)
+                        m_lockTimer -= timeDelta * m_lockTimerSpeed;
                     if (m_lockTimer < 0) m_lockTimer = 0;
 
                     if (AutoPlay)
@@ -262,6 +263,11 @@ namespace NeuroSonic.GamePlay.Scoring
                         CursorPosition = m_desiredCursorPosition;
 
                     IsBeingPlayed = MathL.Abs(m_desiredCursorPosition - CursorPosition) <= m_cursorActiveRange;
+                    if (IsBeingPlayed)
+                    {
+                        m_lockTimer = m_lockDuration; // NOTE(local): don't SetLocked, keep the timer decay speed
+                        CursorPosition = m_desiredCursorPosition;
+                    }
 
                     if (HasScoreTicks)
                     {
