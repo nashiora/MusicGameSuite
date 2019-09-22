@@ -2,6 +2,8 @@
 
 An extensible rhythm game client with many built-in game modes for home and arcade use.
 
+This project has been migrated to two separate repositories: [:theori](https://github.com/audfx/music-theori) itself and the [NeuroSonic](https://github.com/audfx/NeuroSonic) game mode.
+
 Demo Video(s):
 
 [![Early Demo](https://img.youtube.com/vi/vbyPEh_-LfU/2.jpg)](https://www.youtube.com/watch?v=vbyPEh_-LfU)
